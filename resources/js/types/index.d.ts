@@ -16,15 +16,15 @@ export interface NavItem {
     href: string;
     icon?: LucideIcon;
     isActive?: boolean;
+    children?: NavItem[];
 }
 
 export interface SharedData extends PageProps {
     name: string;
     quote: { message: string; author: string };
-    auth: Auth;
+    auth: any;
     ziggy: Config & { location: string };
 }
-
 export interface User {
     id: number;
     name: string;
@@ -33,6 +33,7 @@ export interface User {
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
-}
+  }
+  
 
 export type BreadcrumbItemType = BreadcrumbItem;
