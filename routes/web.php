@@ -20,6 +20,11 @@ Route::get('/sizes', function () {
     return Inertia::render('size/Index');
 })->middleware(['auth'])->name('size.index');
 
+Route::get('/konveksi', function () {
+    return Inertia::render('konveksi/Index');
+})->middleware(['auth'])->name('konveksi.index');
+
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/api.php';
