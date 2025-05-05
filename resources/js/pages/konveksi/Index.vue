@@ -14,8 +14,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 const handleProcessClick = (processId: string) => {
     router.visit(`/konveksi/process/${processId}`);
 };
-const handleCreateModelClick = () => {
-    router.visit(`/konveksi/create-model`);
+const handleListModelClick = () => {
+    router.visit(`/konveksi/model/list`);
 };
 </script>
 
@@ -29,7 +29,7 @@ const handleCreateModelClick = () => {
 
                 <!-- ORDER MODEL -->
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border bg-sky-100 dark:bg-sky-900 flex flex-col items-center justify-center cursor-pointer hover:bg-sky-200 dark:hover:bg-sky-800 transition-colors"
-                    @click="handleCreateModelClick">
+                    @click="handleListModelClick">
                     <ShirtIcon class="h-12 w-12 text-sky-600 dark:text-sky-400" />
                     <div
                         class="absolute bottom-0 w-full bg-sky-200 dark:bg-sky-800 py-2 text-center text-sm font-medium text-sky-700 dark:text-sky-300">

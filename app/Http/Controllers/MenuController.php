@@ -23,7 +23,7 @@ class MenuController extends Controller
         $menus = Menu::whereHas('roles', function ($query) use ($userRoleIds) {
                 $query->whereIn('roles.id', $userRoleIds);
             })
-            ->where('parent_id', 0)
+            ->whereNull('parent_id')
             ->with(['children' => function ($query) use ($userRoleIds) {
                 $query->whereHas('roles', function ($subQuery) use ($userRoleIds) {
                     $subQuery->whereIn('roles.id', $userRoleIds);

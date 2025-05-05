@@ -3,36 +3,65 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { ref } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import DocumentUpload from '@/components/DocumentUpload.vue';
-import InputNumber from 'primevue/inputnumber';
-import Textarea from 'primevue/textarea';
-import Button from 'primevue/button';
+import { Button } from '@/components/ui/button';
+import { DateInput } from '@/components/ui/date-input';
+import { Input } from '@/components/ui/input';
 import { Head } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
-import InputText from 'primevue/inputtext';
+import { useModelStore } from '@/stores/useModelStore';
+import { useToast } from "@/composables/useToast";
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Konveksi', href: '/konveksi' },
     { title: 'Create Model', href: '/konveksi/model/create' },
 ];
 
+const modelStore = useModelStore();
 const form = useForm({
     description: '',
     remark: '',
     start_date: null,
-    estimation_price: 0,
+    estimation_price_pcs: 0,
+    estimation_qty: 1,
 });
+
+const errors = ref<Record<string, string[]>>({});
+
+const toast = useToast();
+
+const handleSubmit = async () => {
+    try {
+        if (!form.start_date) {
+            errors.value = {
+                ...errors.value,
+                start_date: ['Tanggal mulai harus diisi']
+            };
+            toast.error("Tanggal mulai harus diisi");
+            return;
+        }
+
+        await modelStore.createModel({
+            description: form.description,
+            remark: form.remark,
+            estimation_price_pcs: form.estimation_price_pcs,
+            estimation_qty: form.estimation_qty,
+            start_date: form.start_date
+        });
+        
+        toast.success("Model berhasil dibuat");
+        router.visit('/konveksi/model/list');
+    } catch (error: any) {
+        if (error.response?.data?.errors) {
+            errors.value = error.response.data.errors;
+            toast.error("Validasi gagal, silakan periksa kembali form anda");
+        } else {
+            toast.error("Terjadi kesalahan saat membuat model");
+        }
+    }
+};
 
 const showUploadDialog = ref(false);
 const uploadedDocuments = ref<any[]>([]);
-
-const handleSubmit = () => {
-    form.post('/konveksi/model', {
-        onSuccess: () => {
-            uploadedDocuments.value = [];
-            showUploadDialog.value = false;
-        },
-    });
-};
 
 const handleUploadClick = () => {
     showUploadDialog.value = true;
@@ -53,82 +82,74 @@ const removeDocument = (index: number) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-6 rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800">
             <div class="border-b pb-4 dark:border-gray-700">
+                <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Buat Model Baru</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Tambahkan model baru dengan mengisi detail di bawah ini.</p>
             </div>
 
             <form @submit.prevent="handleSubmit" class="space-y-6">
                 <!-- Description -->
                 <div class="field">
-                    <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Description</label>
-                    <Textarea 
+                    <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Deskripsi</label>
+                    <Input 
                         v-model="form.description" 
                         id="description" 
-                        rows="4" 
                         placeholder="Masukkan deskripsi model..." 
-                        :class="{ 'p-invalid': form.errors.description }"
-                        class="w-full rounded-lg transition-shadow focus:shadow-md" 
+                        :class="{ 'border-destructive': errors.description }"
                     />
-                    <small class="p-error" v-if="form.errors.description">{{ form.errors.description }}</small>
+                    <small class="text-destructive" v-if="errors.description">{{ errors.description[0] }}</small>
                 </div>
 
                 <!-- Two columns layout -->
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <!-- Start Date -->
                     <div class="field">
-                        <label for="start_date" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Start Date</label>
-                        <div class="mt-1">
-                            <InputText
-                                v-model="form.start_date"
-                                id="start_date"
-                                type="date"
-                                :class="{ 'p-invalid': form.errors.start_date, 'w-full': true }"
-                                class="w-full rounded-lg transition-shadow focus:shadow-md"
-                            />
-                            <small class="p-error" v-if="form.errors.start_date">{{ form.errors.start_date }}</small>
-                        </div>
+                        <label for="start_date" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Tanggal Mulai</label>
+                        <DateInput
+                            type="date"
+                            v-model="form.start_date"
+                            id="start_date"
+                            :class="{ 'border-destructive': errors.start_date }"
+                        />
+                        <small class="text-destructive" v-if="errors.start_date">{{ errors.start_date[0] }}</small>
                     </div>
 
                     <!-- Estimation Price -->
                     <div class="field">
-                        <label for="estimation_price" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Estimation Price</label>
-                        <InputNumber 
-                            v-model="form.estimation_price" 
-                            id="estimation_price" 
-                            mode="currency" 
-                            currency="IDR" 
-                            locale="id-ID" 
-                            :class="{ 'p-invalid': form.errors.estimation_price }"
+                        <label for="estimation_price_pcs" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Estimasi Harga</label>
+                        <Input
+                            type="number"
+                            v-model="form.estimation_price_pcs" 
+                            id="estimation_price_pcs" 
+                            :class="{ 'border-destructive': errors.estimation_price_pcs }"
                             class="w-full" 
                         />
-                        <small class="p-error" v-if="form.errors.estimation_price">{{ form.errors.estimation_price }}</small>
+                        <small class="text-destructive" v-if="errors.estimation_price_pcs">{{ errors.estimation_price_pcs[0] }}</small>
                     </div>
                 </div>
 
                 <!-- Remark -->
                 <div class="field">
-                    <label for="remark" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Remark</label>
-                    <Textarea 
+                    <label for="remark" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Catatan</label>
+                    <Input 
                         v-model="form.remark" 
                         id="remark" 
-                        rows="3" 
                         placeholder="Tambahkan catatan tambahan..." 
-                        :class="{ 'p-invalid': form.errors.remark }"
-                        class="w-full rounded-lg transition-shadow focus:shadow-md" 
+                        :class="{ 'border-destructive': form.errors.remark }"
                     />
-                    <small class="p-error" v-if="form.errors.remark">{{ form.errors.remark }}</small>
+                    <small class="text-destructive" v-if="form.errors.remark">{{ form.errors.remark }}</small>
                 </div>
 
                 <!-- Upload Images -->
                 <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Model Images</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Gambar Model</label>
                     <div class="mt-3 space-y-4">
                         <Button 
                             type="button" 
-                            icon="pi pi-upload" 
-                            label="Upload Image" 
+                            variant="outline"
                             @click="handleUploadClick"
-                            class="p-button-outlined" 
-                        />
+                        >
+                            <i class="pi pi-upload" /> Upload Gambar
+                        </Button>
 
                         <div v-if="uploadedDocuments.length > 0" class="grid grid-cols-2 gap-4 md:grid-cols-4">
                             <div v-for="(doc, index) in uploadedDocuments" 
@@ -144,10 +165,13 @@ const removeDocument = (index: number) => {
                                     <p class="text-xs text-white truncate">{{ doc.filename }}</p>
                                 </div>
                                 <Button
-                                    icon="pi pi-times"
-                                    class="absolute right-2 top-2 p-button-rounded p-button-danger p-button-sm opacity-0 transition-opacity group-hover:opacity-100"
+                                    variant="destructive"
+                                    size="icon"
+                                    class="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
                                     @click.prevent="removeDocument(index)"
-                                />
+                                >
+                                    <i class="pi pi-times" />
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -157,17 +181,17 @@ const removeDocument = (index: number) => {
                 <div class="flex items-center justify-end space-x-3 border-t pt-6 dark:border-gray-700">
                     <Button 
                         type="button" 
-                        label="Cancel" 
-                        class="p-button-text" 
-                        @click="router.visit('/konveksi')" 
-                    />
+                        variant="secondary"
+                        @click="router.visit('/konveksi')"
+                    >
+                        Batal
+                    </Button>
                     <Button 
                         type="submit" 
-                        label="Save Model" 
-                        icon="pi pi-check" 
-                        :loading="form.processing" 
-                        class="p-button-primary" 
-                    />
+                        :loading="form.processing"
+                    >
+                        <i class="pi pi-check" /> Simpan
+                    </Button>
                 </div>
             </form>
         </div>

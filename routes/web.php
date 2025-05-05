@@ -24,9 +24,14 @@ Route::get('/konveksi', function () {
     return Inertia::render('konveksi/Index');
 })->middleware(['auth'])->name('konveksi.index');
 
-Route::get('/konveksi/create-model', function () {
+
+Route::get('/konveksi/model/create', function () {
     return Inertia::render('konveksi/CreateModel');
 })->middleware(['auth'])->name('konveksi.create-model');
+
+Route::get('/konveksi/model/list', function () {
+    return Inertia::render('konveksi/ListModel');
+})->middleware(['auth'])->name('konveksi.list-model');
 
 
 require __DIR__.'/settings.php';

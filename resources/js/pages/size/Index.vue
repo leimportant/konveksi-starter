@@ -21,7 +21,7 @@ const form = useForm({
 });
 
 const breadcrumbs = [
-  { title: 'UOM', href: '/uoms' }
+  { title: 'Ukuran', href: '/sizes' }
 ];
 
 const useStore = useSizeStore();

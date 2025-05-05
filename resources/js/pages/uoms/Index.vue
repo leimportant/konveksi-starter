@@ -89,7 +89,6 @@ const handleDelete = async (id: number) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold">Unit of Measurement</h1>
         <Button @click="showCreateModal = true">
           <Plus class="h-4 w-4" />
           Add

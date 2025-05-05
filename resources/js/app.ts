@@ -11,7 +11,6 @@ import { createPinia } from 'pinia';
 import { initializeTheme } from './composables/useAppearance';
 import PrimeVue from 'primevue/config';
 
-
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
