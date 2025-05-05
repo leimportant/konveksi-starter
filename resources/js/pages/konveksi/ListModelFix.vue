@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2, Plus } from 'lucide-vue-next';
 import { useToast } from "@/composables/useToast";
 import { useModelStore } from '@/stores/useModelStore';
 import { storeToRefs } from 'pinia';
 import { DateInput } from '@/components/ui/date-input';
-import { ListView } from '@/components/ui/list-view';
+import { router } from '@inertiajs/vue3';
 
 const toast = useToast();
 const modelStore = useModelStore();
@@ -20,6 +21,7 @@ const breadcrumbs = [
   { title: 'List Model', href: '/konveksi/model' }
 ];
 
+// Search filters
 const searchQuery = ref('');
 const startDate = ref<string | null>(null);
 const endDate = ref<string | null>(null);
@@ -37,12 +39,12 @@ const fetchModels = async () => {
     });
   } catch (error: any) {
     if (error.response?.data?.errors) {
-      console.error(error.response.data.errors);
-      toast.error("Gagal ambil data");
-    } else {
-      toast.error("Terjadi kesalahan saat membuat model");
-    }
-  }
+            console.error(error.response.data.errors);
+            toast.error("Gagal ambil data");
+        } else {
+            toast.error("Terjadi kesalahan saat membuat model");
+        }
+   }
 };
 
 const handleDelete = async (id: number) => {
@@ -57,6 +59,7 @@ const handleDelete = async (id: number) => {
   }
 };
 
+// Add format functions
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -67,7 +70,7 @@ const formatPrice = (price: number) => {
 };
 
 const formatDate = (date: string | null | undefined) => {
-  if (!date) return '-';
+  if (!date) return '-'; // fallback for null or empty
   return new Date(date).toLocaleDateString('id-ID', {
     day: '2-digit',
     month: 'long',
@@ -75,23 +78,18 @@ const formatDate = (date: string | null | undefined) => {
   });
 };
 
-const handleSelect = (model: any) => {
-  router.visit(`/konveksi/model/${model.id}/edit`);
-};
 </script>
 
 <template>
   <Head title="List Model" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
-      <!-- Filter and Create Button -->
-      <div class="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
-        <!-- Filters -->
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4 w-full">
+    <div class="px-4 py-6">
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex gap-4 items-center">
           <Input 
             v-model="searchQuery"
             placeholder="Search models..."
-            class="w-full sm:w-64"
+            class="w-64"
             @input="fetchModels"
           />
           <DateInput
@@ -105,54 +103,51 @@ const handleSelect = (model: any) => {
             @update:modelValue="fetchModels"
           />
         </div>
-
-        <!-- Create Button -->
-        <Button class="w-full sm:w-auto" @click="router.visit('/konveksi/model/create')">
+        <Button @click="router.visit('/konveksi/model/create')">
           <Plus class="h-4 w-4 mr-2" />
           Buat Model
         </Button>
       </div>
 
-      <!-- List View -->
-      <ListView
-        :items="models"
-        :is-loading="modelStore.loading"
-        empty-message="Tidak ada model yang ditemukan"
-        @select="handleSelect"
-      >
-        <!-- Item Slot -->
-        <template #item="{ item }">
-          <div class="flex flex-col space-y-2 sm:space-y-1">
-            <h3 class="font-medium text-base truncate">{{ item.description }}</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-500">
-              <span><span class="font-medium sm:hidden">Tanggal Mulai:</span> {{ formatDate(item.start_date) }}</span>
-              <span><span class="font-medium sm:hidden">Harga/Pcs:</span> {{ formatPrice(item.estimation_price_pcs) }}</span>
-              <span><span class="font-medium sm:hidden">Qty:</span> {{ item.estimation_qty }}</span>
-            </div>
-            <p class="text-sm text-gray-600 line-clamp-2">{{ item.remark || '-' }}</p>
-          </div>
-        </template>
-
-        <!-- Actions Slot -->
-        <template #actions="{ item }">
-          <div class="flex gap-2 justify-end sm:justify-start">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              @click.stop="router.visit(`/konveksi/model/${item.id}/edit`)"
-            >
-              <Edit class="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              @click.stop="handleDelete(item.id)"
-            >
-              <Trash2 class="h-4 w-4" />
-            </Button>
-          </div>
-        </template>
-      </ListView>
+      <div class="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Description</TableHead>
+              <TableHead>Start Date</TableHead>
+              <TableHead>Price/Pcs</TableHead>
+              <TableHead>Qty</TableHead>
+              <TableHead>Remark</TableHead>
+              <TableHead class="w-24">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="model in models" :key="model.id">
+              <TableCell>{{ model.description }}</TableCell>
+              <TableCell>{{ formatDate(model.start_date) }}</TableCell>
+              <TableCell>{{ formatPrice(model.estimation_price_pcs) }}</TableCell>
+              <TableCell>{{ model.estimation_qty }}</TableCell>
+              <TableCell>{{ model.remark }}</TableCell>
+              <TableCell class="flex gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  @click="router.visit(`/konveksi/model/${model.id}/edit`)"
+                >
+                  <Edit class="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  @click="handleDelete(model.id)"
+                >
+                  <Trash2 class="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
     </div>
   </AppLayout>
 </template>

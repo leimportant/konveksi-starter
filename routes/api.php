@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\UomController;
 use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Api\ComboController;
-use App\Http\Controllers\Api\ModelController;
+use App\Http\Controllers\Api\ModelRefController;
 
 Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
 Route::apiResource('kasbon-payments', KasbonPaymentController::class);
@@ -17,5 +17,12 @@ Route::middleware('auth')->group(function () {
 
     Route::apiResource('api/uoms', UomController::class);
     Route::apiResource('api/sizes', SizeController::class);
-    Route::apiResource('api/models', ModelController::class);
+    Route::prefix('api/models')->group(function () {
+        Route::get('/list', [ModelRefController::class, 'list']);
+        Route::get('/', [ModelRefController::class, 'index']);
+        Route::post('/', [ModelRefController::class, 'store']);
+        Route::get('/{id}', [ModelRefController::class, 'show']);
+        Route::put('/{id}', [ModelRefController::class, 'update']);
+        Route::delete('/{id}', [ModelRefController::class, 'destroy']);
+    });
 });

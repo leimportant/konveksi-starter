@@ -73,6 +73,22 @@ export const useModelStore = defineStore('model', {
             }
         },
 
+        async fetchModelById(id: number) {
+            try {
+                this.loading = true;
+                const response = await axios.get(`/api/models/${id}`);
+                if (!response.data || !response.data.data) {
+                    throw new Error('Data model tidak ditemukan');
+                }
+                return response.data;
+            } catch (error: any) {
+                this.error = error.response?.data?.message || error.message || 'Gagal mengambil data model';
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        },
+        
         async updateModel(id: number, data: Partial<ModelData>) {
             try {
                 this.loading = true;

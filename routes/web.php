@@ -29,6 +29,13 @@ Route::get('/konveksi/model/create', function () {
     return Inertia::render('konveksi/CreateModel');
 })->middleware(['auth'])->name('konveksi.create-model');
 
+
+Route::get('/konveksi/model/{id}/edit', function ($id) {
+    return Inertia::render('konveksi/UpdateModel', [
+        'modelId' => $id,
+    ]);
+})->middleware(['auth'])->name('konveksi.edit-model');
+
 Route::get('/konveksi/model/list', function () {
     return Inertia::render('konveksi/ListModel');
 })->middleware(['auth'])->name('konveksi.list-model');
