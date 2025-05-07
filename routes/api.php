@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Api\ComboController;
 use App\Http\Controllers\Api\ModelRefController;
+use App\Http\Controllers\Api\ActivityRoleController;
 
 Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
 Route::apiResource('kasbon-payments', KasbonPaymentController::class);
@@ -25,4 +26,5 @@ Route::middleware('auth')->group(function () {
         Route::put('/{id}', [ModelRefController::class, 'update']);
         Route::delete('/{id}', [ModelRefController::class, 'destroy']);
     });
+    Route::apiResource('api/activity-roles', ActivityRoleController::class);
 });

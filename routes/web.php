@@ -32,7 +32,7 @@ Route::get('/konveksi/model/create', function () {
 
 Route::get('/konveksi/model/{id}/edit', function ($id) {
     return Inertia::render('konveksi/UpdateModel', [
-        'modelId' => $id,
+        'modelId' => (int) $id,
     ]);
 })->middleware(['auth'])->name('konveksi.edit-model');
 

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
+import type { PageProps } from '@/types/page-props'; // adjust path as needed
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -20,9 +21,12 @@ const sidebarNavItems: NavItem[] = [
     },
 ];
 
-const page = usePage();
+const page = usePage<PageProps>();
 
-const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
+const currentPath = page.props.ziggy?.location
+  ? new URL(page.props.ziggy.location).pathname
+  : '';
+  
 </script>
 
 <template>

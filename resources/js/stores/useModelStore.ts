@@ -1,12 +1,31 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
+export interface SizeItem {
+    size_id: number;
+    qty: number;
+  }
+
+  export interface ActivityItem {
+    role_id: number;
+    price: number;
+  }
+  
+  export interface DocumentData {
+    id: string;
+    url: string;
+    filename: string;
+  }
 interface ModelData {
     description: string;
     remark: string | null;
     estimation_price_pcs: number;
     estimation_qty: number;
     start_date: string | null;
+    // ← NEW:
+    sizes: SizeItem[];
+    activity: ActivityItem[];
+    documents: DocumentData[];
 }
 
 interface Model extends ModelData {

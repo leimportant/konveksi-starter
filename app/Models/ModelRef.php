@@ -31,4 +31,15 @@ class ModelRef extends BaseModel
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'
     ];
+
+    public function sizes()
+    {
+        return $this->hasMany(ModelSize::class, 'model_id');
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(ModelActivity::class, 'model_id');
+    }
+
 }
