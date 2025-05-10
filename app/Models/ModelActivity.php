@@ -14,7 +14,7 @@ class ModelActivity extends Model
 
     protected $fillable = [
         'model_id',
-        'role_id',
+        'activity_role_id',
         'price',
         'created_by',
         'updated_by',
@@ -23,7 +23,7 @@ class ModelActivity extends Model
 
     protected $casts = [
         'model_id' => 'integer',
-        'role_id' => 'integer',
+        'activity_role_id' => 'integer',
         'price' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -35,9 +35,9 @@ class ModelActivity extends Model
         return $this->belongsTo(ModelRef::class, 'model_id');
     }
 
-    public function role()
+    public function activityRole()
     {
-        return $this->belongsTo(ActivityRole::class, 'role_id');
+        return $this->belongsTo(ActivityRole::class, 'activity_role_id');
     }
 
     public function createdBy()

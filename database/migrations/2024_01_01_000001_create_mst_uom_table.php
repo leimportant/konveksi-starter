@@ -9,7 +9,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('mst_uom', function (Blueprint $table) {
-            $table->id();
+            $table->string('id', 10)->primary();
             $table->string('name');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

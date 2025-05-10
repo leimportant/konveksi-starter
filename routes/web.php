@@ -40,6 +40,40 @@ Route::get('/konveksi/model/list', function () {
     return Inertia::render('konveksi/ListModel');
 })->middleware(['auth'])->name('konveksi.list-model');
 
+Route::get('/products', function () {
+    return Inertia::render('product/Index');
+})->middleware(['auth'])->name('products.index');
+
+Route::get('/categories', function () {
+    return Inertia::render('category/Index');
+})->middleware(['auth'])->name('categories.index');
+
+Route::get('/good-receive', function () {
+    return Inertia::render('good-receive/Index');
+})->middleware(['auth'])->name('good-receive.index');
+
+Route::get('/good-receive/create', function () {
+    return Inertia::render('good-receive/Create');
+})->middleware(['auth'])->name('good-receive.create');
+
+
+Route::get('/good-receive/{id}/edit', function ($id) {
+    return Inertia::render('good-receive/Update', [
+        'id' => (int) $id,
+    ]);
+})->middleware(['auth'])->name('good-receive.edit');
+
+Route::get('/production/{activity_role}', function ($activity_role) {
+    return Inertia::render('production/Index', [
+        'activity_role' => $activity_role,
+    ]);
+})->middleware(['auth'])->name('production.index');
+
+Route::get('/production/{activity_role}/create', function ($activity_role) {
+    return Inertia::render('production/Create', [
+        'activity_role' => $activity_role,
+    ]);
+})->middleware(['auth'])->name('production.create');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

@@ -14,7 +14,6 @@ class MenuController extends Controller
         $user = Auth::user();
         $userRoleIds = $user->roles->pluck('id');
 
-        Log::info('User Role IDs: ' . $userRoleIds->implode(', '));
         // If user has no roles, return empty array
         if ($userRoleIds->isEmpty()) {
             return response()->json([]);

@@ -68,6 +68,9 @@
             module="model" accept="image/*" @uploaded="handleDocumentUploaded" />
         </div>
 
+        <div v-if="activeTab === 'bahan dan biaya'">
+          <ModelMaterialTab v-model="modelMaterials" />
+        </div>
         <!-- Submit Buttons -->
         <div class="flex justify-end gap-2">
           <Button type="button" variant="outline" @click="router.visit('/konveksi/model/list')">
@@ -92,6 +95,7 @@ import { Button } from '@/components/ui/button';
 import DocumentUpload from '@/components/DocumentUpload.vue';
 import SizeTab from '@/components/SizeTab.vue';
 import ActivityTab from '@/components/ActivityTab.vue';
+import ModelMaterialTab from '@/components/ModelMaterialTab.vue';
 import { useModelStore } from '@/stores/useModelStore';
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
@@ -105,7 +109,7 @@ const props = defineProps<{
 const modelId = ref(Number(props.modelId));  // Pastikan tipe data diubah ke Number
 
 // Tabs setup
-const tabs = ['model', 'size', 'activity', 'document'] as const;
+const tabs = ['model', 'size', 'activity', 'document', 'bahan dan biaya'] as const;
 type Tab = typeof tabs[number];
 const activeTab = ref<Tab>(tabs[0]);
 const errors = ref<Record<string, string[]>>({});
@@ -140,8 +144,15 @@ const handleDocumentUploaded = (doc: any) => uploadedDocuments.value.push(doc);
 const sizeItems = ref<{ size_id: number; qty: number }[]>([]);
 
 // Activity items
-const activityItems = ref<{ role_id: number; price: number }[]>([]);
+const activityItems = ref<{ activity_role_id: number; price: number }[]>([]);
 
+
+const modelMaterials = ref<{
+  product_id: number;
+  qty: number;
+  uom_id: number;
+  remark: string;
+}[]>([]);
 // Submit handler
 const handleSubmit = async () => {
   try {
@@ -149,7 +160,8 @@ const handleSubmit = async () => {
       ...form,
       sizes: sizeItems.value,
       activity: activityItems.value,  // Changed from 'activities' to 'activity'
-      documents: uploadedDocuments.value
+      documents: uploadedDocuments.value,
+      modelMaterials: modelMaterials.value,  
     });
 
     toast.success('Model berhasil diperbarui');
@@ -178,6 +190,7 @@ onMounted(async () => {
       sizeItems.value = model.data.sizes || [];
       activityItems.value = model.data.activities || [];
       uploadedDocuments.value = model.data.documents || [];
+      modelMaterials.value = model.data.modelMaterials || [];
     }
   } catch (error: any) {
     if (error.response?.data?.errors) {

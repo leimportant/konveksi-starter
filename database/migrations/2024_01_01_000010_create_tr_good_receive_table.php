@@ -15,8 +15,8 @@ return new class extends Migration
             $table->text('description');
             $table->decimal('qty_base', 15, 2);
             $table->decimal('qty_convert', 15, 2);
-            $table->unsignedBigInteger('uom_base');
-            $table->unsignedBigInteger('uom_convert');
+            $table->string('uom_base', 10);
+            $table->string('uom_convert', 10);
             $table->string('recipent');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

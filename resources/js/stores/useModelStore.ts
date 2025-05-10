@@ -7,7 +7,7 @@ export interface SizeItem {
   }
 
   export interface ActivityItem {
-    role_id: number;
+    activity_role_id: number;
     price: number;
   }
   
@@ -15,6 +15,13 @@ export interface SizeItem {
     id: string;
     url: string;
     filename: string;
+  }
+
+  export interface ModelMaterialData {
+    product_id: number;
+    qty: number;
+    uom_id: number;
+    remark: string;
   }
 interface ModelData {
     description: string;
@@ -26,6 +33,7 @@ interface ModelData {
     sizes: SizeItem[];
     activity: ActivityItem[];
     documents: DocumentData[];
+    modelMaterials: ModelMaterialData[];
 }
 
 interface Model extends ModelData {

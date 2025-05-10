@@ -95,6 +95,11 @@
           />
         </div>
 
+        <!-- Material Tab -->
+        <div v-if="activeTab === 'bahan_dan_biaya'">
+          <ModelMaterialTab v-model="modelMaterials" />
+        </div>
+
         <!-- Submit Buttons -->
         <div class="flex justify-end border-t pt-6 dark:border-gray-300 space-x-2">
           <Button type="button" variant="secondary" @click="router.visit('/konveksi')">Batal</Button>
@@ -120,6 +125,7 @@ import ActivityTab from '@/components/ActivityTab.vue';
 import { useModelStore } from '@/stores/useModelStore';
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
+import ModelMaterialTab from '@/components/ModelMaterialTab.vue';
 
 // Props for edit mode
 const props = defineProps<{
@@ -127,9 +133,11 @@ const props = defineProps<{
 }>();
 
 // Tabs setup
-const tabs = ['model', 'size', 'activity', 'document'] as const;
+const tabs = ['model', 'size', 'activity', 'document', 'bahan_dan_biaya'] as const;
 type Tab = typeof tabs[number];
 const activeTab = ref<Tab>('model');
+
+
 
 // Determine mode
 const isEditMode = computed(() => !!props.modelData);
@@ -172,7 +180,14 @@ const errors = ref<Record<string, string[]>>({});
 const sizeItems = ref<{ size_id: number; qty: number }[]>([{ size_id: 0, qty: 0 }]);
 
 // Activity items
-const activityItems = ref<{ role_id: number; price: number }[]>([]);
+const activityItems = ref<{ activity_role_id: number; price: number }[]>([]);
+
+const modelMaterials = ref<{
+  product_id: number;
+  qty: number;
+  uom_id: number;
+  remark: string;
+}[]>([]);
 
 // Initialize form for edit
 onMounted(() => {
@@ -184,6 +199,7 @@ onMounted(() => {
     form.estimation_qty = props.modelData.estimation_qty;
     sizeItems.value = props.modelData.sizes || [];
     activityItems.value = props.modelData.activity || [];
+    modelMaterials.value = props.modelData.modelMaterials || [];
     uploadedDocuments.value = props.modelData.documents || [];
   }
 });
@@ -203,6 +219,7 @@ const handleSubmit = async () => {
         sizes: sizeItems.value,
         activity: activityItems.value,
         documents: uploadedDocuments.value,
+        modelMaterials: modelMaterials.value,  // Changed from modelMaterial to modelMaterials
       });
       toast.success('Model berhasil diperbarui');
     } else {
@@ -211,6 +228,7 @@ const handleSubmit = async () => {
         sizes: sizeItems.value,
         activity: activityItems.value,
         documents: uploadedDocuments.value,
+        modelMaterials: modelMaterials.value,  // Changed from modelMaterial to modelMaterials
       });
       toast.success('Model berhasil dibuat');
     }

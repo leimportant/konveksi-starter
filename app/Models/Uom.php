@@ -16,12 +16,16 @@ class Uom extends Model
      */
     protected $table = 'mst_uom';
 
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array<string>
      */
     protected $fillable = [
+        'id',
         'name',
         'created_by',
         'updated_by'

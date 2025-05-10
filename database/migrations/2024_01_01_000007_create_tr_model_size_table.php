@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('tr_model_size', function (Blueprint $table) {
             $table->unsignedBigInteger('model_id');
-            $table->unsignedBigInteger('size_id');
+            $table->string('size_id', 10);
             $table->primary(['model_id', 'size_id']);
             $table->foreign('model_id')->references('id')->on('tr_model')->onDelete('cascade');
             $table->foreign('size_id')->references('id')->on('mst_size')->onDelete('cascade');

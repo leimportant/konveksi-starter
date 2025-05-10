@@ -10,11 +10,11 @@
       <tbody>
         <tr
           v-for="(item, index) in items"
-          :key="item.role_id"
+          :key="item.activity_role_id"
           class="bg-white even:bg-gray-50"
         >
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-            {{ rolesMap[item.role_id] || 'Unknown' }}
+            {{ rolesMap[item.activity_role_id] || 'Unknown' }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
             <Input
@@ -36,7 +36,7 @@ import { Input } from '@/components/ui/input';
 import { useActivityStore } from '@/stores/useActivityStore';
 
 interface ActivityItem {
-  role_id: number;
+  activity_role_id: number;
   price: number;
 }
 
@@ -57,7 +57,7 @@ onMounted(async () => {
   // Only initialize if items are empty
   if (items.value.length === 0) {
     items.value = Object.keys(rolesMap).map(roleId => ({
-      role_id: parseInt(roleId),
+      activity_role_id: parseInt(roleId),
       price: 0
     }));
     emit('update:modelValue', items.value);

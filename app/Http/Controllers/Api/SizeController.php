@@ -21,7 +21,7 @@ class SizeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:mst_size',
         ]);
-
+        $validated['id'] = trim($request->name);
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 

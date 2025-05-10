@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tr_document_attachment', function (Blueprint $table) {
-            $table->id();
+            $table->string('id', 50)->primary();
             $table->string('doc_id');
             $table->unsignedBigInteger('reference_id');  // Changed from doc_type to reference_id
             $table->string('path');

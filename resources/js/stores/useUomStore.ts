@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 
 interface Uom {
-    id: number;
+    id: string;
     name: string;
 }
 

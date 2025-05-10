@@ -25,7 +25,7 @@ const breadcrumbs = [
 ];
 
 const useStore = useSizeStore();
-const { items: sizes } = storeToRefs(useStore);
+const { sizes: sizes } = storeToRefs(useStore);
 
 onMounted(() => {
     useStore.fetchSizes();

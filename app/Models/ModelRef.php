@@ -42,4 +42,9 @@ class ModelRef extends BaseModel
         return $this->hasMany(ModelActivity::class, 'model_id');
     }
 
+    public function modelMaterial()
+    {
+        return $this->hasMany(ModelMaterial::class, 'model_id');
+    }
+
 }

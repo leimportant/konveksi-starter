@@ -15,6 +15,8 @@ class Size extends Model
      * @var string
      */
     protected $table = 'mst_size';
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +24,7 @@ class Size extends Model
      * @var array<string>
      */
     protected $fillable = [
+        'id',
         'name',
         'created_by',
         'updated_by',

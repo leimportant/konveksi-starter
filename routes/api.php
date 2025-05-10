@@ -8,6 +8,11 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Api\ComboController;
 use App\Http\Controllers\Api\ModelRefController;
 use App\Http\Controllers\Api\ActivityRoleController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\GoodReceiveController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Api\ProductionController;
 
 Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
 Route::apiResource('kasbon-payments', KasbonPaymentController::class);
@@ -16,8 +21,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/user-menus', [MenuController::class, 'getUserMenus']);
     Route::get('/combo/{key}', [ComboController::class, 'getComboData'])->name('combo.data');
 
+    Route::apiResource('api/dashboard', DashboardController::class);
+    Route::apiResource('api/productions', ProductionController::class);
     Route::apiResource('api/uoms', UomController::class);
     Route::apiResource('api/sizes', SizeController::class);
+    Route::apiResource('api/categories', CategoryController::class);
+    Route::apiResource('api/products', ProductController::class);
+    Route::apiResource('api/good-receive', GoodReceiveController::class);
     Route::prefix('api/models')->group(function () {
         Route::get('/list', [ModelRefController::class, 'list']);
         Route::get('/', [ModelRefController::class, 'index']);
