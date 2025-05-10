@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { onMounted } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/composables/useToast";
@@ -17,7 +17,14 @@ const uomStore = useUomStore();
 
 const { models } = storeToRefs(modelStore);
 const { items: uoms } = storeToRefs(uomStore);
+interface ModelMaterial {
+    product_id: number;
+    item: string;
+    qty: number;
+    uom_id: string;
+}
 
+const modelMaterials = ref<ModelMaterial[]>([]);
 const page = usePage();
 const auth = page.props.auth as { user?: { name: string } };
 
@@ -25,11 +32,37 @@ const form = useForm({
   date: new Date().toISOString().split('T')[0],
   model_id: 0,
   description: '',
-  qty_base: 0,
-  qty_convert: 0,
-  uom_base: 0,
-  uom_convert: 0,
-  recipent: auth.user?.name || ''
+  recipent: auth.user?.name || '',
+  items: [] as Array<{
+    model_material_id: number;
+    model_material_item: string;
+    qty: number;
+    qty_convert: number;
+    uom_base: string;
+    uom_convert: string;
+  }>
+});
+
+// Watch for model selection changes
+watch(() => form.model_id, async (newModelId) => {
+  if (newModelId) {
+    try {
+      const response = await modelStore.fetchModelById(newModelId);
+      modelMaterials.value = response.data;
+      
+      // Initialize form items
+      form.items = modelMaterials.value.map(material => ({
+        model_material_id: material.product_id,
+        model_material_item: material.item,
+        qty: material.qty,
+        qty_convert: material.qty,
+        uom_base: material.uom_id,
+        uom_convert: 'YARD' // Default to YARD
+      }));
+    } catch (error) {
+      console.error('Error fetching model materials:', error);
+    }
+  }
 });
 
 const breadcrumbs = [
@@ -46,23 +79,15 @@ onMounted(async () => {
 
 const handleSubmit = async () => {
   if (!form.model_id) return toast.error("Model is required");
-  if (!form.description) return toast.error("Description is required");
-  if (!form.qty_base || form.qty_base <= 0) return toast.error("Base quantity must be greater than 0");
-  if (!form.qty_convert || form.qty_convert <= 0) return toast.error("Convert quantity must be greater than 0");
-  if (!form.uom_base) return toast.error("Base UOM is required");
-  if (!form.uom_convert) return toast.error("Convert UOM is required");
   if (!form.recipent) return toast.error("Recipient is required");
+  if (form.items.length === 0) return toast.error("At least one material item is required");
 
   try {
     await goodReceiveStore.createGoodReceive({
       date: form.date,
       model_id: Number(form.model_id),
-      description: form.description,
-      qty_base: Number(form.qty_base),
-      qty_convert: Number(form.qty_convert),
-      uom_base: Number(form.uom_base),
-      uom_convert: Number(form.uom_convert),
-      recipent: form.recipent
+      recipent: form.recipent,
+      good_receive_items: form.items
     });
     toast.success("Good Receive created successfully");
     window.location.href = '/good-receive';
@@ -97,50 +122,46 @@ const handleSubmit = async () => {
             </div>
 
             <div>
-              <label class="block text-sm font-medium mb-1">Description</label>
-              <textarea
-                v-model="form.description"
-                rows="3"
-                class="w-full rounded-md border border-input px-3 py-2"
-                required
-              ></textarea>
-            </div>
-
-            <div class="grid grid-cols-2 gap-6">
-              <div>
-                <label class="block text-sm font-medium mb-1">Base Quantity</label>
-                <Input type="number" v-model="form.qty_base" step="0.01" min="0" required />
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Base UOM</label>
-                <select v-model="form.uom_base" class="w-full rounded-md border border-input px-3 py-2" required>
-                  <option value="0">Select UOM</option>
-                  <option v-for="uom in uoms" :key="uom.id" :value="uom.id">
-                    {{ uom.name }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-6">
-              <div>
-                <label class="block text-sm font-medium mb-1">Convert Quantity</label>
-                <Input type="number" v-model="form.qty_convert" step="0.01" min="0" required />
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Convert UOM</label>
-                <select v-model="form.uom_convert" class="w-full rounded-md border border-input px-3 py-2" required>
-                  <option value="0">Select UOM</option>
-                  <option v-for="uom in uoms" :key="uom.id" :value="uom.id">
-                    {{ uom.name }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div>
               <label class="block text-sm font-medium mb-1">Penerima</label>
               <Input v-model="form.recipent" required />
+            </div>
+
+            <!-- Materials Table -->
+            <div v-if="form.items.length > 0" class="mt-6">
+              <h3 class="text-md font-medium mb-2">Material Items</h3>
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty Base</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM Base</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty Convert</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM Convert</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-for="(item, index) in form.items" :key="index">
+                      <td class="px-6 py-4 whitespace-nowrap">{{ item.model_material_id }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap">{{ item.model_material_item }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap">{{ item.qty }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap">{{ item.uom_base }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <Input type="number" v-model="item.qty_convert" step="0.01" min="0" />
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <select v-model="item.uom_convert" class="w-full rounded-md border border-input px-3 py-2">
+                          <option value="YARD">YARD</option>
+                          <option v-for="uom in uoms" :key="uom.id" :value="uom.name">
+                            {{ uom.name }}
+                          </option>
+                        </select>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <div class="flex justify-end gap-4">

@@ -1,6 +1,16 @@
 import axios from 'axios';
 import { defineStore } from 'pinia';
 
+interface GoodReceiveItem {
+    id?: number; // Make optional since new items won't have an ID
+    good_receive_id?: number; // Make optional for new items
+    model_material_id: number;
+    model_material_item: string;
+    qty: number;
+    qty_convert: number;
+    uom_base: string;
+    uom_convert: string;
+}
 interface GoodReceive {
     id: number;
     date: string;
@@ -10,6 +20,7 @@ interface GoodReceive {
         id: number;
         description: string;
     };
+    good_receive_items?: GoodReceiveItem[];
 }
 
 interface State {
