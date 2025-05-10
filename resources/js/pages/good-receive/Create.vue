@@ -8,12 +8,14 @@ import { useToast } from "@/composables/useToast";
 import { useGoodReceiveStore } from '@/stores/useGoodReceiveStore';
 import { useModelStore } from '@/stores/useModelStore';
 import { useUomStore } from '@/stores/useUomStore';
+import { useProductStore } from '@/stores/useProductStore'; // Add this import
 import { storeToRefs } from 'pinia';
 
 const toast = useToast();
 const goodReceiveStore = useGoodReceiveStore();
 const modelStore = useModelStore();
 const uomStore = useUomStore();
+const productStore = useProductStore(); // Initialize product store
 
 const { models } = storeToRefs(modelStore);
 const { items: uoms } = storeToRefs(uomStore);
@@ -48,16 +50,31 @@ watch(() => form.model_id, async (newModelId) => {
   if (newModelId) {
     try {
       const response = await modelStore.fetchModelById(newModelId);
-      modelMaterials.value = response.data;
+      const materials = response.data?.model_material || [];
+      modelMaterials.value = materials;
       
-      // Initialize form items
-      form.items = modelMaterials.value.map(material => ({
-        model_material_id: material.product_id,
-        model_material_item: material.item,
-        qty: material.qty,
-        qty_convert: material.qty,
-        uom_base: material.uom_id,
-        uom_convert: 'YARD' // Default to YARD
+      form.items = await Promise.all(materials.map(async (material: ModelMaterial) => {
+        try {
+          const product = await productStore.fetchProductById(material.product_id);
+          return {
+            model_material_id: material.product_id,
+            model_material_item: product?.name || material.item.toString(),
+            qty: material.qty,
+            qty_convert: material.qty,
+            uom_base: material.uom_id,
+            uom_convert: 'YARD'
+          };
+        } catch (error) {
+          console.error('Error fetching product:', error);
+          return {
+            model_material_id: material.product_id,
+            model_material_item: material.item.toString(),
+            qty: material.qty,
+            qty_convert: material.qty,
+            uom_base: material.uom_id,
+            uom_convert: 'YARD'
+          };
+        }
       }));
     } catch (error) {
       console.error('Error fetching model materials:', error);
@@ -98,7 +115,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <Head title="Create Good Receive" />
+  <Head title="Buat Penerimaan Barang / Kain" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-6">
       <div class="max-w-3xl mx-auto">
@@ -134,9 +151,9 @@ const handleSubmit = async () => {
                   <thead class="bg-gray-50">
                     <tr>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty Base</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM Base</th>
+                      <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                      <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty Base</th>
+                      <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM Base</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty Convert</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM Convert</th>
                     </tr>
@@ -144,9 +161,9 @@ const handleSubmit = async () => {
                   <tbody class="bg-white divide-y divide-gray-200">
                     <tr v-for="(item, index) in form.items" :key="index">
                       <td class="px-6 py-4 whitespace-nowrap">{{ item.model_material_id }}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">{{ item.model_material_item }}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">{{ item.qty }}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">{{ item.uom_base }}</td>
+                      <td class="px-2 py-2 whitespace-nowrap">{{ item.model_material_item }}</td>
+                      <td class="px-2 py-2 whitespace-nowrap">{{ item.qty }}</td>
+                      <td class="px-2 py-2 whitespace-nowrap">{{ item.uom_base }}</td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         <Input type="number" v-model="item.qty_convert" step="0.01" min="0" />
                       </td>
