@@ -5,7 +5,7 @@ import { ref, onMounted } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit, Trash2, Plus } from 'lucide-vue-next';
+import { Trash2, Plus } from 'lucide-vue-next';
 import { useToast } from "@/composables/useToast";
 import { useUomStore } from '@/stores/useUomStore';
 import { storeToRefs } from 'pinia';
@@ -47,11 +47,11 @@ const handleCreate = async () => {
   }
 };
 
-const handleEdit = (uom: { id: number; name: string }) => {
-  currentUom.value = uom;
-  form.name = uom.name;
-  showEditModal.value = true;
-};
+// const handleEdit = (uom: { id: number; name: string }) => {
+//   currentUom.value = uom;
+//   form.name = uom.name;
+//   showEditModal.value = true;
+// };
 
 const handleUpdate = async () => {
   if (!currentUom.value || !form.name) return toast.error("Name is required");
@@ -70,7 +70,7 @@ const handleUpdate = async () => {
   }
 };
 
-const handleDelete = async (id: number) => {
+const handleDelete = async (id: string) => {
   if (!confirm('Are you sure you want to delete this UOM?')) return;
 
   try {
@@ -98,7 +98,7 @@ const handleDelete = async (id: number) => {
       <div class="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow class="bg-gray-100">
               <TableHead>Name</TableHead>
               <TableHead class="w-24">Actions</TableHead>
             </TableRow>
@@ -107,9 +107,9 @@ const handleDelete = async (id: number) => {
             <TableRow v-for="uom in uoms" :key="uom.id">
               <TableCell>{{ uom.name }}</TableCell>
               <TableCell class="flex gap-2">
-                <Button variant="ghost" size="icon" @click="handleEdit(uom)">
+                <!-- <Button variant="ghost" size="icon" @click="handleEdit(uom)">
                   <Edit class="h-4 w-4" />
-                </Button>
+                </Button> -->
                 <Button variant="ghost" size="icon" @click="handleDelete(uom.id)">
                   <Trash2 class="h-4 w-4" />
                 </Button>

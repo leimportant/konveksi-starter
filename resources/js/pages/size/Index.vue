@@ -5,7 +5,7 @@ import { ref, onMounted } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit, Trash2, Plus } from 'lucide-vue-next';
+import { Trash2, Plus } from 'lucide-vue-next';
 import { useToast } from "@/composables/useToast";
 import { useSizeStore } from '@/stores/useSizeStore';
 import { storeToRefs } from 'pinia';
@@ -47,11 +47,11 @@ const handleCreate = async () => {
   }
 };
 
-const handleEdit = (uom: { id: number; name: string }) => {
-  currentUom.value = uom;
-  form.name = uom.name;
-  showEditModal.value = true;
-};
+// const handleEdit = (uom: { id: number; name: string }) => {
+//   currentUom.value = uom;
+//   form.name = uom.name;
+//   showEditModal.value = true;
+// };
 
 const handleUpdate = async () => {
   if (!currentUom.value || !form.name) return toast.error("Name is required");
@@ -98,7 +98,7 @@ const handleDelete = async (id: number) => {
       <div class="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow class="bg-gray-100">
               <TableHead>Name</TableHead>
               <TableHead class="w-24">Actions</TableHead>
             </TableRow>
@@ -107,9 +107,9 @@ const handleDelete = async (id: number) => {
             <TableRow v-for="data in sizes" :key="data.id">
               <TableCell>{{ data.name }}</TableCell>
               <TableCell class="flex gap-2">
-                <Button variant="ghost" size="icon" @click="handleEdit(data)">
+                <!-- <Button variant="ghost" size="icon" @click="handleEdit(data)">
                   <Edit class="h-4 w-4" />
-                </Button>
+                </Button> -->
                 <Button variant="ghost" size="icon" @click="handleDelete(data.id)">
                   <Trash2 class="h-4 w-4" />
                 </Button>

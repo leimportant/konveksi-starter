@@ -43,17 +43,7 @@ return new class extends Migration
             // Laravel's foreign key constraints typically reference the 'id' column by default.
             // To reference other columns, you specify them.
 
-            $table->foreign('model_material_id', 'FK1_material_id')
-                  ->references('product_id')->on('tr_model_material') // Assuming 'product_id' is the column name in tr_model_material
-                  ->onUpdate('no action')
-                  ->onDelete('no action');
-
-            $table->foreign('model_material_item', 'FK2_material_item')
-                  ->references('item')->on('tr_model_material') // Assuming 'item' is the column name in tr_model_material
-                  ->onUpdate('no action')
-                  ->onDelete('no action');
-
-            // Table engine and collation are usually set in config/database.php
+                       // Table engine and collation are usually set in config/database.php
             // $table->engine = 'InnoDB';
             // $table->charset = 'utf8mb4';
             // $table->collation = 'utf8mb4_unicode_ci';

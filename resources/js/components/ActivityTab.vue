@@ -4,7 +4,7 @@
       <thead>
         <tr>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktivitas</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Upah</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Upah Per Hari</th>
         </tr>
       </thead>
       <tbody>
@@ -13,10 +13,10 @@
           :key="item.activity_role_id"
           class="bg-white even:bg-gray-50"
         >
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          <td class="px-6 py-4 whitespace-nowrap bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {{ rolesMap[item.activity_role_id] || 'Unknown' }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          <td class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <Input
               type="number"
               min="0"

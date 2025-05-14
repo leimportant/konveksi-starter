@@ -25,7 +25,7 @@ class ProductionItem extends Model
     ];
 
     protected $casts = [
-        'size_id' => 'integer',
+        'size_id' => 'string',
         'qty' => 'integer',
         'created_by' => 'integer',
         'updated_by' => 'integer',

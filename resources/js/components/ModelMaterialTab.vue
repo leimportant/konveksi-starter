@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <!-- Material List -->
     <div v-for="(material, index) in modelValue" :key="index" class="p-4 border rounded-lg space-y-4">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-medium">Material #{{ index + 1 }}</h3>
         <Button 
           type="button"
@@ -19,7 +19,7 @@
           <label class="text-sm font-medium block mb-1">Material</label>
           <select
             v-model="material.product_id"
-            class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm sm:text-sm"
+            class="block w-full rounded-md border bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring py-2 px-3 shadow-sm sm:text-sm"
           >
             <option value="">Pilih Material</option>
             <option v-if="products.length === 0" disabled>Loading materials...</option>
@@ -29,20 +29,19 @@
           </select>
         </div>
 
-        <!-- Quantity dan UOM dalam satu baris -->
+        <!-- Quantity, UOM, dan Price dalam satu baris -->
         <div>
-          <label class="text-sm font-medium block mb-1">Quantity & Unit</label>
+          <label class="text-sm font-medium block mb-1">Quantity, Unit & Price</label>
           <div class="flex gap-2">
             <input 
               type="number" 
               v-model="material.qty"
               min="1"
-              class="block w-1/2 rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm sm:text-sm"
+              class="block w-1/3 rounded-md border bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring py-2 px-3 shadow-sm sm:text-sm"
             />
-            <!-- Change this part in your template -->
             <select
               v-model="material.uom_id"
-              class="block w-1/2 rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm sm:text-sm"
+              class="block w-1/3 rounded-md border bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring py-2 px-3 shadow-sm sm:text-sm"
             >
               <option value="">Pilih Unit</option>
               <option v-if="uoms.length === 0" disabled>Loading units...</option>
@@ -50,20 +49,28 @@
                 v-for="uom in uoms"
                 :key="uom.id"
                 :value="uom.id"
+                :selected="uom.id === getDefaultUom(material.product_id)"
               >
                 {{ uom.name }}
               </option>
             </select>
+            <input 
+              type="number" 
+              v-model="material.price"
+              min="0"
+              placeholder="Harga"
+              class="block w-1/3 rounded-md border bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring py-2 px-3 shadow-sm sm:text-sm"
+            />
           </div>
         </div>
 
         <!-- Remark Input -->
         <div class="md:col-span-2">
-          <label class="text-sm font-medium block mb-1">Remark</label>
+          <label class="text-sm font-medium block mb-1 ">Remark</label>
           <input 
             type="text" 
             v-model="material.remark"
-            class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm sm:text-sm"
+            class="block w-full rounded-md border bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring py-2 px-3 shadow-sm sm:text-sm"
             placeholder="Optional remark"
           />
         </div>
@@ -85,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, watch } from 'vue';  // Add watch to imports
 import { Button } from '@/components/ui/button';
 import { useUomStore } from '@/stores/useUomStore';
 import { useProductStore } from '@/stores/useProductStore';
@@ -96,6 +103,7 @@ interface Material {
   qty: number | null;
   uom_id: number | null;
   remark: string | "";
+  price: number | null; // Add this line
 }
 
 interface Props {
@@ -121,7 +129,8 @@ const addMaterial = () => {
     product_id: null,
     qty: 1,
     uom_id: null,
-    remark: ''
+    remark: '',
+    price: null  // Add this line
   });
   emit('update:modelValue', materials);
 };
@@ -143,4 +152,20 @@ onMounted(async () => {
     console.error('Failed to fetch data:', error);
   }
 });
+
+// Add function to get default UOM from selected product
+const getDefaultUom = (productId: number | null) => {
+  if (!productId) return null;
+  const product = products.value.find(p => p.id === productId);
+  return product?.uom_id || null;
+};
+
+// Watch for product_id changes to set default UOM
+watch(() => props.modelValue, (newValue: Material[]) => {
+  newValue.forEach(material => {
+    if (material.product_id && !material.uom_id) {
+      material.uom_id = getDefaultUom(material.product_id);
+    }
+  });
+}, { deep: true });
 </script>

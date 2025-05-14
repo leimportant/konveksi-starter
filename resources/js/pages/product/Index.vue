@@ -132,7 +132,7 @@ const getUomName = (uomId: string) => {
       <div class="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow class="bg-gray-100">
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>UOM</TableHead>

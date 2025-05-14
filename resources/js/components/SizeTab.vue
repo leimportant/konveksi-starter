@@ -4,17 +4,17 @@
     <table class="min-w-full divide-y divide-gray-200">
       <thead>
         <tr>
-          <th class="px-6 py-5 text-left text-xs text-gray-500 uppercase">Size</th>
-          <th class="px-6 py-5 text-left text-xs text-gray-500 uppercase">Quantity</th>
-          <th class="px-6 py-5 text-left text-xs text-gray-500 uppercase w-16">Action</th>
+          <th class="px-6 py-5 text-left text-xs bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase">Size</th>
+          <th class="px-6 py-5 text-left text-xs bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase">Quantity</th>
+          <th class="px-6 py-5 text-left text-xs bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase w-16">Action</th>
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
         <tr v-for="(item, index) in modelItems" :key="index">
-          <td class="px-6 py-4 whitespace-nowrap">
+          <td class="px-6 py-4 whitespace-nowrap bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <select
               v-model="item.size_id"
-              class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm sm:text-sm"
+              class="block w-full rounded-md border bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring py-2 px-3 shadow-sm sm:text-sm"
               :disabled="sizeStore.isLoading"
             >
               <option disabled value="0">Pilih Ukuran</option>
@@ -30,10 +30,10 @@
               {{ sizeStore.error }}
             </small>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap">
+          <td class="px-6 py-4 whitespace-nowrap bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <Input type="number" v-model="item.qty" class="w-full" min="0" />
           </td>
-          <td class="px-6 py-4 whitespace-nowrap">
+          <td class="px-6 py-4 whitespace-nowrap bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <Button variant="destructive" size="icon" @click="removeItem(index)">
               <Trash/>
             </Button>

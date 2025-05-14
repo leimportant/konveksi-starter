@@ -15,24 +15,42 @@ class ProductionController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Production::with(['model', 'activityRole'])
-                ->when($request->search, function ($q) use ($request) {
-                    return $q->where('id', 'like', "%{$request->search}%")
-                        ->orWhere('remark', 'like', "%{$request->search}%");
-                })
-                ->when($request->sort_field, function ($q) use ($request) {
-                    return $q->orderBy($request->sort_field, $request->sort_order ?? 'asc');
-                }, function ($q) {
-                    return $q->latest();
+            $activityRoleId = $request->input('activity_role_id');
+            $userId = Auth::id();
+            $search = $request->input('search');
+            $dateFrom = $request->input('date_from');
+            $dateTo = $request->input('date_to');
+
+            $query = Production::with(['items', 'model', 'activityRole'])
+                ->latest();
+
+            if ($activityRoleId) {
+                $query->where('activity_role_id', $activityRoleId);
+            }
+
+            if ($userId) {
+                $query->where('created_by', $userId);
+            }
+
+            if ($search) {
+                $query->whereHas('model', function($q) use ($search) {
+                    $q->where('description', 'like', '%'.$search.'%');
                 });
+            }
 
-            $data = $query->paginate($request->per_page ?? 10);
+            if ($dateFrom && $dateTo) {
+                $query->whereBetween('created_at', [$dateFrom, $dateTo]);
+            }
 
-            return response()->json($data);
+            $models = $query->paginate($request->input('per_page', 10));
+
+            return response()->json([
+                'data' => $models
+            ]);
+
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to fetch productions',
+                'message' => 'Terjadi kesalahan saat mengambil data model',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -40,16 +58,17 @@ class ProductionController extends Controller
 
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
             $validator = Validator::make($request->all(), [
                 'model_id' => 'required|exists:tr_model,id',
                 'activity_role_id' => 'required|exists:mst_activity_role,id',
                 'remark' => 'nullable|string|max:100',
-                'items' => 'required|array',
+                'items' => 'required|array|min:1',
                 'items.*.size_id' => 'required|exists:mst_size,id',
-                'items.*.qty' => 'required|integer|min:1'
+                'items.*.qty' => 'nullable|integer|min:1' // allow null qty
             ]);
-
+    
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
@@ -57,37 +76,82 @@ class ProductionController extends Controller
                     'errors' => $validator->errors()
                 ], 422);
             }
-
-            DB::beginTransaction();
-
-            // Create production
-            $production = new Production();
-            $production->id = 'PRD-' . uniqid();
-            $production->model_id = $request->model_id;
-            $production->activity_role_id = $request->activity_role_id;
-            $production->remark = $request->remark;
-            $production->created_by = Auth::id();
-            $production->save();
-
-            // Create production items
-            foreach ($request->items as $item) {
-                $productionItem = new ProductionItem();
-                $productionItem->id = 'PRI-' . uniqid();
-                $productionItem->production_id = $production->id;
-                $productionItem->size_id = $item['size_id'];
-                $productionItem->qty = $item['qty'];
-                $productionItem->created_by = Auth::id();
-                $productionItem->save();
+    
+            // Filter valid items (qty not null)
+            $validItems = array_filter($request->items, function ($item) {
+                return $item['qty'] !== null;
+            });
+    
+            if (count($validItems) === 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Minimal 1 item dan quantity 1'
+                ], 422);
             }
-
+    
+            // Validasi qty tidak melebihi qty cutting
+            if ($request->activity_role_id != 1) { // Jika bukan cutting
+                $cuttingProduction = Production::with('items')
+                    ->where('model_id', $request->model_id)
+                    ->where('activity_role_id', 1) // Cutting
+                    ->first();
+    
+                if (!$cuttingProduction) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Data cutting belum tersedia'
+                    ], 422);
+                }
+    
+                foreach ($validItems as $item) {
+                    $cuttingItem = $cuttingProduction->items
+                        ->where('size_id', $item['size_id'])
+                        ->first();
+    
+                    if (!$cuttingItem) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Size ' . $item['size_id'] . ' tidak ditemukan pada data cutting'
+                        ], 422);
+                    }
+    
+                    if ($item['qty'] > $cuttingItem->qty) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Qty untuk size ' . $item['size_id'] . ' tidak boleh melebihi qty cutting (' . $cuttingItem->qty . ')'
+                        ], 422);
+                    }
+                }
+            }
+    
+            $production = Production::create([
+                'id' => 'PRD-' . uniqid(),
+                'model_id' => $request->model_id,
+                'activity_role_id' => $request->activity_role_id,
+                'remark' => $request->remark,
+                'status' => 'waiting',
+                'created_by' => Auth::id()
+            ]);
+    
+            $production->items()->createMany(
+                array_map(function ($item) {
+                    return [
+                        'id' => 'PRI-' . uniqid(),
+                        'size_id' => $item['size_id'],
+                        'qty' => $item['qty'],
+                        'created_by' => Auth::id()
+                    ];
+                }, $validItems)
+            );
+    
             DB::commit();
-
+    
             return response()->json([
                 'status' => 'success',
                 'message' => 'Production created successfully',
                 'data' => $production->load(['model', 'activityRole', 'items.size'])
             ], 201);
-
+    
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -97,6 +161,7 @@ class ProductionController extends Controller
             ], 500);
         }
     }
+    
 
     public function update(Request $request, $id)
     {
@@ -116,6 +181,41 @@ class ProductionController extends Controller
                     'message' => 'Validation failed',
                     'errors' => $validator->errors()
                 ], 422);
+            }
+
+            // Validasi qty tidak melebihi qty cutting
+            if ($request->activity_role_id != 1) { // Jika bukan cutting
+                $cuttingProduction = Production::with('items')
+                    ->where('model_id', $request->model_id)
+                    ->where('activity_role_id', 1) // Cutting
+                    ->first();
+
+                if (!$cuttingProduction) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Data cutting belum tersedia'
+                    ], 422);
+                }
+
+                foreach ($request->items as $item) {
+                    $cuttingItem = $cuttingProduction->items
+                        ->where('size_id', $item['size_id'])
+                        ->first();
+
+                    if (!$cuttingItem) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Size ' . $item['size_id'] . ' tidak ditemukan pada data cutting'
+                        ], 422);
+                    }
+
+                    if ($item['qty'] > $cuttingItem->qty) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Qty untuk size ' . $item['size_id'] . ' tidak boleh melebihi qty cutting (' . $cuttingItem->qty . ')'
+                        ], 422);
+                    }
+                }
             }
 
             DB::beginTransaction();

@@ -34,13 +34,19 @@
                 :class="{ 'border-destructive': errors.start_date }" />
               <small class="text-destructive" v-if="errors.start_date">{{ errors.start_date[0] }}</small>
             </div>
-
+            <div>
+              <label for="end_date" class="text-sm font-medium">Estimasi Selesai</label>
+              <DateInput v-model="form.end_date" id="end_date"
+                :class="{ 'border-destructive': errors.end_date }" />
+              <small class="text-destructive" v-if="errors.end_date">{{ errors.end_date[0] }}</small>
+            </div>
             <div>
               <label for="estimation_price_pcs" class="text-sm font-medium">Estimasi Harga</label>
               <Input type="number" v-model="form.estimation_price_pcs" id="estimation_price_pcs"
                 :class="{ 'border-destructive': errors.estimation_price_pcs }" />
-              <small class="text-destructive" v-if="errors.estimation_price_pcs">{{ errors.estimation_price_pcs[0]
-              }}</small>
+              <small class="text-destructive" v-if="errors.estimation_price_pcs">
+                {{ errors.estimation_price_pcs[0] }}
+              </small>
             </div>
           </div>
 
@@ -71,6 +77,20 @@
         <div v-if="activeTab === 'bahan dan biaya'">
           <ModelMaterialTab v-model="modelMaterials" />
         </div>
+
+        <!-- Add HPP Tab -->
+        <div v-if="activeTab === 'hpp'">
+          <HPPTab 
+            :model-materials="modelMaterials"
+            :activity-items="activityItems.map(item => ({
+              ...item,
+              activity_name: getActivityName(item.activity_role_id)
+            }))"
+            :start-date="form.start_date"
+            :end-date="form.end_date"
+          />
+        </div>
+
         <!-- Submit Buttons -->
         <div class="flex justify-end gap-2">
           <Button type="button" variant="outline" @click="router.visit('/konveksi/model/list')">
@@ -96,6 +116,7 @@ import DocumentUpload from '@/components/DocumentUpload.vue';
 import SizeTab from '@/components/SizeTab.vue';
 import ActivityTab from '@/components/ActivityTab.vue';
 import ModelMaterialTab from '@/components/ModelMaterialTab.vue';
+import HPPTab from '@/components/HPPTab.vue';
 import { useModelStore } from '@/stores/useModelStore';
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
@@ -109,7 +130,7 @@ const props = defineProps<{
 const modelId = ref(Number(props.modelId));  // Pastikan tipe data diubah ke Number
 
 // Tabs setup
-const tabs = ['model', 'size', 'activity', 'document', 'bahan dan biaya'] as const;
+const tabs = ['model', 'size', 'activity', 'document', 'bahan dan biaya', 'hpp'] as const;
 type Tab = typeof tabs[number];
 const activeTab = ref<Tab>(tabs[0]);
 const errors = ref<Record<string, string[]>>({});
@@ -129,6 +150,7 @@ const form = useForm({
   description: '',
   remark: '',
   start_date: null,
+  end_date: null,  // Added end_date
   estimation_price_pcs: 0,
   estimation_qty: 1,
 });
@@ -144,7 +166,11 @@ const handleDocumentUploaded = (doc: any) => uploadedDocuments.value.push(doc);
 const sizeItems = ref<{ size_id: number; qty: number }[]>([]);
 
 // Activity items
-const activityItems = ref<{ activity_role_id: number; price: number }[]>([]);
+const activityItems = ref<{
+  activity_role_id: number;
+  price: number;
+  activity_name?: string;  // Added activity_name as optional property
+}[]>([]);
 
 
 const modelMaterials = ref<{
@@ -152,6 +178,7 @@ const modelMaterials = ref<{
   qty: number;
   uom_id: number;
   remark: string;
+  price: number | null;  // Added price property
 }[]>([]);
 // Submit handler
 const handleSubmit = async () => {
@@ -177,12 +204,14 @@ onMounted(async () => {
   try {
     const model = await modelStore.fetchModelById(props.modelId);
     console.log('Model Data:', model);
-    console.log('Model ID:', model.data.description);
     if (model) {
       form.description = model.data.description;
       form.remark = model.data.remark;
       form.start_date = model.data.start_date
         ? model.data.start_date.split('T')[0]
+        : '';
+      form.end_date = model.data.end_date  // Added end_date handling
+        ? model.data.end_date.split('T')[0]
         : '';
       form.estimation_price_pcs = model.data.estimation_price_pcs;
       form.estimation_qty = model.data.estimation_qty;
@@ -201,4 +230,10 @@ onMounted(async () => {
     }
   }
 });
+
+// Add getActivityName function
+const getActivityName = (activityRoleId: number) => {
+  const activity = activityItems.value.find(item => item.activity_role_id === activityRoleId);
+  return activity?.activity_name || `Activity ${activityRoleId}`;
+};
 </script>

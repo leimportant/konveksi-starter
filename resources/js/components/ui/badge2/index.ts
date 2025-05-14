@@ -1,0 +1,1 @@
+export { default as Badge2 } from './Badge2.vue';

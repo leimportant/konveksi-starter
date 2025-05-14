@@ -5,7 +5,8 @@ interface GoodReceiveItem {
     id?: number; // Make optional since new items won't have an ID
     good_receive_id?: number; // Make optional for new items
     model_material_id: number;
-    model_material_item: string;
+    model_material_desc: string;
+    model_material_item: number;
     qty: number;
     qty_convert: number;
     uom_base: string;
@@ -16,10 +17,13 @@ interface GoodReceive {
     date: string;
     model_id: number;
     recipent: string;
+    created_at: string;
+    updated_at: string;
     model?: {
         id: number;
         description: string;
     };
+    items?: GoodReceiveItem[];
     good_receive_items?: GoodReceiveItem[];
 }
 

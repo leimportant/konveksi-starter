@@ -13,17 +13,28 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\GoodReceiveController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\ProductionController;
+use App\Http\Controllers\Api\ApprovalServiceController;
+use App\Http\Controllers\Api\PosProductController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\PaymentMethodController;
+use App\Http\Controllers\Api\PriceTypeController;
+use App\Http\Controllers\Api\ProductPriceController;
 
 Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
 Route::apiResource('kasbon-payments', KasbonPaymentController::class);
 
 Route::middleware('auth')->group(function () {
+    // User management
+    Route::apiResource('api/users', UserController::class);
     Route::get('/user-menus', [MenuController::class, 'getUserMenus']);
     Route::get('/combo/{key}', [ComboController::class, 'getComboData'])->name('combo.data');
 
+    Route::apiResource('api/roles', RoleController::class);
     Route::apiResource('api/dashboard', DashboardController::class);
     Route::apiResource('api/productions', ProductionController::class);
     Route::apiResource('api/uoms', UomController::class);
+    Route::apiResource('api/payment-methods', PaymentMethodController::class);
     Route::apiResource('api/sizes', SizeController::class);
     Route::apiResource('api/categories', CategoryController::class);
     Route::apiResource('api/products', ProductController::class);
@@ -37,4 +48,18 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [ModelRefController::class, 'destroy']);
     });
     Route::apiResource('api/activity-roles', ActivityRoleController::class);
+    Route::apiResource('pos-products', PosProductController::class);
+    Route::apiResource('api/price-types', PriceTypeController::class);
+    Route::apiResource('api/product-prices', ProductPriceController::class);
 });
+
+Route::prefix('approvals')->group(function () {
+    Route::get('/pending', [ApprovalServiceController::class, 'getPendingApprovals']);
+    Route::post('/{id}/approve', [ApprovalServiceController::class, 'approve']);
+    Route::post('/{id}/reject', [ApprovalServiceController::class, 'reject']);
+    Route::get('/history', [ApprovalServiceController::class, 'getApprovalHistory']);
+});
+
+
+
+

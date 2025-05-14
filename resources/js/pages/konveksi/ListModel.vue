@@ -85,29 +85,34 @@ const handleSelect = (model: any) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-6 sm:px-6 lg:px-8">
       <!-- Filter and Create Button -->
-      <div class="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between bg-background">
         <!-- Filters -->
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4 w-full">
           <Input 
             v-model="searchQuery"
             placeholder="Search models..."
-            class="w-full sm:w-64"
+            class="w-full sm:w-64 bg-background border-border"
             @input="fetchModels"
           />
           <DateInput
             v-model="startDate"
             placeholder="Start Date"
+            class="bg-background border-border"
             @update:modelValue="fetchModels"
           />
           <DateInput
             v-model="endDate"
             placeholder="End Date"
+            class="bg-background border-border"
             @update:modelValue="fetchModels"
           />
         </div>
 
         <!-- Create Button -->
-        <Button class="w-full sm:w-auto" @click="router.visit('/konveksi/model/create')">
+        <Button 
+          class="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90" 
+          @click="router.visit('/konveksi/model/create')"
+        >
           <Plus class="h-4 w-4 mr-2" />
           Buat Model
         </Button>
@@ -123,13 +128,13 @@ const handleSelect = (model: any) => {
         <!-- Item Slot -->
         <template #item="{ item }">
           <div class="flex flex-col space-y-2 sm:space-y-1">
-            <h3 class="font-medium text-base truncate">{{ item.description }}</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-500">
+            <h3 class="font-medium text-base text-muted-foreground/100 truncate text-foreground">{{ item.description }}</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-muted-foreground">
               <span><span class="font-medium sm:hidden">Tanggal Mulai:</span> {{ formatDate(item.start_date) }}</span>
               <span><span class="font-medium sm:hidden">Harga/Pcs:</span> {{ formatPrice(item.estimation_price_pcs) }}</span>
               <span><span class="font-medium sm:hidden">Qty:</span> {{ item.estimation_qty }}</span>
             </div>
-            <p class="text-sm text-gray-600 line-clamp-2">{{ item.remark || '-' }}</p>
+            <p class="text-sm text-muted-foreground/80 line-clamp-2">{{ item.remark || '-' }}</p>
           </div>
         </template>
 

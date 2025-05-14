@@ -1,4 +1,5 @@
 <template>
+
   <Head :title="isEditMode ? 'Edit Model' : 'Create Model'" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800">
@@ -13,16 +14,10 @@
 
       <!-- Tabs -->
       <div class="my-6 flex space-x-4 border-b dark:border-gray-700">
-        <button
-          v-for="tab in tabs"
-          :key="tab"
-          class="pb-2 text-sm font-medium"
-          :class="{
-            'border-b-2 border-primary text-primary': activeTab === tab,
-            'text-gray-500 hover:text-gray-700': activeTab !== tab
-          }"
-          @click="activeTab = tab"
-        >
+        <button v-for="tab in tabs" :key="tab" class="pb-2 text-sm font-medium" :class="{
+          'border-b-2 border-primary text-primary': activeTab === tab,
+          'text-gray-500 hover:text-gray-700': activeTab !== tab
+        }" @click="activeTab = tab">
           {{ tab.charAt(0).toUpperCase() + tab.slice(1) }}
         </button>
       </div>
@@ -43,6 +38,11 @@
               <small class="text-destructive" v-if="errors.start_date">{{ errors.start_date[0] }}</small>
             </div>
             <div>
+              <label for="end_date" class="text-sm font-medium">Estimasi Selesai</label>
+              <DateInput id="end_date" v-model="form.end_date" />
+              <small class="text-destructive" v-if="errors.end_date">{{ errors.end_date[0] }}</small>
+            </div>
+            <div>
               <label for="estimation_price_pcs" class="text-sm font-medium">Estimasi Harga</label>
               <Input id="estimation_price_pcs" type="number" v-model="form.estimation_price_pcs" />
               <small class="text-destructive" v-if="errors.estimation_price_pcs">
@@ -58,14 +58,14 @@
           </div>
 
           <div v-if="uploadedDocuments.length" class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div
-              v-for="(doc, idx) in uploadedDocuments"
-              :key="doc.id"
-              class="relative group border rounded-xl overflow-hidden"
-            >
-              <img :src="doc.url" class="object-cover w-full aspect-square transition-transform group-hover:scale-105" />
-              <div class="absolute inset-x-0 bottom-0 bg-black/50 p-2 text-white text-xs truncate">{{ doc.filename }}</div>
-              <Button variant="destructive" size="icon" class="absolute top-2 right-2" @click.prevent="removeDocument(idx)">
+            <div v-for="(doc, idx) in uploadedDocuments" :key="doc.id"
+              class="relative group border rounded-xl overflow-hidden">
+              <img :src="doc.url"
+                class="object-cover w-full aspect-square transition-transform group-hover:scale-105" />
+              <div class="absolute inset-x-0 bottom-0 bg-black/50 p-2 text-white text-xs truncate">{{ doc.filename }}
+              </div>
+              <Button variant="destructive" size="icon" class="absolute top-2 right-2"
+                @click.prevent="removeDocument(idx)">
                 <i class="pi pi-times" />
               </Button>
             </div>
@@ -84,20 +84,25 @@
 
         <!-- Document Tab -->
         <div v-if="activeTab === 'document'" class="space-y-6">
-          <DocumentUpload
-            v-model:visible="showUploadDialog"
-            :reference-id="'MODEL'"
-            :doc-id="generatedDocId"
-            module="model"
-            accept="image/*"
-            @uploaded="handleDocumentUploaded"
-            @removed="handleDocumentRemoved"
-          />
+          <DocumentUpload v-model:visible="showUploadDialog" :reference-id="'MODEL'" :doc-id="generatedDocId"
+            module="model" accept="image/*" @uploaded="handleDocumentUploaded" @removed="handleDocumentRemoved" />
         </div>
 
         <!-- Material Tab -->
         <div v-if="activeTab === 'bahan_dan_biaya'">
           <ModelMaterialTab v-model="modelMaterials" />
+        </div>
+        <!-- HPP Tab -->
+        <div v-if="activeTab === 'hpp'">
+          <HPPTab 
+            :model-materials="modelMaterials"
+            :activity-items="activityItems.map(item => ({
+              ...item,
+              activity_name: getActivityName(item.activity_role_id)
+            }))"
+            :start-date="form.start_date"
+            :end-date="form.end_date"
+          />
         </div>
 
         <!-- Submit Buttons -->
@@ -122,6 +127,7 @@ import { Button } from '@/components/ui/button';
 import DocumentUpload from '@/components/DocumentUpload.vue';
 import SizeTab from '@/components/SizeTab.vue';
 import ActivityTab from '@/components/ActivityTab.vue';
+import HPPTab from '@/components/HPPTab.vue';
 import { useModelStore } from '@/stores/useModelStore';
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
@@ -133,7 +139,7 @@ const props = defineProps<{
 }>();
 
 // Tabs setup
-const tabs = ['model', 'size', 'activity', 'document', 'bahan_dan_biaya'] as const;
+const tabs = ['model', 'size', 'activity', 'document', 'bahan_dan_biaya', 'hpp'] as const;
 type Tab = typeof tabs[number];
 const activeTab = ref<Tab>('model');
 
@@ -171,6 +177,7 @@ const form = useForm({
   description: '',
   remark: '',
   start_date: null,
+  end_date: null,
   estimation_price_pcs: 0,
   estimation_qty: 1,
 });
@@ -187,6 +194,7 @@ const modelMaterials = ref<{
   qty: number;
   uom_id: number;
   remark: string;
+  price: number | null; // Add price property
 }[]>([]);
 
 // Initialize form for edit
@@ -195,6 +203,7 @@ onMounted(() => {
     form.description = props.modelData.description;
     form.remark = props.modelData.remark;
     form.start_date = props.modelData.start_date;
+    form.end_date = props.modelData.end_date;
     form.estimation_price_pcs = props.modelData.estimation_price_pcs;
     form.estimation_qty = props.modelData.estimation_qty;
     sizeItems.value = props.modelData.sizes || [];
@@ -241,5 +250,11 @@ const handleSubmit = async () => {
       toast.error('Terjadi kesalahan saat menyimpan model');
     }
   }
+};
+
+// Add this function before using it in the template
+const getActivityName = (activityRoleId: number) => {
+  const activity = activityItems.value.find(item => item.activity_role_id === activityRoleId);
+  return activity ? `Activity ${activityRoleId}` : `Unknown Activity`;
 };
 </script>

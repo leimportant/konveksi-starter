@@ -37,7 +37,8 @@ const form = useForm({
   recipent: auth.user?.name || '',
   items: [] as Array<{
     model_material_id: number;
-    model_material_item: string;
+    model_material_desc: string;
+    model_material_item: number;
     qty: number;
     qty_convert: number;
     uom_base: string;
@@ -58,7 +59,8 @@ watch(() => form.model_id, async (newModelId) => {
           const product = await productStore.fetchProductById(material.product_id);
           return {
             model_material_id: material.product_id,
-            model_material_item: product?.name || material.item.toString(),
+            model_material_desc: product?.name || material.item.toString(),
+            model_material_item: material.item,
             qty: material.qty,
             qty_convert: material.qty,
             uom_base: material.uom_id,
@@ -68,7 +70,8 @@ watch(() => form.model_id, async (newModelId) => {
           console.error('Error fetching product:', error);
           return {
             model_material_id: material.product_id,
-            model_material_item: material.item.toString(),
+            model_material_desc: material.item.toString(),
+            model_material_item: material.item,
             qty: material.qty,
             qty_convert: material.qty,
             uom_base: material.uom_id,
@@ -96,8 +99,8 @@ onMounted(async () => {
 
 const handleSubmit = async () => {
   if (!form.model_id) return toast.error("Model is required");
-  if (!form.recipent) return toast.error("Recipient is required");
-  if (form.items.length === 0) return toast.error("At least one material item is required");
+  if (!form.recipent) return toast.error("Penerima is required");
+  if (form.items.length === 0) return toast.error("Minimal 1 material item");
 
   try {
     await goodReceiveStore.createGoodReceive({
@@ -117,12 +120,12 @@ const handleSubmit = async () => {
 <template>
   <Head title="Buat Penerimaan Barang / Kain" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-2 py-4 sm:px-4 sm:py-6">
       <div class="max-w-3xl mx-auto">
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-lg font-semibold mb-6">Create Good Receive</h2>
-          <form @submit.prevent="handleSubmit" class="space-y-6">
-            <div class="grid grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow p-4 sm:p-6">
+          <h2 class="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Create Good Receive</h2>
+          <form @submit.prevent="handleSubmit" class="space-y-4 sm:space-y-6">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
               <div>
                 <label class="block text-sm font-medium mb-1">Date</label>
                 <Input type="date" v-model="form.date" required />
@@ -144,44 +147,56 @@ const handleSubmit = async () => {
             </div>
 
             <!-- Materials Table -->
-            <div v-if="form.items.length > 0" class="mt-6">
-              <h3 class="text-md font-medium mb-2">Material Items</h3>
+            <div v-if="form.items.length > 0" class="mt-4 sm:mt-6">
+              <h3 class="text-sm sm:text-md font-medium mb-2">Material Items</h3>
               <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
-                      <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                      <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty Base</th>
-                      <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM Base</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty Convert</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM Convert</th>
-                    </tr>
-                  </thead>
-                  <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="(item, index) in form.items" :key="index">
-                      <td class="px-6 py-4 whitespace-nowrap">{{ item.model_material_id }}</td>
-                      <td class="px-2 py-2 whitespace-nowrap">{{ item.model_material_item }}</td>
-                      <td class="px-2 py-2 whitespace-nowrap">{{ item.qty }}</td>
-                      <td class="px-2 py-2 whitespace-nowrap">{{ item.uom_base }}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <Input type="number" v-model="item.qty_convert" step="0.01" min="0" />
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <select v-model="item.uom_convert" class="w-full rounded-md border border-input px-3 py-2">
-                          <option value="YARD">YARD</option>
-                          <option v-for="uom in uoms" :key="uom.id" :value="uom.name">
-                            {{ uom.name }}
-                          </option>
-                        </select>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="min-w-full inline-block align-middle">
+                  <div class="border rounded-lg overflow-hidden sm:border-0 sm:rounded-none">
+                    <table class="min-w-full divide-y divide-gray-200">
+                      <thead class="bg-gray-50 hidden sm:table-header-group">
+                        <tr>
+                          <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
+                          <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                          <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                          <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM</th>
+                          <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty Conv</th>
+                          <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM Conv</th>
+                        </tr>
+                      </thead>
+                      <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-for="(item, index) in form.items" :key="index" class="block sm:table-row mb-2 sm:mb-0 border-b sm:border-b-0">
+                          <td class="px-2 py-1 sm:px-3 sm:py-2 whitespace-nowrap block sm:table-cell">
+                            <div class="sm:hidden">
+                              <div class="font-semibold">{{ item.model_material_id }} - {{ item.model_material_desc }}</div>
+                              <div class="text-sm mt-1">{{ item.qty }} {{ item.uom_base }}</div>
+                            </div>
+                            <div class="hidden sm:block">
+                              {{ item.model_material_id }} - {{ item.model_material_desc }}
+                            </div>
+                          </td>
+                          <td class="px-3 py-2 whitespace-nowrap hidden sm:table-cell">{{ item.model_material_item }}</td>
+                          <td class="px-3 py-2 whitespace-nowrap hidden sm:table-cell">{{ item.qty }}</td>
+                          <td class="px-3 py-2 whitespace-nowrap hidden sm:table-cell">{{ item.uom_base }}</td>
+                          <td class="px-3 py-2 whitespace-nowrap sm:table-cell">
+                            <Input type="number" v-model="item.qty_convert" step="0.01" min="0" class="w-full" />
+                          </td>
+                          <td class="px-3 py-2 whitespace-nowrap sm:table-cell">
+                            <select v-model="item.uom_convert" class="w-full rounded-md border border-input px-2 py-1 text-sm">
+                              <option value="YARD">YARD</option>
+                              <option v-for="uom in uoms" :key="uom.id" :value="uom.name">
+                                {{ uom.name }}
+                              </option>
+                            </select>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="flex justify-end gap-4">
+            <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
               <Button type="button" variant="outline" @click="$inertia.visit('/good-receive')">
                 Cancel
               </Button>
@@ -193,3 +208,34 @@ const handleSubmit = async () => {
     </div>
   </AppLayout>
 </template>
+
+<style scoped>
+@media (max-width: 640px) {
+  tr.block {
+    display: block;
+    padding: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  tr.block > td {
+    display: block;
+    padding: 0.25rem 0;
+  }
+  
+  tr.block > td:not([class*="hidden"]) {
+    display: block;
+    padding: 0.25rem 0;
+  }
+
+  tr.block > td:before {
+    content: attr(data-label);
+    font-weight: 600;
+    display: inline-block;
+    width: 30%;
+  }
+  
+  .hidden-mobile {
+    display: none;
+  }
+}
+</style>

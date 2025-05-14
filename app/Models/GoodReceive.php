@@ -26,6 +26,10 @@ class GoodReceive extends Model
         'date' => 'date'
     ];
 
+    public function items()
+    {
+        return $this->hasMany(GoodReceiveItem::class, 'good_receive_id');
+    }
 
     public function creator()
     {

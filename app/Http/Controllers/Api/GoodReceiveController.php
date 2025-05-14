@@ -13,7 +13,7 @@ class GoodReceiveController extends Controller
 {
     public function index()
     {
-        $data = GoodReceive::with(['model', 'baseUom', 'convertUom'])
+        $data = GoodReceive::with(['items'])
             ->latest()
             ->paginate(10);
         return response()->json($data);
@@ -24,19 +24,33 @@ class GoodReceiveController extends Controller
         $validated = $request->validate([
             'date' => 'required|date',
             'model_id' => 'required|exists:tr_model,id',
-            'description' => 'required|string',
-            'qty_base' => 'required|numeric|min:0',
-            'qty_convert' => 'required|numeric|min:0',
-            'uom_base' => 'required|exists:mst_uom,id',
-            'uom_convert' => 'required|exists:mst_uom,id',
-            'recipent' => 'required|string|max:255'
+            'recipent' => 'required|string|max:255',
+            'good_receive_items' => 'required|array',
+            'good_receive_items.*.model_material_id' => 'required|exists:mst_product,id',
+            'good_receive_items.*.qty' => 'required|numeric|min:0',
+            'good_receive_items.*.qty_convert' => 'required|numeric|min:0',
+            'good_receive_items.*.uom_base' => 'required|exists:mst_uom,id',
+            'good_receive_items.*.uom_convert' => 'required|exists:mst_uom,id',
         ]);
 
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
         $goodReceive = GoodReceive::create($validated);
-        return response()->json($goodReceive, 201);
+        
+        // Save items
+        foreach ($request->good_receive_items as $item) {
+            $goodReceive->items()->create([
+                'model_material_id' => $item['model_material_id'],
+                'model_material_item' => $item['model_material_item'],
+                'qty' => $item['qty'],
+                'qty_convert' => $item['qty_convert'],
+                'uom_base' => $item['uom_base'],
+                'uom_convert' => $item['uom_convert'],
+            ]);
+        }
+
+        return response()->json($goodReceive->load('items'), 201);
     }
 
     public function show($id)
@@ -61,17 +75,35 @@ class GoodReceiveController extends Controller
             'date' => 'required|date',
             'model_id' => 'required|exists:tr_model,id',
             'description' => 'required|string',
-            'qty_base' => 'required|numeric|min:0',
-            'qty_convert' => 'required|numeric|min:0',
-            'uom_base' => 'required|exists:mst_uom,id',
-            'uom_convert' => 'required|exists:mst_uom,id',
-            'recipent' => 'required|string|max:255'
+            'recipent' => 'required|string|max:255',
+            'good_receive_items' => 'required|array',
+            'good_receive_items.*.model_material_id' => 'required|exists:mst_product,id',
+            'good_receive_items.*.qty' => 'required|numeric|min:0',
+            'good_receive_items.*.qty_convert' => 'required|numeric|min:0',
+            'good_receive_items.*.uom_base' => 'required|exists:mst_uom,id',
+            'good_receive_items.*.uom_convert' => 'required|exists:mst_uom,id',
         ]);
 
         $validated['updated_by'] = Auth::id();
 
         $goodReceive->update($validated);
-        return response()->json($goodReceive);
+        
+        // Delete existing items
+        $goodReceive->items()->delete();
+        
+        // Create new items
+        foreach ($request->good_receive_items as $item) {
+            $goodReceive->items()->create([
+                'model_material_id' => $item['model_material_id'],
+                'model_material_item' => $item['model_material_item'],
+                'qty' => $item['qty'],
+                'qty_convert' => $item['qty_convert'],
+                'uom_base' => $item['uom_base'],
+                'uom_convert' => $item['uom_convert'],
+            ]);
+        }
+
+        return response()->json($goodReceive->load('items'));
     }
 
     public function destroy(GoodReceive $goodReceive)

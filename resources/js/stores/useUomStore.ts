@@ -43,7 +43,7 @@ export const useUomStore = defineStore('uom', {
             }
         },
 
-        async deleteUom(id: number) {
+        async deleteUom(id: string) {
             try {
                 await axios.delete(`/api/uoms/${id}`);
                 await this.fetchUoms();
