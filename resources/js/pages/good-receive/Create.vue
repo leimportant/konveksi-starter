@@ -106,9 +106,20 @@ const handleSubmit = async () => {
     await goodReceiveStore.createGoodReceive({
       date: form.date,
       model_id: Number(form.model_id),
+      description: form.description,
       recipent: form.recipent,
-      good_receive_items: form.items
+      items: form.items.map(item => ({
+        model_material_id: item.model_material_id,
+        model_material_desc: item.model_material_desc,
+        model_material_item: item.model_material_item,
+        qty: item.qty,
+        qty_convert: item.qty_convert,
+        qty_base: item.qty,
+        uom_base: item.uom_base,
+        uom_convert: item.uom_convert
+      }))
     });
+
     toast.success("Good Receive created successfully");
     window.location.href = '/good-receive';
   } catch (error: any) {
@@ -121,7 +132,7 @@ const handleSubmit = async () => {
   <Head title="Buat Penerimaan Barang / Kain" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-2 py-4 sm:px-4 sm:py-6">
-      <div class="max-w-3xl mx-auto">
+      <div class="mx-auto">
         <div class="bg-white rounded-lg shadow p-4 sm:p-6">
           <h2 class="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Create Good Receive</h2>
           <form @submit.prevent="handleSubmit" class="space-y-4 sm:space-y-6">

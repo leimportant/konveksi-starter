@@ -16,6 +16,7 @@ interface GoodReceive {
     id: number;
     date: string;
     model_id: number;
+    description: string;
     recipent: string;
     created_at: string;
     updated_at: string;
@@ -24,7 +25,6 @@ interface GoodReceive {
         description: string;
     };
     items?: GoodReceiveItem[];
-    good_receive_items?: GoodReceiveItem[];
 }
 
 interface State {
@@ -70,7 +70,7 @@ export const useGoodReceiveStore = defineStore('goodReceive', {
             }
         },
 
-        async createGoodReceive(data: Omit<GoodReceive, 'id'>) {
+        async createGoodReceive(data: Omit<GoodReceive, "id" | "created_at" | "updated_at">) {
             try {
                 const response = await axios.post('/api/good-receive', data);
                 this.items.unshift(response.data);

@@ -15,11 +15,12 @@ class GoodReceive extends Model
     protected $fillable = [
         'date',
         'model_id',
-        'description',
         'recipent',
         'created_by',
         'updated_by',
-        'deleted_by'
+        'deleted_by',
+        'created_at',
+        'updated_at'
     ];
 
     protected $casts = [
@@ -44,5 +45,10 @@ class GoodReceive extends Model
     public function deleter()
     {
         return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    public function model()
+    {
+        return $this->belongsTo(ModelRef::class, 'model_id');
     }
 }

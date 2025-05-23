@@ -9,25 +9,23 @@ return new class extends Migration
     public function up()
     {
         Schema::create('mst_product_price', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->id();
             $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('price_type_id');
-            $table->decimal('price', 10, 2);
             $table->decimal('cost_price', 10, 2)->nullable();
-            $table->date('effective_date');
+            $table->date('effective_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
+            $table->foreignId('deleted_by')->nullable()->constrained('users');
             $table->timestamps();
+            $table->softDeletes();
 
-            // Foreign key constraints
+            // Add foreign key separately to avoid duplicate key issues
             $table->foreign('product_id')
                   ->references('id')
                   ->on('mst_product')
                   ->onDelete('cascade');
-                  
-            $table->foreign('price_type_id')
-                  ->references('id')
-                  ->on('mst_price_type')
-                  ->onDelete('restrict');
         });
     }
 

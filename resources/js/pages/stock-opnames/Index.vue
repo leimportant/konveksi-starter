@@ -1,0 +1,61 @@
+<script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head } from '@inertiajs/vue3';
+import { onMounted } from 'vue';
+import { Button } from '@/components/ui/button';
+import { Plus, View } from 'lucide-vue-next';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useStockOpnameStore } from '@/stores/useStockOpnameStore';
+import { storeToRefs } from 'pinia';
+
+const breadcrumbs = [{ title: 'Stock Opname', href: '/stock-opnames' }];
+const OpnameStore = useStockOpnameStore();
+const { items: opnames } = storeToRefs(OpnameStore);
+
+onMounted(() => {
+  OpnameStore.fetchOpnames();
+});
+</script>
+
+<template>
+   <Head title="Stock Opname Management" />
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="px-4 py-6">
+      <div class="flex justify-between items-center mb-6">
+        <Button @click="$inertia.visit(`/stock-opnames/create`)">
+          <Plus class="h-4 w-4" />
+          Add
+        </Button>
+      </div>
+
+      <div class="rounded-md border">
+       <Table>
+          <TableHeader>
+            <TableRow class="bg-gray-100">
+              <TableHead>Location</TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead>Sloc ID</TableHead>
+              <TableHead>Remark</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="op in opnames" :key="op.id">
+              <TableCell>{{ op.location?.name }}</TableCell>
+              <TableCell>{{ op.product?.name }}</TableCell>
+              <TableCell>{{ op.sloc_id }}</TableCell>
+              <TableCell>{{ op.remark }}</TableCell>
+              <TableCell>
+                <Button variant="ghost" size="icon" @click="$inertia.visit(`/stock-opnames/${String(op.id)}/view`)">
+                 <View class="h-4 w-4"/>
+                </Button>
+                
+              </TableCell>
+
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  </AppLayout>
+</template>

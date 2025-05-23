@@ -10,6 +10,25 @@ use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
+    public function productsBySearch(Request $request)
+    {
+        $search = $request->input('search');
+        $query = Product::query();
+
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        $products = $query->with(['category', 'uom'])
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $products
+        ]);
+    }
+
     public function index()
     {
         $data = Product::with(['category', 'uom'])->latest()->paginate(10);

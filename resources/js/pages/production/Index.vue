@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit, Trash2, Plus } from 'lucide-vue-next';
+import { Edit, Trash2, Plus, LucideView } from 'lucide-vue-next';
 import { useToast } from '@/composables/useToast';
 import { useProductionStore } from '@/stores/useProductionStore';
 import { storeToRefs } from 'pinia';
@@ -122,11 +122,14 @@ const handleDelete = async (id: string) => {
                 <TableCell>{{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }}</TableCell>
                 <TableCell class="text-right">
                   <div class="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" class="hover:bg-gray-100" @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)">
+                    <Button v-if="item.status === 1 || item.status === 3" variant="ghost" size="icon" class="hover:bg-gray-100" @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)">
                       <Edit class="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" class="hover:bg-gray-100" @click="handleDelete(item.id)">
+                    <Button v-if="item.status === 1 || item.status === 3" variant="ghost" size="icon" class="hover:bg-gray-100" @click="handleDelete(item.id)">
                       <Trash2 class="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" class="hover:bg-gray-100" @click="$inertia.visit(`/production/${item.activity_role_id}/view/${item.id}`)">
+                      <LucideView class="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -138,10 +141,13 @@ const handleDelete = async (id: string) => {
         <!-- Mobile Cards -->
         <div class="md:hidden space-y-2">
           <div
-            v-for="item in productions"
-            :key="item.id"
-            class="rounded-2xl border border-gray-200 p-4 shadow-sm bg-white w-full space-y-4 transition hover:shadow-md"
-          >
+              v-for="(item, index) in productions"
+              :key="item.id"
+              :class="[
+                'rounded-2xl border border-gray-200 p-4 shadow-sm w-full space-y-4 transition hover:shadow-md',
+                index % 2 === 1 ? 'bg-[#f0f5f0]' : 'white'
+              ]"
+            >
             <!-- Title Row -->
             <div class="flex justify-between items-center">
               <h3 class="font-semibold text-sm text-gray-900">{{ item.model?.description || '-' }}</h3>
@@ -169,11 +175,14 @@ const handleDelete = async (id: string) => {
 
             <!-- Actions -->
             <div class="flex justify-end gap-2">
-              <Button variant="ghost" size="icon" class="hover:bg-gray-100" @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)">
-                <Edit class="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" class="hover:bg-gray-100" @click="handleDelete(item.id)">
+              <Button v-if="item.status === 1 || item.status === 3" variant="ghost" size="icon" class="hover:bg-gray-100" @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)">
+                      <Edit class="h-4 w-4" />
+                    </Button>
+              <Button v-if="item.status === 1 || item.status === 3" variant="ghost" size="icon" class="hover:bg-gray-100" @click="handleDelete(item.id)">
                 <Trash2 class="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" class="hover:bg-gray-100"  @click="$inertia.visit(`/production/${item.activity_role_id}/view/${item.id}`)">
+                <LucideView class="h-4 w-4" />
               </Button>
             </div>
           </div>

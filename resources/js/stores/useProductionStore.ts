@@ -6,6 +6,7 @@ interface ProductionItem {
   production_id?: string;
   size_id: string;
   qty: number;
+  
 }
 
 interface Production {
@@ -15,6 +16,7 @@ interface Production {
   remark: string | null;
   created_at: string;
   updated_at: string;
+  status: number;
   model?: {
     id: number;
     description: string;

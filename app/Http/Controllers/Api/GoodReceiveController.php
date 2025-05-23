@@ -13,7 +13,7 @@ class GoodReceiveController extends Controller
 {
     public function index()
     {
-        $data = GoodReceive::with(['items'])
+        $data = GoodReceive::with(['items', 'model'])
             ->latest()
             ->paginate(10);
         return response()->json($data);

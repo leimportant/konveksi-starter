@@ -16,6 +16,8 @@
           <TableHeader>
             <TableRow class="bg-gray-100">
               <TableHead>Name</TableHead>
+              <TableHead>Phone Number</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
@@ -25,6 +27,8 @@
           <TableBody>
             <TableRow v-for="user in users" :key="user.id">
               <TableCell>{{ user.name }}</TableCell>
+              <TableCell>{{ user.phone_number }}</TableCell>
+              <TableCell>{{ user.location?.name || '-' }}</TableCell>
               <TableCell>{{ user.email }}</TableCell>
               <TableCell>{{ user.role || 'User' }}</TableCell>
               <TableCell>
@@ -74,15 +78,26 @@
 
           <!-- Password -->
           <div class="mb-3">
-            <label class="block text-sm mb-1">Password</label>
+            <label class="block text-sm mb-1">Phone Number</label>
             <input
-              v-model="form.password"
+              v-model="form.phone_number"
               autocomplete="false"
               type="text"
               class="w-full border rounded px-3 py-2 text-sm"
-              placeholder="Enter password"
+              placeholder="Enter phone number"
             />
-            <p v-if="form.errors.password" class="text-red-500 text-xs mt-1">{{ form.errors.password }}</p>
+            <p v-if="form.errors.phone_number" class="text-red-500 text-xs mt-1">{{ form.errors.phone_number }}</p>
+          </div>
+
+          <div class="mb-3">
+            <label class="block text-sm mb-1">Location</label>
+            <select v-model="form.location_id" class="w-full border rounded px-3 py-2 text-sm">
+              <option value="">Select location</option>
+              <option v-for="location in locations" :key="location.id" :value="location.id">
+                {{ location.name }}
+              </option>
+            </select>
+            <p v-if="form.errors.location_id" class="text-red-500 text-xs mt-1">{{ form.errors.location_id }}</p>
           </div>
 
           <!-- Role -->
@@ -136,12 +151,14 @@ const toast = useToast();
 
 // State
 const showCreateModal = ref(false);
-
+// Add locations ref
+const locations = ref<{ id: number; name: string }[]>([]);
 // Form
 const form = useForm({
   name: '',
   email: '',
-  password: '',
+  phone_number: '',
+  location_id: '',
   role: '',
   active: true
 });
@@ -158,10 +175,21 @@ const { users } = storeToRefs(userStore);
 // Roles
 const roles = ref<{ id: number; name: string }[]>([]);
 
+// Add fetchLocations function
+const fetchLocations = async () => {
+  try {
+    const response = await axios.get('/api/locations');
+    locations.value = response.data.data || [];
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to fetch locations");
+  }
+};
 // On mount
 onMounted(() => {
   userStore.fetchUsers();
   fetchRoles();
+  fetchLocations();
 });
 
 // Fetch roles from API
@@ -181,7 +209,8 @@ const handleCreate = async () => {
     await userStore.createUser({
       name: form.name,
       email: form.email,
-      password: form.password,
+      phone_number: form.phone_number,
+      location_id: form.location_id,
       role: form.role,
       active: form.active
     });

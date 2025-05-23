@@ -5,14 +5,23 @@ interface User {
   id: number;
   name: string;
   email: string;
+  phone_number: string;
+  location_id?: string;
+  location?: Location;
   role?: string;
   active: boolean;
+}
+
+interface Location {
+  id: number;
+  name: string;
 }
 
 interface UserForm {
   name: string;
   email: string;
-  password?: string;
+  phone_number?: string;
+  location_id?: string;
   role: string;
   active: boolean;
 }

@@ -20,6 +20,10 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\PriceTypeController;
 use App\Http\Controllers\Api\ProductPriceController;
+use App\Http\Controllers\Api\SlocController;
+use App\Http\Controllers\Api\InventoryController;
+use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\StockOpnameController;
 
 Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
 Route::apiResource('kasbon-payments', KasbonPaymentController::class);
@@ -28,16 +32,19 @@ Route::middleware('auth')->group(function () {
     // User management
     Route::apiResource('api/users', UserController::class);
     Route::get('/user-menus', [MenuController::class, 'getUserMenus']);
-    Route::get('/combo/{key}', [ComboController::class, 'getComboData'])->name('combo.data');
+    Route::get('api/combo/{key}', [ComboController::class, 'getComboData']);
 
+    Route::apiResource('api/stock-opnames', StockOpnameController::class);
     Route::apiResource('api/roles', RoleController::class);
     Route::apiResource('api/dashboard', DashboardController::class);
     Route::apiResource('api/productions', ProductionController::class);
     Route::apiResource('api/uoms', UomController::class);
+    Route::apiResource('api/slocs', SlocController::class);
     Route::apiResource('api/payment-methods', PaymentMethodController::class);
     Route::apiResource('api/sizes', SizeController::class);
     Route::apiResource('api/categories', CategoryController::class);
     Route::apiResource('api/products', ProductController::class);
+    Route::get('api/products-search', [ProductController::class, 'productsBySearch']);
     Route::apiResource('api/good-receive', GoodReceiveController::class);
     Route::prefix('api/models')->group(function () {
         Route::get('/list', [ModelRefController::class, 'list']);
@@ -51,6 +58,8 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('pos-products', PosProductController::class);
     Route::apiResource('api/price-types', PriceTypeController::class);
     Route::apiResource('api/product-prices', ProductPriceController::class);
+    Route::apiResource('api/locations', LocationController::class);
+    Route::apiResource('api/inventories', InventoryController::class);
 });
 
 Route::prefix('approvals')->group(function () {

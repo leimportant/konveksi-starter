@@ -29,8 +29,9 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'email' => 'string|email|max:255|unique:users',
+            'phone_number' => 'required|string|min:8',
+            'location_id' => 'required|exists:mst_location,id',
             'role' => 'required|exists:roles,id',
             'active' => 'boolean'
         ]);
@@ -46,7 +47,9 @@ class UserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($request->phone_number),
+            'phone_number' => $request->phone_number,
+            'location_id' => $request->location_id,
             'active' => $request->active ?? true
         ]);
 
@@ -91,13 +94,13 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => [
-                'required',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique('users')->ignore($user->id)
             ],
-            'password' => 'nullable|string|min:8',
+            'phone_number' => 'required|string|min:8',
+            'location_id' =>'required|exists:mst_location,id',
             'role' => 'required|exists:roles,id',
             'active' => 'boolean'
         ]);
@@ -112,6 +115,8 @@ class UserController extends Controller
 
         $user->name = $request->name;
         $user->email = $request->email;
+        $user->phone_number = $request->phone_number;
+        $user->location_id = $request->location_id;
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }

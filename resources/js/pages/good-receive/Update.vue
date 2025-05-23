@@ -77,10 +77,6 @@ const handleSubmit = async () => {
       date: form.date,
       model_id: Number(form.model_id),
       description: form.description,
-      qty_base: Number(form.qty_base),
-      qty_convert: Number(form.qty_convert),
-      uom_base: Number(form.uom_base),
-      uom_convert: Number(form.uom_convert),
       recipent: form.recipent
     });
     toast.success("Good Receive updated successfully");
@@ -95,7 +91,7 @@ const handleSubmit = async () => {
   <Head title="Edit Good Receive" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-6">
-      <div class="max-w-3xl mx-auto">
+      <div class="mx-auto">
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-lg font-semibold mb-6">Edit Good Receive</h2>
           <form @submit.prevent="handleSubmit" class="space-y-6">

@@ -44,6 +44,9 @@ Route::get('/product-price/{id}/edit', function ($id) {
     ]);
 })->middleware(['auth'])->name('product-price.edit');
 
+Route::get('/product-price/create', function () {
+    return Inertia::render('product-price/Create');
+})->middleware(['auth'])->name('product-price.create');
 Route::get('/konveksi', function () {
     return Inertia::render('konveksi/Index');
 })->middleware(['auth'])->name('konveksi.index');
@@ -80,6 +83,27 @@ Route::get('/categories', function () {
     return Inertia::render('category/Index');
 })->middleware(['auth'])->name('categories.index');
 
+Route::get('/slocs', function () {
+    return Inertia::render('slocs/Index');
+})->middleware(['auth'])->name('slocs.index');
+
+Route::get('/locations', function () {
+    return Inertia::render('locations/Index');
+})->middleware(['auth'])->name('locations.index');
+
+Route::get('/stock-opnames', function () {
+    return Inertia::render('stock-opnames/Index');
+})->middleware(['auth'])->name('stock-opnames.index');
+Route::get('/stock-opnames/create', function () {
+    return Inertia::render('stock-opnames/Create');
+})->middleware(['auth'])->name('stock-opnames.create');
+
+Route::get('/stock-opnames/{id}/view', function ($id) {
+    return Inertia::render('stock-opnames/View', [
+        'id' => (string) $id,
+    ]);
+})->middleware(['auth'])->name('stock-opnames.view');
+
 Route::get('/good-receive', function () {
     return Inertia::render('good-receive/Index');
 })->middleware(['auth'])->name('good-receive.index');
@@ -88,6 +112,13 @@ Route::get('/good-receive/create', function () {
     return Inertia::render('good-receive/Create');
 })->middleware(['auth'])->name('good-receive.create');
 
+Route::get('/inventory', function () {
+    return Inertia::render('inventory/Index');
+})->middleware(['auth'])->name('inventory.index');
+
+Route::get('/inventory/create', function () {
+    return Inertia::render('inventory/Create');
+})->middleware(['auth'])->name('inventory.create');
 
 Route::get('/good-receive/{id}/edit', function ($id) {
     return Inertia::render('good-receive/Update', [
@@ -115,6 +146,12 @@ Route::get('/production/{activity_role}/edit/{id}', function ($activity_role, $i
     ]);
 })->middleware(['auth'])->name('production.update');
 
+Route::get('/production/{activity_role}/view/{id}', function ($activity_role, $id) {
+    return Inertia::render('production/View', [
+        'activity_role' => $activity_role,
+        'id' => $id,
+    ]);
+})->middleware(['auth'])->name('production.view');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
