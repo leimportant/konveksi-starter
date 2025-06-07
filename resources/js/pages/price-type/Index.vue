@@ -7,6 +7,15 @@
           <Plus class="h-4 w-4" />
           Add New
         </Button>
+
+        <Input
+          v-model="filterName"
+          placeholder="Search"
+          @input="setFilter('name', $event)"
+          class="w-64"
+          aria-label="Search"
+          :disabled="loading"
+        />
       </div>
 
       <div class="rounded-md border">
@@ -37,6 +46,38 @@
             </TableRow>
           </TableBody>
         </Table>
+      </div>
+
+         <!-- Pagination -->
+      <div class="flex justify-end mt-4 space-x-2">
+        <button
+          @click="prevPage"
+          :disabled="currentPage === 1 || loading"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+
+        <template v-for="page in totalPages" :key="page">
+          <button
+            @click="goToPage(page)"
+            :class="[
+              'px-3 py-1 rounded border text-sm',
+              page === currentPage ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+            ]"
+            :disabled="loading"
+          >
+            {{ page }}
+          </button>
+        </template>
+
+        <button
+          @click="nextPage"
+          :disabled="currentPage === totalPages || loading"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
       </div>
 
       <!-- Create Modal -->
@@ -93,7 +134,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
 import { Head, useForm } from '@inertiajs/vue3'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -116,7 +157,22 @@ const form = useForm({
 })
 
 const priceTypeStore = usePriceTypeStore()
-const { priceTypes } = storeToRefs(priceTypeStore)
+const { priceTypes, currentPage, lastPage, loading, filterName } = storeToRefs(priceTypeStore)
+
+
+const totalPages = computed(() => lastPage.value || 1);
+
+const goToPage = async (page: number) => {
+  if (page < 1 || page > totalPages.value) return;
+  await priceTypeStore.fetchPriceTypes(page);
+};
+const nextPage = () => goToPage(currentPage.value + 1);
+const prevPage = () => goToPage(currentPage.value - 1);
+
+const setFilter = (field: string, event: Event) => {
+  const target = event.target as HTMLInputElement;
+  priceTypeStore.setFilter(field, target.value);
+};
 
 onMounted(async () => {
   await priceTypeStore.fetchPriceTypes()

@@ -16,6 +16,10 @@ const props = defineProps<{
     price: number;
     activity_name?: string;
   }[];
+  sizeItems?: {
+    size_id: string;
+    qty: number;
+  }[],
   startDate?: string | null;
   endDate?: string | null;
 }>();
@@ -62,16 +66,27 @@ const calculateDuration = (start_date?: string | null, end_date?: string | null)
 
 // Hitung total biaya aktivitas dengan mempertimbangkan durasi
 const totalActivityCost = computed(() => {
-  const duration = calculateDuration(props.startDate, props.endDate);
   return props.activityItems.reduce((total, item) => {
-    return total + ((item.price || 0) * duration);
+    return total + ((item.price || 0) * totalProduction.value);
   }, 0);
 });
+
 
 // Hitung total HPP
 const totalHPP = computed(() => {
   return totalMaterialCost.value + totalActivityCost.value;
 });
+
+const hppPerPcs = computed(() => {
+  if (totalProduction.value === 0) return 0;
+  return totalHPP.value / totalProduction.value;
+});
+
+
+const totalProduction = computed(() => {
+  return props.sizeItems?.reduce((sum, item) => sum + item.qty, 0) || 0;
+});
+
 
 // Format currency
 const formatCurrency = (value: number) => {
@@ -92,6 +107,7 @@ const getActivityName = (activity: { activity_role_id: number; activity_name?: s
   }
   return activity.activity_name || `Aktivitas ${activity.activity_role_id}`;
 };
+
 
 // Fetch activity roles on mount
 onMounted(async () => {
@@ -153,8 +169,23 @@ const formatDate = (date: string | null | undefined) => {
           <span>Total Biaya Material</span>
           <span>{{ formatCurrency(totalMaterialCost) }}</span>
         </div>
+         <div class="flex justify-between font-medium pt-2 border-t text-sm sm:text-base">
+          <span>Total Produksi</span>
+          <span>{{ totalProduction }}</span>
+        </div>
       </div>
 
+      <!-- Size Cost -->
+      <div class="space-y-2">
+        <h4 class="text-sm sm:text-base font-medium border-b pb-2">Ukuran</h4>
+      
+        <div class="grid gap-1 sm:gap-2 text-sm">
+            <div v-for="size in sizeItems" :key="size.size_id" class="flex justify-between">
+              <span>{{ size.size_id }}</span> 
+              <span>{{ size.qty }}</span>
+            </div>
+        </div>
+      </div>
       <!-- Activity Cost -->
       <div class="space-y-2">
         <h4 class="text-sm sm:text-base font-medium border-b pb-2">Biaya Aktivitas</h4>
@@ -167,9 +198,9 @@ const formatDate = (date: string | null | undefined) => {
               </span>
             </div>
             <div class="flex flex-col items-end">
-              <span class="text-xs sm:text-sm">{{ formatCurrency(activity.price || 0) }} / hari</span>
+              <span class="text-xs sm:text-sm">{{ formatCurrency(activity.price || 0) }} / PCS</span>
               <span class="text-sm font-medium">
-                {{ formatCurrency((activity.price || 0) * calculateDuration(startDate, endDate)) }}
+                {{ formatCurrency((activity.price || 0) * totalProduction) }}
               </span>
             </div>
           </div>
@@ -184,6 +215,12 @@ const formatDate = (date: string | null | undefined) => {
       <div class="flex justify-between font-bold pt-4 border-t text-base sm:text-lg">
         <span>Total HPP</span>
         <span>{{ formatCurrency(totalHPP) }}</span>
+      </div>
+
+      <!-- HPP per PCS -->
+      <div class="flex justify-between font-medium text-sm sm:text-base">
+        <span>HPP per PCS</span>
+        <span>{{ formatCurrency(hppPerPcs) }}</span>
       </div>
     </div>
   </div>

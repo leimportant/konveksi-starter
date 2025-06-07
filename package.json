@@ -11,6 +11,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",
+        "@types/lodash-es": "^4.17.12",
         "@types/node": "^22.13.5",
         "@vue/eslint-config-typescript": "^14.3.0",
         "@vue/runtime-dom": "^3.5.13",
@@ -34,10 +35,13 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "concurrently": "^9.0.1",
+        "jsqr": "^1.4.0",
         "laravel-vite-plugin": "^1.0",
+        "lodash-es": "^4.17.21",
         "lucide": "^0.468.0",
         "lucide-vue-next": "^0.468.0",
         "pinia": "^3.0.2",
+        "pinia-plugin-persistedstate": "^4.3.0",
         "primeicons": "^7.0.0",
         "primevue": "^4.3.3",
         "radix-vue": "^1.9.11",
@@ -49,6 +53,7 @@
         "vue": "^3.5.13",
         "vue-chartjs": "^5.3.2",
         "vue-toastification": "^2.0.0-rc.5",
+        "vue3-select": "^0.1.2",
         "ziggy-js": "^2.4.2"
     },
     "optionalDependencies": {

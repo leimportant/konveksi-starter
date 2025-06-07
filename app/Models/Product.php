@@ -12,10 +12,16 @@ class Product extends Model
 
     protected $table = 'mst_product';
 
+    protected $primaryKey ='id';
+
+    public $incrementing = false;
+
     protected $fillable = [
+        'id',
         'category_id',
         'uom_id',
         'name',
+        'image_path',
         'created_by',
         'updated_by',
         'deleted_by'

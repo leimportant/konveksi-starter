@@ -49,39 +49,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useSizeStore } from '@/stores/useSizeStore';
 import { Trash } from 'lucide-vue-next';
 
-const props = defineProps<{
-  modelValue: { size_id: number; qty: number }[]
-}>();
+const props = defineProps<{ 
+  modelValue: { size_id: string; qty: number }[] 
+}>(); 
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', val: { size_id: number; qty: number }[]): void
-}>();
+const emit = defineEmits<{ 
+  'update:modelValue': [value: { size_id: string; qty: number }[]],
+  'update:totalQuantity': [value: number]
+}>(); 
 
-// Initialize store
-const sizeStore = useSizeStore();
+// Initialize store 
+const sizeStore = useSizeStore(); 
 
-// local copy of the v-model array
-const modelItems = ref(props.modelValue.slice());
+// local copy of the v-model array 
+const modelItems = ref(props.modelValue.slice()); 
 
-// keep parent in sync
-watch(modelItems, val => emit('update:modelValue', val), { deep: true });
-
-// Fetch sizes on mount
-onMounted(() => {
-  sizeStore.fetchSizes();
+// Calculate total quantity from all size items
+const totalQuantity = computed(() => {
+  return modelItems.value.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
 });
 
-const addItem = () => {
-  modelItems.value.push({ size_id: 0, qty: 0 });
+// Emit total quantity whenever it changes
+watch(totalQuantity, (newTotal) => {
+  emit('update:totalQuantity', newTotal);
+});
+
+
+// keep parent in sync 
+watch(modelItems, val => emit('update:modelValue', val), { deep: true }); 
+
+// Fetch sizes on mount 
+onMounted(() => { 
+  sizeStore.fetchSizes();
+  // Emit initial total quantity
+  emit('update:totalQuantity', totalQuantity.value);
+}); 
+
+const addItem = () => { 
+  modelItems.value.push({ size_id: "", qty: 0 }); 
+}; 
+
+const removeItem = (i: number) => { 
+  modelItems.value.splice(i, 1); 
 };
 
-const removeItem = (i: number) => {
-  modelItems.value.splice(i, 1);
-};
+
 </script>

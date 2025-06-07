@@ -1,187 +1,158 @@
-<template>
-  <div class="p-4 md:p-6 space-y-6">
-    <h1 class="text-2xl font-semibold">Inventory List</h1>
-
-    <!-- Filters -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <select
-        v-model="filters.location"
-        @change="setFilter('location', ($event.target as HTMLSelectElement)?.value)"
-        class="w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-      >
-        <option value="">All Locations</option>
-        <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
-      </select>
-
-      <select
-        v-model="filters.sloc"
-        @change="setFilter('sloc', ($event.target as HTMLSelectElement)?.value)"
-        class="w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-      >
-        <option value="">All SLOCs</option>
-        <option v-for="sloc in slocs" :key="sloc.id" :value="sloc.id">{{ sloc.name }}</option>
-      </select>
-
-      <div class="relative">
-        <input
-          type="text"
-          v-model="productSearch"
-          @input="handleProductSearch"
-          placeholder="Search products..."
-          class="w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-        />
-        <div v-if="products.length > 0 && productSearch" class="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          <div
-            v-for="prod in products"
-            :key="prod.id"
-            @click="() => { setFilter('product', String(prod.id)); productSearch = prod.name; }"
-            class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-          >
-            {{ prod.name }}
-          </div>
-        </div>
-      </div>
-
-      <button
-        @click="() => fetchInventory()"
-        class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-      >
-        Apply Filters
-      </button>
-    </div>
-
-    <!-- Table -->
-    <div>
-      <div v-if="loading" class="text-gray-600 text-center py-6">Loading...</div>
-      <div v-else-if="error" class="text-red-600 text-center py-6">Error: {{ error }}</div>
-      <div v-else class="overflow-x-auto">
-        <table class="min-w-full table-auto border rounded-lg overflow-hidden shadow-sm">
-          <thead>
-            <tr class="bg-gray-100 text-left">
-              <th class="px-4 py-2">Location</th>
-              <th class="px-4 py-2">Sloc</th>
-              <th class="px-4 py-2">Product</th>
-              <th class="px-4 py-2">Qty</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(item, index) in inventoryStore.inventory"
-              :key="index"
-              class="border-t hover:bg-gray-50"
-            >
-              <td class="px-4 py-2">{{ item.location?.name }}</td>
-              <td class="px-4 py-2">{{ item.sloc?.name }}</td>
-              <td class="px-4 py-2">{{ item.product?.name }}</td>
-              <td class="px-4 py-2">{{ item.qty }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Pagination -->
-    <div class="flex justify-between items-center mt-6">
-      <button
-        @click="() => fetchInventory(currentPage - 1)"
-        :disabled="currentPage <= 1"
-        class="flex items-center px-4 py-2 bg-gray-100 border rounded-md disabled:opacity-50 hover:bg-gray-200 transition"
-      >
-        <ChevronLeft class="w-4 h-4 mr-1" /> Previous
-      </button>
-
-      <span class="text-sm text-gray-700">Page {{ currentPage }} of {{ lastPage }}</span>
-
-      <button
-        @click="() => fetchInventory(currentPage + 1)"
-        :disabled="currentPage >= lastPage"
-        class="flex items-center px-4 py-2 bg-gray-100 border rounded-md disabled:opacity-50 hover:bg-gray-200 transition"
-      >
-        Next <ChevronRight class="w-4 h-4 ml-1" />
-      </button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useInventoryStore } from '@/stores/useInventoryStore';
+import { storeToRefs } from 'pinia';
 import axios from 'axios';
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus } from 'lucide-vue-next';
 
-interface Location {
-  id: number;
-  name: string;
-}
-interface Sloc {
-  id: number;
-  name: string;
-}
-interface Product {
-  id: number;
-  name: string;
-}
+const store = useInventoryStore();
+const { inventory, loading, error, filters, currentPage, lastPage } = storeToRefs(store);
 
-const locations = ref<Location[]>([]);
-const slocs = ref<Sloc[]>([]);
-const products = ref<Product[]>([]);
-const productSearch = ref('');
-const searchTimeout = ref<ReturnType<typeof setTimeout>>();
+const breadcrumbs = [
+  { title: 'Inventory', href: '/inventory' },
+];
 
-const searchProducts = async (query: string) => {
+// Filter options reactive arrays
+const locations = ref<{ id: number; name: string }[]>([]);
+const slocs = ref<{ id: number; name: string }[]>([]);
+const products = ref<{ id: number; name: string }[]>([]);
+
+// Fetch filter options on mounted
+async function fetchFilters() {
   try {
-    const response = await axios.get(`/api/products-search?search=${query}`);
-    products.value = response.data.data;
-  } catch (error) {
-    console.error('Error searching products:', error);
-  }
-};
-
-const handleProductSearch = (event: Event) => {
-  const value = (event.target as HTMLInputElement).value;
-  productSearch.value = value;
-  
-  if (searchTimeout.value) {
-    clearTimeout(searchTimeout.value);
-  }
-
-  searchTimeout.value = setTimeout(() => {
-    if (value) {
-      searchProducts(value);
-    } else {
-      fetchProducts();
-    }
-  }, 300);
-};
-
-const fetchProducts = async () => {
-  try {
-    const response = await axios.get('/api/products');
-    products.value = response.data.data;
-  } catch (error) {
-    console.error('Error fetching products:', error);
-  }
-};
-
-const fetchDropdownData = async () => {
-  try {
-    const [locResponse, slocResponse] = await Promise.all([
+    const [locRes, slocRes, prodRes] = await Promise.all([
       axios.get('/api/locations'),
-      axios.get('/api/slocs')
+      axios.get('/api/slocs'),
+      axios.get('/api/products'),
     ]);
-    locations.value = locResponse.data.data;
-    slocs.value = slocResponse.data.data;
-    await fetchProducts();
-  } catch (error) {
-    console.error('Error fetching dropdown data:', error);
+    locations.value = locRes.data.data ?? [];
+    slocs.value = slocRes.data.data ?? [];
+    products.value = prodRes.data.data ?? [];
+  } catch (e) {
+    console.error('Failed to fetch filter data', e);
   }
-};
-
-const inventoryStore = useInventoryStore();
-const { filters, loading, error, currentPage, lastPage } = inventoryStore;
-const { fetchInventory, setFilter } = inventoryStore;
+}
 
 onMounted(async () => {
-  await Promise.all([fetchDropdownData(), fetchInventory()]);
+  await fetchFilters();
+  await store.fetchInventory(1);
 });
+
+// Watch filters to reload inventory on change, reset page to 1
+watch(
+  filters,
+  async () => {
+    await store.fetchInventory(1);
+  },
+  { deep: true }
+);
+
+// Set filter handler
+const setFilter = (filter: keyof typeof filters.value, event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  store.setFilter(filter, target.value);
+};
+
+// Computed total pages
+const totalPages = computed(() => lastPage.value || 1);
+
+// Pagination navigation
+const goToPage = async (page: number) => {
+  if (page < 1 || page > totalPages.value) return;
+  await store.fetchInventory(page);
+};
+
+const nextPage = () => goToPage(currentPage.value + 1);
+const prevPage = () => goToPage(currentPage.value - 1);
 </script>
+
+<template>
+
+  <Head title="Inventory Management" />
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="px-4 py-6">
+      <div class="flex justify-between items-center mb-6">
+        <Button @click="$inertia.visit('/inventory/create')" class="bg-blue-600 text-white hover:bg-blue-700 gap-2">
+          <Plus class="h-4 w-4" /> Add
+        </Button>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex gap-4 mb-4">
+        <select class="border rounded px-2 py-1" @change="setFilter('location', $event)"
+          :value="filters.location ?? ''">
+          <option value="">All Locations</option>
+          <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
+        </select>
+
+        <select class="border rounded px-2 py-1" @change="setFilter('sloc', $event)" :value="filters.sloc ?? ''">
+          <option value="">All SLocs</option>
+          <option v-for="sloc in slocs" :key="sloc.id" :value="sloc.id">{{ sloc.name }}</option>
+        </select>
+
+        <select class="border rounded px-2 py-1" @change="setFilter('product', $event)" :value="filters.product ?? ''">
+          <option value="">All Products</option>
+          <option v-for="prod in products" :key="prod.id" :value="prod.id">{{ prod.name }}</option>
+        </select>
+      </div>
+
+      <!-- Error -->
+      <p v-if="error" class="text-red-600 mb-4">{{ error }}</p>
+
+      <!-- Loading -->
+      <p v-if="loading" class="mb-4">Loading...</p>
+
+      <!-- Inventory Table -->
+      <div class="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow class="bg-gray-100">
+              <TableHead>Product</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>SLoc</TableHead>
+              <TableHead>UOM</TableHead>
+              <TableHead>Size</TableHead>
+              <TableHead>Qty</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="item in inventory"
+              :key="`${item.product.id}-${item.location.id}-${item.sloc.id}-${item.size_id}`">
+              <TableCell>{{ item.product.name }}</TableCell>
+              <TableCell>{{ item.location.name }}</TableCell>
+              <TableCell>{{ item.sloc.name }}</TableCell>
+              <TableCell>{{ item.uom_id }}</TableCell>
+              <TableCell>{{ item.size_id }}</TableCell>
+              <TableCell>{{ item.qty }}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex justify-end mt-4 space-x-2">
+        <button @click="prevPage" :disabled="currentPage === 1"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+          Previous
+        </button>
+
+        <template v-for="page in totalPages" :key="page">
+          <button @click="goToPage(page)" :class="['px-3 py-1 rounded border text-sm',
+            page === currentPage ? 'bg-blue-600 border-blue-600 text-white'
+              : 'border-gray-300 text-gray-700 hover:bg-gray-100']">
+            {{ page }}
+          </button>
+        </template>
+
+        <button @click="nextPage" :disabled="currentPage === totalPages"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+          Next
+        </button>
+      </div>
+    </div>
+  </AppLayout>
+</template>

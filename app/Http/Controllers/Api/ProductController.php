@@ -7,6 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -16,7 +17,8 @@ class ProductController extends Controller
         $query = Product::query();
 
         if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
+            $query->where('name', 'like', '%' . $search . '%')
+;
         }
 
         $products = $query->with(['category', 'uom'])
@@ -29,11 +31,28 @@ class ProductController extends Controller
         ]);
     }
 
-    public function index()
+   public function index(Request $request)
     {
-        $data = Product::with(['category', 'uom'])->latest()->paginate(10);
+        $query = Product::with(['category', 'uom']); // eager load relasi
+
+        $search = $request->input('search');
+
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%')
+                ->orWhereHas('category', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('uom', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                });
+        }
+
+        $perPage = $request->input('perPage', 10);
+        $data = $query->paginate($perPage);
+
         return response()->json($data);
     }
+
 
     public function store(Request $request)
     {
@@ -42,12 +61,39 @@ class ProductController extends Controller
             'uom_id' => 'exists:mst_uom,id',
             'name' => 'required|max:255|unique:mst_product,name'
         ]);
+        $newId = $this->generateNumber($validated['category_id']);
+        $validated['id'] = $newId;
 
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
         $product = Product::create($validated);
         return response()->json($product, 201);
+    }
+
+    private function generateNumber(int $categoryId): string
+    {
+        // Panjang digit category_id (misalnya: 2 untuk '12')
+        $categoryIdStr = (string) $categoryId;
+        $prefixLength = strlen($categoryIdStr);
+
+        // Ambil ID terakhir dari produk dalam kategori itu
+        $lastProductId = DB::table('mst_product')
+            ->where('category_id', $categoryId)
+            ->where('id', 'like', $categoryIdStr . '%')
+            ->orderByDesc('id')
+            ->value('id');
+
+        // Ambil 4 digit terakhir (setelah prefix category_id)
+        $lastNumber = 0;
+        if ($lastProductId) {
+            $lastNumber = (int) substr($lastProductId, $prefixLength);
+        }
+
+        $newNumber = $lastNumber + 1;
+
+        // Gabungkan: category_id + new number (formatted)
+        return $categoryIdStr . str_pad((string) $newNumber, 4, '0', STR_PAD_LEFT);
     }
 
     public function update(Request $request, Product $product)

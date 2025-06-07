@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2, Plus } from 'lucide-vue-next';
-import { useToast } from "@/composables/useToast";
+import { useToast } from '@/composables/useToast';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { storeToRefs } from 'pinia';
 
@@ -24,13 +24,46 @@ const breadcrumbs = [
   { title: 'Category', href: '/categories' }
 ];
 
-const categoryStore = useCategoryStore ();
-const { items: Categorys } = storeToRefs(categoryStore);
+const categoryStore = useCategoryStore();
+const { items: Categorys, currentPage, lastPage, loading, filterName } = storeToRefs(categoryStore);
+
+// totalPages computed dari lastPage store
+const totalPages = computed(() => lastPage.value || 1);
+
+// Pagination navigation
+const goToPage = async (page: number) => {
+  if (page < 1 || page > totalPages.value) return;
+  await categoryStore.fetchCategories(page);
+};
+const nextPage = () => goToPage(currentPage.value + 1);
+const prevPage = () => goToPage(currentPage.value - 1);
+
+// Filter handling — cukup panggil setFilter di store
+const setFilter = (field: string, event: Event) => {
+  const target = event.target as HTMLInputElement;
+  categoryStore.setFilter(field, target.value);
+};
+
+// Modal control
+const openCreateModal = () => {
+  form.reset();
+  showCreateModal.value = true;
+};
+const closeCreateModal = () => {
+  showCreateModal.value = false;
+  form.reset();
+};
+const closeEditModal = () => {
+  showEditModal.value = false;
+  currentCategory.value = null;
+  form.reset();
+};
 
 onMounted(() => {
   categoryStore.fetchCategories();
 });
 
+// CRUD handlers
 const handleCreate = async () => {
   if (!form.name) return toast.error("Name is required");
 
@@ -38,9 +71,8 @@ const handleCreate = async () => {
     await categoryStore.createCategory(form.name);
     toast.success("Category created successfully");
     form.reset();
-    categoryStore.loaded = false;
-    await categoryStore.fetchCategories();
-    showCreateModal.value = false;
+    await categoryStore.fetchCategories(currentPage.value);
+    closeCreateModal();
   } catch (error: any) {
     const nameError = error?.response?.data?.errors?.name?.[0];
     toast.error(nameError || "Failed to create Category");
@@ -60,10 +92,8 @@ const handleUpdate = async () => {
     await categoryStore.updateCategory(currentCategory.value.id, form.name);
     toast.success("Category updated successfully");
     form.reset();
-    categoryStore.loaded = false;
-    await categoryStore.fetchCategories();
-    showEditModal.value = false;
-    currentCategory.value = null;
+    await categoryStore.fetchCategories(currentPage.value);
+    closeEditModal();
   } catch (error: any) {
     const nameError = error?.response?.data?.errors?.name?.[0];
     toast.error(nameError || "Failed to update Category");
@@ -76,8 +106,7 @@ const handleDelete = async (id: number) => {
   try {
     await categoryStore.deleteCategory(id);
     toast.success("Category deleted successfully");
-    categoryStore.loaded = false;
-    await categoryStore.fetchCategories();
+    await categoryStore.fetchCategories(currentPage.value);
   } catch (error: any) {
     toast.error(error?.response?.data?.message ?? "Failed to delete Category");
   }
@@ -89,10 +118,19 @@ const handleDelete = async (id: number) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-6">
       <div class="flex justify-between items-center mb-6">
-        <Button @click="showCreateModal = true">
+        <Button @click="openCreateModal" aria-label="Add new category" :disabled="loading">
           <Plus class="h-4 w-4" />
           Add
         </Button>
+
+        <Input
+          v-model="filterName"
+          placeholder="Search Categories"
+          @input="setFilter('name', $event)"
+          class="w-64"
+          aria-label="Search Categories"
+          :disabled="loading"
+        />
       </div>
 
       <div class="rounded-md border">
@@ -107,10 +145,10 @@ const handleDelete = async (id: number) => {
             <TableRow v-for="Category in Categorys" :key="Category.id">
               <TableCell>{{ Category.name }}</TableCell>
               <TableCell class="flex gap-2">
-                <Button variant="ghost" size="icon" @click="handleEdit(Category)">
+                <Button variant="ghost" size="icon" @click="handleEdit(Category)" aria-label="Edit category" :disabled="loading">
                   <Edit class="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" @click="handleDelete(Category.id)">
+                <Button variant="ghost" size="icon" @click="handleDelete(Category.id)" aria-label="Delete category" :disabled="loading">
                   <Trash2 class="h-4 w-4" />
                 </Button>
               </TableCell>
@@ -119,16 +157,48 @@ const handleDelete = async (id: number) => {
         </Table>
       </div>
 
+      <!-- Pagination -->
+      <div class="flex justify-end mt-4 space-x-2">
+        <button
+          @click="prevPage"
+          :disabled="currentPage === 1 || loading"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+
+        <template v-for="page in totalPages" :key="page">
+          <button
+            @click="goToPage(page)"
+            :class="[
+              'px-3 py-1 rounded border text-sm',
+              page === currentPage ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+            ]"
+            :disabled="loading"
+          >
+            {{ page }}
+          </button>
+        </template>
+
+        <button
+          @click="nextPage"
+          :disabled="currentPage === totalPages || loading"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+
       <!-- Create Modal -->
       <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-lg w-96">
           <h2 class="text-lg font-semibold mb-4">Add New Category</h2>
           <form @submit.prevent="handleCreate">
             <div class="mb-4">
-              <Input v-model="form.name" placeholder="Category Name" required />
+              <Input v-model="form.name" placeholder="Category Name" required aria-label="Category Name" />
             </div>
             <div class="flex justify-end gap-2">
-              <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
+              <Button type="button" variant="outline" @click="closeCreateModal">Cancel</Button>
               <Button type="submit">Create</Button>
             </div>
           </form>
@@ -141,10 +211,10 @@ const handleDelete = async (id: number) => {
           <h2 class="text-lg font-semibold mb-4">Edit Category</h2>
           <form @submit.prevent="handleUpdate">
             <div class="mb-4">
-              <Input v-model="form.name" placeholder="Category Name" required />
+              <Input v-model="form.name" placeholder="Category Name" required aria-label="Category Name" />
             </div>
             <div class="flex justify-end gap-2">
-              <Button type="button" variant="outline" @click="showEditModal = false">Cancel</Button>
+              <Button type="button" variant="outline" @click="closeEditModal">Cancel</Button>
               <Button type="submit">Update</Button>
             </div>
           </form>

@@ -6,25 +6,58 @@ interface Uom {
     name: string;
 }
 
+interface State {
+  items: Uom[];
+  total: number;
+  loaded: boolean;
+  loading: boolean; // optional, if you want to track loading state
+  currentPage: number;
+  lastPage: number;
+  filterName: string;
+}
+
 export const useUomStore = defineStore('uom', {
-    state: () => ({
-        items: [] as Uom[],
+    state: (): State => ({
+        items: [],
+        total: 0,
         loaded: false,
+        loading: false, // optional, if you want to track loading state
+        currentPage: 1,
+        lastPage: 1,
+        filterName: '',
     }),
 
     actions: {
-        async fetchUoms() {
-            if (this.loaded) return;
-
+       async fetchUoms(page = 1, perPage = 10) {
+            this.loading = true;
             try {
-                const response = await axios.get('/api/uoms');
+
+                const response = await axios.get('/api/uoms', {
+                params: {
+                    page,
+                    perPage,
+                    name: this.filterName,  // pakai filterName kalau ada
+                }
+                });
+
                 this.items = response.data.data;
+                this.total = response.data.total;
+                this.currentPage = page;
+                this.lastPage = response.data.last_page || 1;
                 this.loaded = true;
             } catch (error) {
-                console.error('Failed to fetch UOMs', error);
+             console.error(error);
+            } finally {
+                this.loading = false;
             }
         },
-
+        setFilter(field: string, value: string) {
+            if (field === 'name') {
+            this.filterName = value;
+            this.currentPage = 1;
+            this.fetchUoms(1);
+            }
+        },
         async createUom(name: string) {
             try {
                 await axios.post('/api/uoms', { name });

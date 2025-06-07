@@ -15,10 +15,20 @@ class UserController extends Controller
     /**
      * Display a listing of users
      */
-    public function index()
+
+    public function index(Request $request)
     {
-        $users = User::with('roles')->latest()->paginate(10);
-        
+        $query = User::query();
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%')
+            ->orWhere('email', 'like', '%' . $request->name . '%')
+            ->orWhere('phone_number', 'like', '%' . $request->name . '%');
+        }
+
+        $perPage = $request->input('perPage', 10);
+        $users = $query->paginate($perPage);
+
         return response()->json($users);
     }
 

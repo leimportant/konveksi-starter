@@ -26,13 +26,28 @@ interface UserForm {
   active: boolean;
 }
 
+interface State {
+  users: User[];
+  total: number;
+  loaded: boolean;
+  loading: boolean; // optional, if you want to track loading state
+  currentPage: number;
+  lastPage: number;
+  error: null | string;
+  filterName: string;
+}
+
 export const useUserStore = defineStore('user', {
-  state: () => ({
-    users: [] as User[],
-    loading: false,
-    error: null as string | null,
-    loaded: false,
-  }),
+   state: (): State => ({
+        users: [],
+        total: 0,
+        loaded: false,
+        loading: false, // optional, if you want to track loading state
+        currentPage: 1,
+        lastPage: 1,
+        error: null,
+        filterName: '',
+    }),
 
   getters: {
     // Optional: You can add computed values like filtered users or user count if needed
@@ -46,12 +61,22 @@ export const useUserStore = defineStore('user', {
 
   actions: {
     // Fetch users from the API
-    async fetchUsers() {
+    async fetchUsers(page = 1, perPage = 10) {
       this.loading = true;
       try {
-        const response = await axios.get('/api/users');
-        this.users = response.data.data || [];
-        this.loaded = true;
+        const response = await axios.get('/api/users', {
+            params: {
+                page,
+                perPage,
+                name: this.filterName,  // pakai filterName kalau ada
+            }
+            });
+
+            this.users = response.data.data;
+            this.total = response.data.total;
+            this.currentPage = page;
+            this.lastPage = response.data.last_page || 1;
+            this.loaded = true;
       } catch (error: any) {
         this.error = error.response?.data?.message || 'Failed to load users';
         throw error;
@@ -59,7 +84,13 @@ export const useUserStore = defineStore('user', {
         this.loading = false;
       }
     },
-
+     setFilter(field: string, value: string) {
+          if (field === 'name') {
+          this.filterName = value;
+          this.currentPage = 1;
+          this.fetchUsers(1);
+          }
+      },
     // Create a new user
     async createUser(userData: UserForm) {
       this.loading = true;

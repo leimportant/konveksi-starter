@@ -42,8 +42,17 @@ const fetchData = async () => {
 };
 
 const printPage = () => {
+  const originalContent = document.body.innerHTML;
+  const printContent = document.getElementById('print-area')?.innerHTML || '';
+
+  document.body.innerHTML = printContent;
   window.print();
+  document.body.innerHTML = originalContent;
+
+  // Optional: Reload to re-bind Vue events
+  location.reload();
 };
+
 
 onMounted(fetchData);
 </script>
@@ -51,7 +60,7 @@ onMounted(fetchData);
 <template>
   <Head title="View Production" />
   <AppLayout :breadcrumbs="[{ title: 'Production', href: `/production/${props.activity_role}` }]">
-    <div class="p-4 md:p-6 space-y-4 md:space-y-6 print:bg-white">
+    <div id="print-area" class="p-4 md:p-6 space-y-4 md:space-y-6 print:bg-white">
       <div class="flex justify-between items-center">
         <h1 class="text-xl md:text-2xl font-bold">
           Hasil Produksi

@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import type { PageProps } from '@/types/page-props'; // adjust path as needed
+import { useSidebarStore } from '@/stores/useSidebarStore'
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -23,6 +24,8 @@ const sidebarNavItems: NavItem[] = [
 
 const page = usePage<PageProps>();
 
+const sidebarStore = useSidebarStore()
+
 const currentPath = page.props.ziggy?.location
   ? new URL(page.props.ziggy.location).pathname
   : '';
@@ -34,7 +37,10 @@ const currentPath = page.props.ziggy?.location
         <Heading title="Settings" description="Manage your profile and account settings" />
 
         <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-x-12 lg:space-y-0">
-            <aside class="w-full max-w-xl lg:w-48">
+           <aside 
+                        class="sidebar transition-all duration-300 ease-in-out"
+                        :class="{ 'w-64': !sidebarStore.isCollapsed, 'w-16': sidebarStore.isCollapsed }"
+                    >
                 <nav class="flex flex-col space-x-0 space-y-1">
                     <Button
                         v-for="item in sidebarNavItems"

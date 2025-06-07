@@ -7,7 +7,10 @@ use App\Models\Inventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
-
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 class InventoryController extends Controller
 {
     /**
@@ -16,6 +19,90 @@ class InventoryController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
+
+    public function getStock(Request $request): JsonResponse
+{
+    // Ensure the user is authenticated
+    Auth::check();
+    // Get the user's location ID   
+    if (!Auth::user()->location_id) {
+        return response()->json(['error' => 'Location not found'], 404);
+    }
+    $locationId = Auth::user()->location_id;
+    $today = Carbon::today()->toDateString();
+
+    $query = DB::table('tr_inventory as a')
+        ->select([
+            'a.product_id',
+            'b.name as product_name',
+            'a.uom_id',
+            'a.size_id',
+            'a.sloc_id',
+            'a.qty as qty_stock',
+            'a.status',
+            'b.image_path',
+            'c.name as category_name',
+        ])
+        ->join('mst_product as b', 'a.product_id', '=', 'b.id')
+        ->leftJoin('mst_category as c', 'b.category_id', '=', 'c.id')
+        ->where('a.location_id', $locationId)
+        ->where('a.status', 'IN');
+
+    if ($request->filled('search')) {
+        $search = $request->input('search');
+        $query->where(function ($q) use ($search) {
+            $q->where('a.product_id', $search)
+              ->orWhere('b.name', 'like', "%{$search}%")
+              ->orWhere('c.name', 'like', "%{$search}%");
+        });
+    }
+
+    // paginate instead of get()
+    $inventory = $query->paginate(10);
+
+    // Add price info to each item
+    $inventory->getCollection()->transform(function ($item) use ($today) {
+        $price = DB::table('mst_product_price as a')
+            ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
+            ->select([
+                'b.price',
+                'b.size_id',
+                'b.discount',
+                'b.price_sell',
+                'a.effective_date',
+                'a.end_date',
+                'a.is_active'
+            ])
+            ->where('a.product_id', $item->product_id)
+            ->where('b.size_id', $item->size_id)
+            ->whereDate('a.effective_date', '<=', $today)
+            ->where(function ($query) use ($today) {
+                $query->whereNull('a.end_date')
+                      ->orWhereDate('a.end_date', '>=', $today);
+            })
+            ->where('a.is_active', 1)
+            ->orderByDesc('a.effective_date')
+            ->get();
+
+        if ($price->isNotEmpty()) {
+            $item->price_sell = floatval($price->first()->price_sell);
+            $item->discount = floatval($price->first()->discount);
+            $item->price = floatval($price->first()->price);
+        } else {
+            $item->price_sell = null;
+            $item->discount = null;
+            $item->price = null;
+        }
+
+        $item->image_path = $item->image_path ? $item->image_path : "not_available.png";
+
+        return $item;
+    });
+
+    return response()->json($inventory);
+}
+
+
     public function index(Request $request): JsonResponse
     {
         $query = Inventory::with(['product', 'location', 'sloc', 'uom']);
@@ -34,7 +121,7 @@ class InventoryController extends Controller
 
         $inventory = $query->paginate(10);
 
-        return response()->json($inventory->load(['product', 'location', 'sloc', 'uom']));
+        return response()->json($inventory);
     }
 
     /**
@@ -51,6 +138,7 @@ class InventoryController extends Controller
                 'location_id' => 'required|exists:mst_location,id',
                 'uom_id' => 'required|exists:mst_uom,id',
                 'sloc_id' => 'required|exists:mst_sloc,id',
+                'size_id' => 'required|exists:mst_size,id',
                 'qty' => 'required|numeric|min:0'
             ]);
 
@@ -120,7 +208,8 @@ class InventoryController extends Controller
                 'location_id' => $request->location_id,
                 'sloc_id' => $request->sloc_id,
                 'product_id' => $request->product_id,
-                'uom_id' => $request->uom_id
+                'uom_id' => $request->uom_id,
+                'size_id' => $request->size_id, 
             ],
             [
                 'qty' => $request->qty

@@ -7,6 +7,7 @@ export const useMenuStore = defineStore('menu', {
   state: () => ({
     items: [] as NavItem[],
     loaded: false,
+    isCollapsed: false, // <-- tambahkan ini
   }),
 
   actions: {
@@ -21,5 +22,10 @@ export const useMenuStore = defineStore('menu', {
         console.error('Failed to fetch menus', error);
       }
     },
+
+    toggleCollapse() {
+      this.isCollapsed = !this.isCollapsed;
+    },
   },
 });
+

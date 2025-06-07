@@ -10,10 +10,19 @@ use Illuminate\Support\Facades\Auth;
 
 class PaymentMethodController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $payment = PaymentMethod::latest()->paginate(10);
+        $query = PaymentMethod::query();
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        $perPage = $request->input('perPage', 10);
+        $payment = $query->paginate($perPage);
+
         return response()->json($payment);
+
     }
 
     public function store(Request $request)

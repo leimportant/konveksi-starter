@@ -40,6 +40,7 @@ class ProductPrice extends Model
         return $this->hasMany(ProductPriceType::class, 'price_id');
     }
 
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

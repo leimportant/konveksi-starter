@@ -10,10 +10,18 @@ use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = Category::latest()->paginate(10);
-        return response()->json($data);
+        $query = Category::query();
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        $perPage = $request->input('perPage', 10);
+        $categories = $query->paginate($perPage);
+
+        return response()->json($categories);
     }
 
     public function store(Request $request)

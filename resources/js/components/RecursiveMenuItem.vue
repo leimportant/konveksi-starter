@@ -12,7 +12,7 @@ const { item, page } = props;
 </script>
 
 <template>
-  <SidebarMenuItem>
+  <SidebarMenuItem class="hover:bg-gray-700 hover:text-white active:bg-gray-600 rounded-md transition-colors duration-200">
     <SidebarMenuButton 
       as-child 
       :is-active="item.href === page.url" 
@@ -24,7 +24,6 @@ const { item, page } = props;
         <span>{{ item.title }}</span>
       </Link>
     </SidebarMenuButton>
-
     <!-- Recursive rendering for children -->
     <SidebarMenu v-if="item.children && item.children.length" class="ml-4">
       <RecursiveMenuItem 

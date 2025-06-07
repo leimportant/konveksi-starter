@@ -10,22 +10,26 @@ import {
 } from 'lucide-vue-next';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Konveksi', href: '/konveksi' },
+  { title: 'POS (Sales)', href: '/sales' },
 ];
 
-const handleProcessClick = (processId: number) => {
-  router.visit(`/production/${processId}`);
+const handleClosing = () => {
+  router.visit(`/closing`);
 };
 const handlePOS = () => {
   router.visit(`/pos`);
 };
 const handleStockMonitoring = () => {
-  router.visit(`/stock-monitoring`);
+  router.visit(`/inventory/stock-monitoring`);
+};
+
+const handleOpname = () => {
+  router.visit(`/stock-opnames`);
 };
 </script>
 
 <template>
-  <Head title="Konveksi" />
+  <Head title="Sales" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="flex flex-1 flex-col gap-6 p-4">
@@ -56,7 +60,7 @@ const handleStockMonitoring = () => {
         <!-- CUTTING -->
         <div
           class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
-          @click="handleProcessClick(1)"
+          @click="handleClosing()"
         >
           <FileArchive class="h-12 w-12 text-green-600 dark:text-green-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-green-100 dark:bg-green-800 py-2 text-center font-semibold text-green-700 dark:text-green-300 text-sm sm:text-base md:text-sm">
@@ -67,7 +71,7 @@ const handleStockMonitoring = () => {
         <!-- SEWING -->
         <div
           class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
-          @click="handleProcessClick(2)"
+          @click="handleOpname()"
         >
           <Warehouse class="h-12 w-12 text-blue-600 dark:text-blue-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-blue-100 dark:bg-blue-800 py-2 text-center font-semibold text-blue-700 dark:text-blue-300 text-sm sm:text-base md:text-sm">

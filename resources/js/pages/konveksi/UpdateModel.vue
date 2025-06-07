@@ -59,7 +59,7 @@
 
         <!-- Size Tab -->
         <div v-if="activeTab === 'size'">
-          <SizeTab v-model="sizeItems" />
+           <SizeTab v-model="sizeItems" @update:totalQuantity="totalProduction = $event" />
         </div>
 
         <!-- Activity Tab -->
@@ -88,6 +88,10 @@
             }))"
             :start-date="form.start_date"
             :end-date="form.end_date"
+            :total-production="totalProduction"
+            :size-items="sizeItems.map(item => ({
+              ...item,
+            }))"
           />
         </div>
 
@@ -163,7 +167,10 @@ const handleDocumentUploaded = (doc: any) => uploadedDocuments.value.push(doc);
 // const removeDocument = (idx: number) => uploadedDocuments.value.splice(idx, 1);
 
 // Size items
-const sizeItems = ref<{ size_id: number; qty: number }[]>([]);
+const sizeItems = ref<{ size_id: string; qty: number }[]>([]);
+
+// Total production quantity from size items
+const totalProduction = ref<number>(0);
 
 // Activity items
 const activityItems = ref<{

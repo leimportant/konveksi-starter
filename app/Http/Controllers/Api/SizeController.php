@@ -10,10 +10,18 @@ use Illuminate\Support\Facades\Auth;
 
 class SizeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $sizes = Size::latest()->paginate(10);
-        return response()->json($sizes);
+        $query = Size::query();
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        $perPage = $request->input('perPage', 10);
+        $categories = $query->paginate($perPage);
+
+        return response()->json($categories);
     }
 
     public function store(Request $request)

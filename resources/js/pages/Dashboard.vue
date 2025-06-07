@@ -28,7 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <!-- Stats Section -->
+            <!-- Stats Section 
             <div class="grid auto-rows-min gap-4 md:grid-cols-3">
                 <div class="relative h-32 overflow-hidden rounded-xl border border-sidebar-border/40 dark:border-sidebar-border p-3 flex flex-col justify-between bg-sky-50 dark:bg-sky-950/20">
                     <div class="relative z-3">
@@ -53,7 +53,6 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </div>
 
-            <!-- Filter Section -->
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border md:min-h-min">
                 <div class="relative z-10 p-4">
                     <h3 class="text-gray-500 text-sm font-medium">Total Users</h3>
@@ -61,6 +60,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
                 <PlaceholderPattern />
             </div>
+            -->
         </div>
     </AppLayout>
 </template>

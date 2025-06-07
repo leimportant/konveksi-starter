@@ -14,6 +14,7 @@ class Category extends Model
 
     protected $fillable = [
         'name',
+        'POS_flag',
         'created_by',
         'updated_by',
         'deleted_by'

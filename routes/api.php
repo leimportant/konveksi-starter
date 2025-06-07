@@ -24,15 +24,39 @@ use App\Http\Controllers\Api\SlocController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\StockOpnameController;
+use App\Http\Controllers\Api\TransferStockController;
+use App\Http\Controllers\PushController;
+use App\Http\Controllers\Api\PosOrderController;
+use App\Http\Controllers\Api\CustomerController;
 
 Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
 Route::apiResource('kasbon-payments', KasbonPaymentController::class);
 
+Route::get('api/health', function () {
+    return response()->json(['status' => 'ok']);
+});
+
+Route::get('api/version', function () {
+    return response()->json(['version' => config('app.version')]);
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('api/push/subscribe', [PushController::class, 'subscribe']);
+    Route::post('api/push/send', [PushController::class, 'send']);
+});
+
+
 Route::middleware('auth')->group(function () {
+
     // User management
     Route::apiResource('api/users', UserController::class);
     Route::get('/user-menus', [MenuController::class, 'getUserMenus']);
     Route::get('api/combo/{key}', [ComboController::class, 'getComboData']);
+
+    Route::apiResource('api/transfer-stock', TransferStockController::class);
+    Route::put('/api/transfer-stock/{transferId}/accept', [TransferStockController::class, 'accept']);
+    Route::put('/api/transfer-stock/{transferId}/reject', [TransferStockController::class, 'reject']);
+
 
     Route::apiResource('api/stock-opnames', StockOpnameController::class);
     Route::apiResource('api/roles', RoleController::class);
@@ -40,6 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/productions', ProductionController::class);
     Route::apiResource('api/uoms', UomController::class);
     Route::apiResource('api/slocs', SlocController::class);
+    Route::apiResource('apicustomers', CustomerController::class);
     Route::apiResource('api/payment-methods', PaymentMethodController::class);
     Route::apiResource('api/sizes', SizeController::class);
     Route::apiResource('api/categories', CategoryController::class);
@@ -59,7 +84,10 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/price-types', PriceTypeController::class);
     Route::apiResource('api/product-prices', ProductPriceController::class);
     Route::apiResource('api/locations', LocationController::class);
+    Route::get('api/stock', [InventoryController::class, 'getStock']);
     Route::apiResource('api/inventories', InventoryController::class);
+
+    Route::post('api/pos/orders', [PosOrderController::class, 'placeOrder']);
 });
 
 Route::prefix('approvals')->group(function () {

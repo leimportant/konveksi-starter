@@ -9,9 +9,17 @@ use Illuminate\Http\Request;
 
 class PriceTypeController extends Controller
 {
-    public function index()
+     public function index(Request $request)
     {
-        $priceType = PriceType::latest()->paginate(10);
+        $query = PriceType::query();
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        $perPage = $request->input('perPage', 10);
+        $priceType = $query->paginate($perPage);
+
         return response()->json($priceType);
     }
 

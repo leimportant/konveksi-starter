@@ -8,10 +8,19 @@ use Illuminate\Http\Request;
 
 class SlocController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $slocs = Sloc::latest()->paginate(10);
-        return response()->json($slocs);
+        $query = Sloc::query();
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%')
+            ->orWhere('id', 'like', '%' . $request->name . '%');
+        }
+
+        $perPage = $request->input('perPage', 10);
+        $sloc = $query->paginate($perPage);
+
+        return response()->json($sloc);
     }
 
     public function store(Request $request)

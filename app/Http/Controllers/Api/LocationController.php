@@ -19,14 +19,17 @@ class LocationController extends Controller
     {
         $query = Location::query();
 
-        if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->input('search') . '%');
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%')
+            ->orWhere('id', 'like', '%' . $request->name . '%');
         }
 
-        $locations = $query->paginate(10);
+        $perPage = $request->input('perPage', 10);
+        $locations = $query->paginate($perPage);
 
         return response()->json($locations);
     }
+
 
     /**
      * Store a newly created location in storage.

@@ -1,104 +1,268 @@
 <template>
+
   <Head title="Point of Sale" />
   <AppLayout>
-    <div class="p-2 md:p-4 space-y-8 bg-gray-50 min-h-screen">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Product List -->
-        <div class="lg:col-span-2">
-          <div class="mb-4 flex items-center justify-between">
-            <h2 class="text-xl font-semibold text-gray-800">Available Products</h2>
+    <div class="min-h-screen bg-gray-50 p-4 md:p-8 space-y-10">
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Products Section -->
+        <section class="lg:col-span-2">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+            <h2 class="text-2xl font-semibold text-gray-800">Available Products..</h2>
+            <input type="text" v-model="searchText" @input="onSearchInput" placeholder="Search products..."
+              class="border border-gray-300 rounded-md px-4 py-2 text-sm w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
-            <div v-for="product in products" :key="product.id"
-              class="bg-white rounded-2xl p-4 shadow hover:shadow-md transition cursor-pointer border border-gray-200"
-              @click="addToCart(product)">
-              <h3 class="font-semibold text-sm text-gray-900 truncate">{{ product.name }}</h3>
-              <p class="text-sm text-gray-500 mt-1">Rp. {{ product.price.toFixed(2) }}</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div v-for="product in products" :key="product.id" @click="addToCart(product)"
+              class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md cursor-pointer border border-gray-200 transition flex flex-col">
+              <img v-if="product.image_path" :src="getImageUrl(product.image_path)" alt="product image"
+                class="mb-3 h-28 w-full object-cover rounded-lg" />
+              <div v-else
+                class="mb-3 h-28 w-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-xs select-none">
+                No Image
+              </div>
+              <p class="font-semibold text-sm text-gray-900 truncate mb-1">{{ product.product_name }}</p>
+              <p class="text-xs text-gray-400 mb-2">Stock: {{ product.qty_stock }} / {{ product.uom_id }}</p>
+              <div>
+                <template v-if="product.discount && product.discount > 0">
+                  <p class="text-xs text-gray-400 line-through">{{ formatRupiah(product.price) }}</p>
+                  <p class="text-sm font-semibold text-green-600">
+                    {{ formatRupiah(product.price_sell ?? product.price - product.discount) }}
+                  </p>
+                  <p class="text-xs text-green-500">(Disc {{ formatRupiah(product.discount) }})</p>
+                </template>
+                <p v-else class="text-sm font-semibold text-gray-700">{{ formatRupiah(product.price) }}</p>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Order Summary -->
-        <div class="bg-white rounded-2xl shadow-md p-5 sticky top-6 h-fit border border-gray-100">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-800">Order Summary</h2>
-            <Button variant="outline" size="sm" @click="clearCart">
-              <Trash2 class="h-4 w-4 mr-1" />
-              Clear
-            </Button>
-          </div>
-
-          <div v-if="selectedProducts.length === 0" class="text-center text-gray-400 py-6">
-            <p>No items in cart</p>
-          </div>
-
-          <div v-else class="space-y-4 max-h-[280px] overflow-y-auto pr-1" ref="orderList">
-            <div v-for="item in selectedProducts" :key="item.id"
-              class="flex items-center justify-between gap-4 border-b pb-2">
-              <!-- Product Info -->
-              <div class="flex-1">
-                <p class="font-medium text-sm">{{ item.name }}</p>
-                <div class="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                  <span>Rp. {{ item.price }}</span>
-                  <span class="text-gray-400">x</span>
-                  <input type="number" min="1" class="w-14 border rounded px-2 py-1 text-sm"
-                    v-model.number="item.quantity" @change="updateQuantity(item)" />
-                  <span class="ml-auto text-right text-gray-400 font-small">Rp. {{ (item.quantity * item.price).toFixed(2) }}</span>
-                </div>
-              </div>
-
-              <!-- Delete Button -->
-              <Button variant="ghost" size="icon" class="hover:bg-gray-100" @click="removeFromCart(item.id)">
-                <Trash2 class="h-4 w-4" />
+        <!-- Order Summary Section -->
+        <section
+          class="bg-white rounded-xl shadow-md p-6 flex flex-col max-h-[80vh] sticky top-4 overflow-auto border border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 flex justify-between items-center">
+            Order Summary
+            <div class="flex space-x-2">
+              <Button variant="outline" size="sm" @click="openDiscountDialog"
+                :disabled="selectedForDiscount.length === 0" class="flex items-center gap-1">
+                <PercentIcon class="h-4 w-4" /> Disc ({{ selectedForDiscount.length }})
+              </Button>
+              <Button variant="outline" size="sm" @click="startScanning" class="flex items-center gap-1">
+                <ScanQrCode class="h-4 w-4" /> QR
+              </Button>
+              <Button variant="outline" size="sm" @click="clearCart" class="flex items-center gap-1">
+                <Trash2 class="h-4 w-4" /> Clear
               </Button>
             </div>
+          </h2>
+
+          <div v-if="selectedProducts.length === 0" class="text-center text-gray-400 py-12 select-none">
+            No items in cart
           </div>
 
-          <!-- Payment -->
+          <div v-else class="space-y-4 overflow-y-auto flex-1 pr-2">
+            <div v-for="item in selectedProducts" :key="item.id"
+              class="flex items-center gap-3 border-b border-gray-200 pb-3">
+              <input type="checkbox" :checked="selectedForDiscount.includes(item.id)"
+                @change="toggleProductSelection(item.id)"
+                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+              <Button variant="ghost" size="icon" @click="removeFromCart(item.id)" class="hover:bg-gray-100">
+                <Trash2 class="h-4 w-4" />
+              </Button>
+              <div class="flex items-center gap-2 text-sm text-gray-600 mt-1 min-w-0">
+                <div class="min-w-0 flex-1">
+                  <span class="text-xs mr-1 truncate block max-w-[120px]">
+                    <p>{{ item.product_name }} </p>
+                    <template v-if="item.discount && item.discount > 0">
+                      <span class="line-through text-gray-400 text-xs">{{ formatRupiah(item.price) }}</span><br />
+                      <span class="font-semibold text-gray-900">{{ formatRupiah(item.price_sell || (item.price -
+                        item.discount)) }}</span><br/>
+                      <span class="text-green-500 text-xs">Disc : -{{ formatRupiah(item.discount) }}</span>
+                    </template>
+                    <span v-else class="font-semibold text-gray-900 text-xs">{{ formatRupiah(item.price) }}</span>
+                  </span>
+
+                </div>
+
+                <input type="number" min="1" v-model.number="item.quantity" @change="updateQuantity(item)"
+                  class="w-12 border rounded px-2 py-1 text-xs text-center" />
+
+                <span class="ml-auto text-right text-gray-400 text-xs min-w-[60px]">
+                  {{ formatRupiah(item.quantity * (item.price_sell || item.price)) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Method -->
           <div class="mt-6">
-            <label class="text-sm font-medium text-gray-700">Payment Method</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
             <select v-model="selectedPaymentMethod"
-              class="w-full mt-2 border rounded-lg p-2 text-sm focus:outline-none focus:ring focus:border-blue-300">
+              class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="">Select payment method</option>
-              <option v-for="method in paymentMethods" :key="method.id" :value="method.id">
-                {{ method.name }}
-              </option>
+              <option v-for="method in paymentMethods" :key="method.id" :value="method.id">{{ method.name }}</option>
             </select>
           </div>
 
-          <!-- Total & Place Order -->
-          <div class="mt-6 pt-4 border-t">
-            <div class="flex justify-between font-semibold text-sm text-gray-700">
+          <!-- Total & Pay -->
+          <div class="mt-6 pt-4 border-t border-gray-200">
+            <div class="flex justify-between font-semibold text-gray-700 text-sm mb-4">
               <span>Total</span>
-              <span class="ml-auto text-right text-gray-700 font-medium">{{ totalAmount }}</span>
+              <span class="font-bold">{{ formattedTotalAmount }}</span>
             </div>
-            <!-- Hapus button clear cart yang ada di sini -->
-            <Button class="w-full mt-4 text-sm font-medium" @click="placeOrder" :disabled="isLoading.placingOrder">
+            <Button class="w-full text-sm font-semibold" @click="openPaymentDialog" :disabled="isLoading.placingOrder">
               <span v-if="isLoading.placingOrder">Processing...</span>
-              <span v-else>Place Order</span>
+              <span v-else>Bayar</span>
             </Button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Modals... (Your modal markup remains unchanged, just ensure responsive widths, max widths, and padding) -->
+      <div v-if="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-xs p-6 shadow-lg">
+          <h3 class="text-lg font-semibold mb-4">Set Discount</h3>
+          <label class="block mb-2 text-sm font-medium">Discount Price</label>
+          <input type="number" v-model.number="discountInput"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          <div class="flex justify-end gap-3">
+            <button @click="saveDiscount" class="bg-green-600 hover:bg-green-700 text-white text-sm rounded px-4 py-2">
+              Save
+            </button>
+            <button @click="showModal = false"
+              class="bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm rounded px-4 py-2">
+              Cancel
+            </button>
           </div>
         </div>
       </div>
+
+      <!-- Payment Dialog -->
+      <div v-if="showPaymentDialog"
+        class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+          <h3 class="text-lg font-semibold mb-4">Masukkan Jumlah Bayar</h3>
+          <input type="number" min="0" v-model.number="paidAmount" class="w-full border rounded px-3 py-2 mb-4 text-lg"
+            placeholder="Masukkan jumlah bayar" />
+          <div class="flex justify-between mb-4">
+            <div>Total:</div>
+            <div class="font-semibold">{{ formattedTotalAmount }}</div>
+          </div>
+          <div class="flex justify-between mb-4">
+            <div>Kembalian:</div>
+            <div class="font-semibold text-green-600">{{ formatRupiah(changeAmount) }}</div>
+          </div>
+          <div class="flex justify-end space-x-3">
+            <Button variant="outline" @click="showPaymentDialog = false">Batal</Button>
+            <Button @click="confirmPayment">Konfirmasi</Button>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Print Preview Modal -->
+      <div v-if="showPrintPreview"
+  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+  <div
+    class="bg-white rounded shadow w-[240px] max-w-full p-2 print-area text-[10px] leading-tight font-mono"
+    ref="printArea">
+
+    <div class="text-center">
+      <p class="font-bold text-[12px]">TOKO ANINKA</p>
+      <p>RUKO KALIBATA No.112</p>
+      <p>TLP. 12345677</p>
+    </div>
+
+    <hr class="border-t border-dashed my-1" />
+
+    <div class="mb-1">
+      <p>Tanggal&nbsp;: {{ lastOrderDate }}</p>
+      <p>Kasir&nbsp;&nbsp;: {{ cashierName }}</p>
+      <p>Nomor&nbsp;&nbsp;&nbsp;: {{ transactionNumber }}</p>
+    </div>
+
+    <hr class="border-t border-dashed my-1" />
+
+    <!-- Items -->
+    <div v-for="(item, index) in lastOrderItems" :key="item.product_id" class="mb-1">
+      <p>{{ index + 1 }}. {{ item.product_name }}</p>
+      <div class="flex justify-between">
+        <span>{{ item.quantity }} x {{ formatRupiah(item.price) }}</span>
+        <span>&nbsp;&nbsp;{{ formatRupiah(item.price * item.quantity) }}</span>
+      </div>
+      <div v-if="item.discount">
+        <div class="flex justify-between">
+          <span class="text-green-600">- {{ formatRupiah(item.discount) }}</span>
+          <span>{{ formatRupiah((item.price * item.quantity) - item.discount) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="border-t border-dashed my-1" />
+
+    <!-- Totals -->
+    <div class="flex justify-between">
+      <span>Sub Total&nbsp;:</span>
+      <span>{{ formatRupiah(lastOrderSubTotal) }}</span>
+    </div>
+    <div class="flex justify-between">
+      <span>Jumlah Bayar&nbsp;:</span>
+      <span>{{ formatRupiah(paidAmount || 0) }}</span>
+    </div>
+    <div class="flex justify-between">
+      <span>Kembalian&nbsp;:</span>
+      <span>{{ formatRupiah(changeAmount) }}</span>
+    </div>
+    <div class="flex justify-between">
+      <span>Total Disc&nbsp;:</span>
+      <span>{{ formatRupiah(totalDiscount) }}</span>
+    </div>
+    <div class="flex justify-between">
+      <span>Metode&nbsp;:</span>
+      <span>{{ lastOrderPaymentMethodName }}</span>
+    </div>
+
+    <hr class="border-t border-dashed my-1" />
+    <p class="text-center">SELAMAT BERBELANJA</p>
+    <hr class="border-t border-dashed my-1" />
+
+    <!-- Buttons (hidden when printing) -->
+    <div class="flex justify-end gap-2 mt-2 no-print">
+      <Button variant="outline" @click="closePrintPreview">TUTUP</Button>
+      <Button @click="doPrintKasir58mm">CETAK</Button>
+    </div>
+  </div>
+</div>
+
     </div>
   </AppLayout>
 </template>
 
+
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { ref, onMounted, computed, nextTick, watch } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-vue-next';
-import { useToast } from "@/composables/useToast";
+import { Trash2, ScanQrCode } from 'lucide-vue-next';
+import { useToast } from '@/composables/useToast';
+import type { User } from '@/types';
+
 import axios from 'axios';
+import jsQR from 'jsqr';
+
 
 interface Product {
   id: number;
-  name: string;
+  product_id?: number;
+  product_name: string;
+  uom_id: string;
+  qty_stock: number;
+  image_path: string;
   price: number;
-  category_id: number;
-  quantity: number; // Required for cart
+  discount?: number;
+  price_sell?: number;
+  quantity: number;
 }
 
 interface PaymentMethod {
@@ -108,170 +272,731 @@ interface PaymentMethod {
 
 interface OrderItem {
   product_id: number;
+  product_name: string;
   quantity: number;
+  discount?: number;
   price: number;
 }
 
-interface Order {
-  id: number;
-  total: number;
-  status: string;
-  created_at: string;
-  items: OrderItem[];
-}
+
+
+const showScanner = ref(false);
+const videoElement = ref<HTMLVideoElement>();
+const stream = ref<MediaStream | null>(null);
+const showModal = ref(false)
 
 const toast = useToast();
 const products = ref<Product[]>([]);
-const paymentMethods = ref<PaymentMethod[]>([]);
-const orders = ref<Order[]>([]);
 const selectedProducts = ref<Product[]>([]);
+const paymentMethods = ref<PaymentMethod[]>([]);
 const selectedPaymentMethod = ref<number | null>(null);
+const isLoading = ref({ placingOrder: false });
 
-// Load cart from localStorage
-onMounted(() => {
-  const savedCart = localStorage.getItem('pos_cart');
-  if (savedCart) {
-    selectedProducts.value = JSON.parse(savedCart);
-  }
-  const savedPayment = localStorage.getItem('pos_payment_method');
-  if (savedPayment) {
-    selectedPaymentMethod.value = parseInt(savedPayment);
-  }
-  
-  fetchProducts();
-  fetchPaymentMethods();
-  fetchOrders();
+const searchText = ref('');
+const currentPage = ref(1);
+const lastPage = ref(1);
+const discountInput = ref<number>(0);
+const selectedForDiscount = ref<number[]>([]);  // Stores selected product IDs
+
+
+const showPrintPreview = ref(false);
+const lastOrderItems = ref<OrderItem[]>([]);
+const lastOrderTotal = ref(0);
+const lastOrderPaymentMethodName = ref('');
+const lastOrderDate = ref('');
+const transactionNumber = ref('');
+
+
+const orderList = ref<HTMLElement | null>(null);
+const printArea = ref<HTMLElement | null>(null);
+
+const paidAmount = ref<number | null>(null);
+const changeAmount = computed(() => {
+  if (paidAmount.value === null) return 0;
+  return paidAmount.value - totalAmount.value > 0 ? paidAmount.value - totalAmount.value : 0;
 });
 
-// Save cart to localStorage whenever it changes
-watch(selectedPaymentMethod, (newMethod: number | null) => {
-  if (newMethod) {
-    localStorage.setItem('pos_payment_method', newMethod.toString());
-  }
-});
-watch(selectedProducts, (newCart) => {
-  localStorage.setItem('pos_cart', JSON.stringify(newCart));
-}, { deep: true });
-const isLoading = ref({
-  products: false,
-  paymentMethods: false,
-  orders: false,
-  placingOrder: false
-});
-const orderList = ref<HTMLElement | null>(null); // Add ref for order list
-
-// Fetch products with category_id = 1
-const fetchProducts = async () => {
-  try {
-    const { data } = await axios.get('/api/products', {
-      params: { category_id: 1 }
-    });
-    products.value = data.data.map((p: any) => ({
-      ...p,
-      price: p.price ?? 1000,
-      quantity: 10
-    }));
-  } catch (error) {
-    toast.error('Failed to fetch products');
-    console.error('Product fetch error:', error);
-  }
-};
-
-const totalAmount = computed(() =>
-  selectedProducts.value.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)
+// Hitung total diskon dari item
+const totalDiscount = computed(() =>
+  lastOrderItems.value.reduce(
+    (sum, item) => sum + (item.discount ?? 0) * item.quantity,
+    0
+  )
 );
 
-const updateQuantity = (item: Product) => {
-  if (item.quantity < 1) {
-    item.quantity = 1;
-    toast.warning('Minimum quantity is 1');
+// Hitung subtotal dari item
+const lastOrderSubTotal = computed(() =>
+  lastOrderItems.value.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  )
+);
+
+
+const showPaymentDialog = ref(false);
+
+// Cara langsung ambil props
+const { user } = defineProps<{ user: User }>();
+
+// Buat computed property dari nama user
+const cashierName = computed(() => user?.name ?? 'Kasir');
+
+const getImageUrl = (path: string) => {
+  if (!path) return '';
+  if (path.startsWith('storage/')) return '/' + path;
+  if (path.startsWith('/storage/')) return path;
+  return '/storage/' + path;
+};
+
+const formatRupiah = (value: number): string => {
+  if (typeof value !== 'number' || isNaN(value)) return '0,00';
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 2,
+  }).format(value);
+};
+
+// Add these functions
+const startScanning = async () => {
+  try {
+    stream.value = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+
+    if (videoElement.value && stream.value) {
+      videoElement.value.srcObject = stream.value;
+      videoElement.value.play();
+
+      requestAnimationFrame(scan);
+    }
+
+    showScanner.value = true;
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to start camera');
   }
 };
 
-const fetchPaymentMethods = async () => {
+
+const scan = () => {
+  if (!videoElement.value || !showScanner.value) return;
+
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+
+  if (context && videoElement.value) {
+    canvas.width = videoElement.value.videoWidth;
+    canvas.height = videoElement.value.videoHeight;
+
+    context.drawImage(videoElement.value, 0, 0, canvas.width, canvas.height);
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+    if (code) {
+      try {
+        const productData = JSON.parse(code.data);
+        if (productData.id) {
+          const product = products.value.find(p => p.id === productData.id);
+          if (product) {
+            addToCart(product);
+            stopScanning();
+            toast.success('Product added to cart');
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Invalid QR code data:', err);
+      }
+    }
+
+    requestAnimationFrame(scan);
+  }
+};
+
+const stopScanning = () => {
+  if (stream.value) {
+    stream.value.getTracks().forEach(track => track.stop());
+    stream.value = null;
+  }
+  showScanner.value = false;
+};
+
+const toggleProductSelection = (productId: number) => {
+  const index = selectedForDiscount.value.indexOf(productId);
+  if (index === -1) {
+    selectedForDiscount.value.push(productId);
+  } else {
+    selectedForDiscount.value.splice(index, 1);
+  }
+};
+
+async function fetchProducts() {
   try {
-    const { data } = await axios.get('/api/payment-methods');
-    paymentMethods.value = data.data;
+    const response = await axios.get(`/api/stock?page=${currentPage.value}&search=${searchText.value}`);
+    products.value = response.data.data;
+    lastPage.value = response.data.last_page;
   } catch (error) {
+    console.error('Error fetching products:', error);
+    toast.error('Failed to fetch products');
+  }
+}
+
+async function fetchPaymentMethods() {
+  try {
+    const response = await axios.get('/api/payment-methods');
+    paymentMethods.value = response.data.data;
+  } catch {
     toast.error('Failed to fetch payment methods');
-    console.error('Payment method fetch error:', error);
   }
-};
+}
 
-const fetchOrders = async () => {
-  try {
-    const { data } = await axios.get('/api/orders');
-    orders.value = data.data;
-  } catch (error) {
-    toast.error('Failed to fetch orders');
-    console.error('Order fetch error:', error);
-  }
-};
+function onSearchInput() {
+  currentPage.value = 1;
+  fetchProducts();
+}
 
 const addToCart = (product: Product) => {
-  const existingItem = selectedProducts.value.find(item => item.id === product.id);
-  if (existingItem) {
-    existingItem.quantity += 1;
+  const existing = selectedProducts.value.find((item) => item.id === product.product_id);
+  if (existing) {
+    existing.quantity++;
   } else {
     selectedProducts.value.push({
-      ...product,
-      quantity: 1
+      id: product.product_id || product.id,
+      product_name: product.product_name,
+      uom_id: product.uom_id,
+      qty_stock: product.qty_stock,
+      image_path: product.image_path,
+      price: product.price,
+      discount: product.discount,
+      price_sell: product.price_sell,
+      quantity: 1,
     });
   }
-
-  // Scroll to bottom after adding product
   nextTick(() => {
-    if (orderList.value) {
-      orderList.value.scrollTop = orderList.value.scrollHeight;
-    }
+    if (orderList.value) orderList.value.scrollTop = orderList.value.scrollHeight;
   });
 };
 
-const removeFromCart = (productId: number) => {
-  selectedProducts.value = selectedProducts.value.filter(item => item.id !== productId);
-};
+function removeFromCart(productId: number) {
+  selectedProducts.value = selectedProducts.value.filter(p => p.id !== productId);
+}
 
-const clearCart = (): void => {
-      selectedProducts.value = [];
-      selectedPaymentMethod.value = null;
-      localStorage.removeItem('pos_cart');
-      localStorage.removeItem('pos_payment_method');
-    };
-    
-const placeOrder = async () => {
+// function selectProduct(product: Product) {
+//   const exists = selectedProducts.value.some(p => p.id === product.id);
+//   if (!exists) {
+//     selectedProducts.value.push({ ...product });
+//   }
+// }
+
+
+function updateQuantity(item: Product) {
+  if (item.quantity < 1) item.quantity = 1;
+  const productStock = products.value.find(p => p.id === item.id)?.qty_stock ?? 0;
+  if (item.quantity > productStock) {
+    toast.error('Stock limit reached');
+    item.quantity = productStock;
+  }
+}
+
+function openDiscountDialog() {
+  if (selectedProducts.value.length === 0) return;
+
+  showModal.value = true;
+}
+
+function saveDiscount() {
+  selectedProducts.value = selectedProducts.value.map(product => {
+    // Only update discount if product is selected
+    if (selectedForDiscount.value.includes(product.id)) {
+      return {
+        ...product,
+        discount: discountInput.value,
+        price_sell: product.price - discountInput.value
+      };
+    }
+    return product;
+  });
+
+  // Clear selections after applying discount
+  selectedForDiscount.value = [];
+  showModal.value = false;
+  toast.success('Discount applied successfully');
+}
+
+
+function openPaymentDialog() {
+  if (selectedProducts.value.length === 0) {
+    toast.error('Please add items to the cart');
+    return;
+  }
   if (!selectedPaymentMethod.value) {
     toast.error('Please select a payment method');
     return;
   }
-  if (selectedProducts.value.length === 0) {
-    toast.error('Please add products to cart');
+  paidAmount.value = null;
+  showPaymentDialog.value = true;
+}
+
+async function confirmPayment() {
+  if (paidAmount.value === null || paidAmount.value < totalAmount.value) {
+    toast.error('Paid amount must be at least total amount');
     return;
   }
+  showPaymentDialog.value = false;
+  await placeOrder();
+}
 
+
+function clearCart() {
+  selectedProducts.value = [];
+  selectedPaymentMethod.value = null;
+  selectedForDiscount.value = []; // Clear discount selections
+}
+
+const totalAmount = computed(() =>
+  selectedProducts.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
+);
+const formattedTotalAmount = computed(() => `${formatRupiah(totalAmount.value)}`);
+
+async function placeOrder() {
+  if (selectedProducts.value.length === 0) {
+    toast.error('Please add items to the cart');
+    return;
+  }
+  if (!selectedPaymentMethod.value) {
+    toast.error('Please select a payment method');
+    return;
+  }
   isLoading.value.placingOrder = true;
   try {
-    await axios.post('/api/orders', {
-      products: selectedProducts.value.map(p => ({
-        product_id: p.id,
+    const orderPayload = {
+      items: selectedProducts.value.map(p => ({
+        product_id: p.product_id || p.id,
+        product_name: p.product_name,
         quantity: p.quantity,
-        price: p.price
+        price: p.price,
+        discount: p.discount || 0,
+        price_sell: p.price_sell || p.price_sell,
       })),
-      payment_method_id: selectedPaymentMethod.value
-    });
-    toast.success('Order placed successfully');
-    
-    await fetchOrders();
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Failed to place order');
+      payment_method_id: selectedPaymentMethod.value,
+      total_amount: totalAmount.value,
+      paid_amount: paidAmount.value,  // <-- kirim nilai paidAmount ke backend
+    };
+
+    const response = await axios.post('/api/pos/orders', orderPayload);
+    lastOrderItems.value = selectedProducts.value.map(p => ({
+          product_id: p.product_id ?? p.id,
+          product_name: p.product_name,
+          quantity: p.quantity,
+          price: p.price,
+          discount: p.discount || 0,
+          price_sell: p.price_sell ?? (p.price - (p.discount || 0)),
+        }));
+
+
+    lastOrderTotal.value = response.data.total_amount;
+    lastOrderPaymentMethodName.value = paymentMethods.value.find(pm => pm.id === selectedPaymentMethod.value)?.name || '';
+    lastOrderDate.value = new Date(response.data.created_at).toLocaleString();
+    transactionNumber.value = response.data.transaction_number || '';
+
+    showPrintPreview.value = true;
+  } catch (error) {
+    console.error('Error placing order:', error);
+    toast.error('Failed to place order');
   } finally {
     isLoading.value.placingOrder = false;
   }
-};
+}
 
-onMounted(() => {
-  fetchProducts();
-  fetchPaymentMethods();
-  fetchOrders();
-});
+function closePrintPreview() {
+  showPrintPreview.value = false;
+  clearCart();                  // reset cart
+  selectedPaymentMethod.value = null;  // reset payment method
+}
+
+// function doPrintKasir58mm2() {
+//   const printContent = (printArea.value as HTMLElement)?.innerHTML;
+//   if (!printContent) {
+//     toast.error('Print content not found.');
+//     return;
+//   }
+
+//   const printWindow = window.open('', '_blank', 'width=300,height=600');
+//   if (!printWindow) {
+//     toast.error('Failed to open print window.');
+//     return;
+//   }
+
+//   printWindow.document.write(`
+//     <html>
+//       <head>
+//         <title>Print Kasir</title>
+//         <style>
+//           @media print {
+//             body * {
+//               visibility: hidden;
+//             }
+//             .print-area, .print-area * {
+//               visibility: visible;
+//             }
+//             .print-area {
+//               position: absolute;
+//               left: 0;
+//               top: 0;
+//               width: 58mm;
+//               font-family: monospace, Arial, sans-serif;
+//               font-size: 12px;
+//               padding: 5mm;
+//               background: white;
+//               box-shadow: none;
+//             }
+//           }
+//         </style>
+//       </head>
+//       <body>
+//         <div class="print-area">${printContent}</div>
+//         <script>
+//           window.onload = function() {
+//             window.print();
+//             window.onafterprint = function() {
+//               window.close();
+//             };
+//           };
+//         <\/script>
+//       </body>
+//     </html>
+//   `);
+//   printWindow.document.close();
+
+//   clearCart();                  // reset cart setelah cetak
+//   selectedPaymentMethod.value = null;  // reset payment method
+//   showPrintPreview.value = false;      // tutup modal
+// }
+
+function doPrintKasir58mm() {
+  // Assuming 'printArea' is a ref to a DOM element (e.g., a textarea or a div)
+  // and 'toast' is a notification library.
+  // The 'as HTMLElement' cast suggests printArea might be a Vue ref or similar.
+  const printContent = (printArea.value as HTMLElement)?.innerHTML;
+  if (!printContent) {
+    // Assuming 'toast' is available for notifications
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error('Print content not found.');
+    } else {
+      console.error('Print content not found.');
+    }
+    return;
+  }
+
+  // 58mm is approximately 220px. Adjusting window width for a better preview.
+  const printWindow = window.open('', '_blank', 'width=230,height=600');
+
+  if (!printWindow) {
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error('Failed to open print window.');
+    } else {
+      console.error('Failed to open print window.');
+    }
+    return;
+  }
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Print Kasir</title>
+        <style>
+          /* Basic reset and page setup for printing */
+          body {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace; /* Classic receipt font */
+            font-size: 10px; /* Base font size, adjust as needed for 58mm width */
+            line-height: 1.3; /* Spacing between lines */
+            background-color: #fff; /* Ensure print background is white */
+            color: #000; /* Ensure text is black */
+          }
+
+          /* The main container for the receipt content */
+          .print-area {
+            width: 58mm; /* Strict width for the thermal paper */
+            padding: 2mm; /* Small padding around the content */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+          }
+
+          /* Utility classes for text alignment */
+          .text-center { text-align: center; }
+          .text-left { text-align: left; }
+          .text-right { text-align: right; }
+          .font-bold { font-weight: bold; }
+
+          /* Header section styling */
+          .receipt-header {
+            text-align: center;
+            margin-bottom: 2mm;
+          }
+          .receipt-header .shop-icon { /* If you use an icon, e.g., an emoji or SVG */
+            font-size: 22px; /* Adjust if you have a real icon/SVG */
+            margin-bottom: 1mm;
+          }
+          .receipt-header .shop-name {
+            font-weight: bold;
+            font-size: 12px; /* Slightly larger for shop name */
+            margin: 1mm 0;
+          }
+          .receipt-header .shop-address,
+          .receipt-header .shop-phone,
+          .receipt-header .transaction-id {
+            font-size: 9px;
+            margin: 0.5mm 0;
+            line-height: 1.2; /* Tighter line height for address lines */
+          }
+
+          /* Dotted line separator */
+          .dotted-line {
+            border-top: 1px dashed #333; /* Dashed line for separation */
+            margin: 1.5mm 0;
+            height: 0;
+            overflow: hidden;
+          }
+
+          /* Transaction details (date, time, cashier, etc.) */
+          .transaction-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            margin: 1.5mm 0;
+          }
+          .transaction-info .left-column,
+          .transaction-info .right-column {
+            flex-basis: 48%; /* Distribute space */
+          }
+          .transaction-info .right-column {
+            text-align: right;
+          }
+          .transaction-info p {
+            margin: 0.5mm 0;
+            line-height: 1.2;
+          }
+
+          /* Styling for the list of items */
+          .items-section .item {
+            margin-bottom: 1mm; /* Space between items */
+          }
+          .items-section .item-line-1 { /* Contains item name and total price for that item */
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.2mm; /* Minimal space before quantity/unit price line */
+          }
+          .items-section .item-name {
+            text-align: left;
+            word-break: break-word; /* Prevent overflow for long item names */
+            padding-right: 5px; /* Space before price */
+          }
+          .items-section .item-total-price {
+            text-align: right;
+            white-space: nowrap; /* Keep price on one line */
+            min-width: 50px; /* Ensure alignment, adjust as needed */
+          }
+          .items-section .item-line-2 { /* Contains quantity and price per unit */
+            font-size: 9px;
+            padding-left: 10px; /* Indent this line slightly, as seen in the image */
+            text-align: left;
+          }
+
+          /* Summary section (Total QTY, Sub Total, Total, Bayar, Kembali) */
+          .summary-section .summary-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 1mm 0;
+            font-size: 10px;
+          }
+          .summary-section .summary-line.bold {
+            font-weight: bold;
+          }
+           .summary-section .summary-line span:first-child { /* Label like "Total QTY :" */
+            text-align: left;
+            padding-right: 5px;
+          }
+          .summary-section .summary-line span:last-child { /* Value like "14" or "Rp 70.000" */
+            text-align: right;
+            white-space: nowrap;
+            min-width: 60px; /* Ensure alignment, adjust as needed */
+          }
+
+
+          /* Footer message */
+          .footer-message {
+            text-align: center;
+            margin-top: 2mm;
+            font-size: 10px;
+          }
+          .footer-message p {
+            margin: 0.5mm 0;
+          }
+
+          /* Print-specific styles: ensure only .print-area is visible and properly styled */
+          @media print {
+            body {
+              font-size: 10px; /* Explicitly set for printing if different from screen */
+            }
+            body * {
+              visibility: hidden;
+            }
+            .print-area, .print-area * {
+              visibility: visible;
+            }
+            .print-area {
+              position: absolute;
+              left: 0;
+              top: 0;
+              background: white !important; /* Ensure white background for printing */
+              box-shadow: none !important; /* No shadow when printing */
+              color: #000 !important; /* Ensure black text */
+              /* width, font-family, padding are inherited or already set on .print-area */
+            }
+            /* Hide elements not meant for printing, if any, by giving them a specific class */
+            .no-print, .no-print * {
+              display: none !important;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-area">
+          ${printContent}
+        </div>
+        <script>
+          window.onload = function() {
+            // A slight delay can sometimes help ensure all content and styles are rendered,
+            // especially if there are images or complex CSS.
+            setTimeout(function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            }, 100); // 100ms delay, adjust if needed or remove if not necessary
+          };
+        <\/script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close(); // Close the document for writing
+
+  // These lines are for your main application logic after initiating printing
+  // clearCart();
+  // selectedPaymentMethod.value = null;
+  // showPrintPreview.value = false;
+}
+
+/*
+  IMPORTANT ASSUMPTION & EXAMPLE HTML STRUCTURE FOR 'printContent':
+
+  The 'printContent' variable (which is the innerHTML of your 'printArea' element)
+  is expected to have an HTML structure that uses the classes defined in the CSS above.
+  Below is an example of how your 'printArea.innerHTML' should be structured:
+
+  <div class="receipt-header">
+    <div class="shop-icon">🛍️</div> <p class="shop-name">Karis Jaya Shop</p>
+    <p class="shop-address">Jl. Dr. Ir. H. Soekarno No. 19, Medokan Semampir</p>
+    <p class="shop-address">Surabaya</p>
+    <p class="shop-phone">No. Telp 0812345678</p>
+    <p class="transaction-id">16413520230802084636</p>
+  </div>
+
+  <div class="dotted-line"></div>
+
+  <div class="transaction-info">
+    <div class="left-column">
+      <p>2023-08-02</p>
+      <p>08:46:36</p>
+      <p>No.0-3</p>
+    </div>
+    <div class="right-column">
+      <p>karis</p>
+      <p>Sheila</p>
+      <p>Jl. Diponegoro 1, Sby</p>
+    </div>
+  </div>
+
+  <div class="dotted-line"></div>
+
+  <div class="items-section">
+    <div class="item">
+      <div class="item-line-1">
+        <span class="item-name">1. Indomie Goreng</span>
+        <span class="item-total-price">Rp 36.000</span>
+      </div>
+      <div class="item-line-2">1 lusin x 36,000</div>
+    </div>
+    <div class="item">
+      <div class="item-line-1">
+        <span class="item-name">2. Fruit Tea Apple</span>
+        <span class="item-total-price">Rp 7.000</span>
+      </div>
+      <div class="item-line-2">1 500 ml x 7,000</div>
+    </div>
+    <div class="item">
+      <div class="item-line-1">
+        <span class="item-name">3. Belfood Sosis Bakar</span>
+        <span class="item-total-price">Rp 27.000</span>
+      </div>
+      <div class="item-line-2">1 x 27,000</div>
+    </div>
+    </div>
+
+  <div class="dotted-line"></div>
+
+  <div class="summary-section">
+    <div class="summary-line">
+      <span>Total QTY :</span>
+      <span>14</span>
+    </div>
+    <div class="summary-line">
+      <span>Sub Total</span>
+      <span>Rp 70.000</span>
+    </div>
+    <div class="dotted-line"></div> <div class="summary-line bold"> <span>Total</span>
+      <span>Rp 70.000</span>
+    </div>
+    <div class="dotted-line"></div> <div class="summary-line">
+      <span>Bayar (Cash)</span>
+      <span>Rp 70.000</span>
+    </div>
+    <div class="summary-line">
+      <span>Kembali</span>
+      <span>Rp 0</span>
+    </div>
+  </div>
+
+  <div class="dotted-line"></div>
+
+  <div class="footer-message">
+    <p>Terimakasih Telah Berbelanja</p>
+  </div>
+  */
+
+fetchProducts();
+fetchPaymentMethods();
 </script>
 
+<style scoped>
+.print-area {
+  width: 100%;
+  max-width: 600px;
+}
+
+@media print {
+  .no-print, .no-print * {
+    display: none !important;
+  }
+}
+  .print-area {
+    width: 58mm; /* Set to 58mm for thermal printer */
+    font-family: 'Courier New', Courier, monospace; /* Monospaced font for better alignment */
+    font-size: 10px; /* Adjust font size as needed */
+    padding: 5mm; /* Padding around the content */
+    box-shadow: none; /* Remove box shadow for print */
+  }
+
+</style>

@@ -2,8 +2,8 @@ import axios from 'axios';
 import { defineStore } from 'pinia';
 
 interface GoodReceiveItem {
-    id?: number; // Make optional since new items won't have an ID
-    good_receive_id?: number; // Make optional for new items
+    id?: number;
+    good_receive_id?: number;
     model_material_id: number;
     model_material_desc: string;
     model_material_item: number;
@@ -29,6 +29,7 @@ interface GoodReceive {
 
 interface State {
     items: GoodReceive[];
+    total: number;
     loading: boolean;
     loaded: boolean;
 }
@@ -36,19 +37,19 @@ interface State {
 export const useGoodReceiveStore = defineStore('goodReceive', {
     state: (): State => ({
         items: [],
+        total: 0,
         loading: false,
         loaded: false,
     }),
 
     actions: {
-        async fetchGoodReceives() {
-            if (this.loaded) return;
-
+        async fetchGoodReceives(page = 1, perPage = 10) {
             this.loading = true;
             try {
-                const response = await axios.get('/api/good-receive');
+                const response = await axios.get(`/api/good-receive?page=${page}&perPage=${perPage}`);
                 this.items = response.data.data;
-                this.loaded = true;
+                this.total = response.data.total;
+                this.loaded = true; // optional: might not be needed anymore
             } catch (error) {
                 console.error('Error fetching good receives:', error);
                 throw error;
@@ -61,7 +62,7 @@ export const useGoodReceiveStore = defineStore('goodReceive', {
             try {
                 const response = await axios.get(`/api/good-receive/${id}`);
                 if (!response.data || !response.data.data) {
-                    throw new Error('Data tidak ditemukan');
+                    throw new Error('Data not found');
                 }
                 return response.data;
             } catch (error) {
@@ -74,6 +75,7 @@ export const useGoodReceiveStore = defineStore('goodReceive', {
             try {
                 const response = await axios.post('/api/good-receive', data);
                 this.items.unshift(response.data);
+                this.total++;  // increase total count
                 return response.data;
             } catch (error) {
                 console.error('Error creating good receive:', error);
@@ -101,6 +103,7 @@ export const useGoodReceiveStore = defineStore('goodReceive', {
                 const index = this.items.findIndex((item) => item.id === id);
                 if (index !== -1) {
                     this.items.splice(index, 1);
+                    this.total--; // decrease total count
                 }
             } catch (error) {
                 console.error('Error deleting good receive:', error);

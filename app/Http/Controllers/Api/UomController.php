@@ -10,10 +10,18 @@ use Illuminate\Support\Facades\Auth;
 
 class UomController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $uoms = Uom::latest()->paginate(10);
-        return response()->json($uoms);
+        $query = Uom::query();
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        $perPage = $request->input('perPage', 10);
+        $categories = $query->paginate($perPage);
+
+        return response()->json($categories);
     }
 
     public function store(Request $request)

@@ -32,6 +32,7 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
         :class="cn('flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground', props.class)"
         v-bind="$attrs"
     >
+    
         <slot />
     </div>
 
@@ -81,9 +82,10 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
                         : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
                     // Adjust the padding for floating and inset variants.
                     variant === 'floating' || variant === 'inset'
-                        ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]'
+                        ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+1px)]'
                         : 'group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l',
                     props.class,
+                    'flex items-center justify-start whitespace-nowrap overflow-hidden' // Added for alignment and overflow
                 )
             "
             v-bind="$attrs"

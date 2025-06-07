@@ -7,24 +7,59 @@ interface PriceType {
     is_active: true | false 
   }
 
+interface State {
+  priceTypes: PriceType[];
+  total: number;
+  loaded: boolean;
+  loading: boolean; // optional, if you want to track loading state
+  currentPage: number;
+  lastPage: number;
+  filterName: string;
+  error?: string; // optional, to track errors
+}
+
+
 export const usePriceTypeStore = defineStore('priceType', {
-    state: () => ({
-        priceTypes: [] as PriceType[],
-        loading: false,
-        loaded: false,  // Add this line
-        error: null as string | null
+    state: (): State => ({
+        priceTypes: [],
+        total: 0,
+        loaded: false,
+        loading: false, // optional, if you want to track loading state
+        currentPage: 1,
+        lastPage: 1,
+        filterName: '',
+        error: undefined, // optional, to track errors
     }),
+
     actions: {
-        async fetchPriceTypes() {
+        async fetchPriceTypes(page = 1, perPage = 10) {
             this.loading = true
             try {
-                const { data } = await axios.get('/api/price-types')
-                this.priceTypes = data.data
+                const response = await axios.get('/api/price-types', {
+                params: {
+                    page,
+                    perPage,
+                    name: this.filterName,  // pakai filterName kalau ada
+                }
+                });
+                this.priceTypes = response.data.data;
+                this.total = response.data.total;
+                this.currentPage = page;
+                this.lastPage = response.data.last_page || 1;
+                this.loaded = true;
+
             } catch (error: any) {
                 this.error = error.response?.data?.message || 'Failed to fetch price types'
                 throw error
             } finally {
                 this.loading = false
+            }
+        },
+        setFilter(field: string, value: string) {
+            if (field === 'name') {
+            this.filterName = value;
+            this.currentPage = 1;
+            this.fetchPriceTypes(1);
             }
         },
         async createPriceType(priceTypeData: Omit<PriceType, 'id'>) {

@@ -6,25 +6,57 @@ interface Category {
     name: string;
 }
 
+interface State {
+  items: Category[];
+  total: number;
+  loaded: boolean;
+  loading: boolean; // optional, if you want to track loading state
+  currentPage: number;
+  lastPage: number;
+  filterName: string;
+}
+
 export const useCategoryStore = defineStore('category', {
-    state: () => ({
-        items: [] as Category[],
+    state: (): State => ({
+        items: [],
+        total: 0,
         loaded: false,
+        loading: false, // optional, if you want to track loading state
+        currentPage: 1,
+        lastPage: 1,
+        filterName: '',
     }),
 
     actions: {
-        async fetchCategories() {
-            if (this.loaded) return;
+       async fetchCategories(page = 1, perPage = 10) {
+            this.loaded = false;   // reset loading
+            this.currentPage = page;
 
             try {
-                const response = await axios.get('/api/categories');
+                const response = await axios.get('/api/categories', {
+                params: {
+                    page,
+                    perPage,
+                    name: this.filterName,  // pakai filterName kalau ada
+                }
+                });
+
                 this.items = response.data.data;
+                this.total = response.data.total;
+                this.lastPage = response.data.last_page;  // pastikan backend kirim last_page
                 this.loaded = true;
             } catch (error) {
                 console.error('Failed to fetch Category', error);
+                this.loaded = true;
             }
         },
-
+        setFilter(field: string, value: string) {
+            if (field === 'name') {
+                this.filterName = value;
+                this.currentPage = 1;
+                this.fetchCategories(1);
+                }
+        },
         async createCategory(name: string) {
             try {
                 await axios.post('/api/categories', { name });

@@ -74,7 +74,7 @@
 
         <!-- Size Tab -->
         <div v-if="activeTab === 'size'">
-          <SizeTab v-model="sizeItems" />
+          <SizeTab v-model="sizeItems" @update:totalQuantity="totalProduction = $event" />
         </div>
 
         <!-- Activity Tab -->
@@ -102,6 +102,11 @@
             }))"
             :start-date="form.start_date"
             :end-date="form.end_date"
+            :total-production="totalProduction"
+            :size-items="sizeItems.map(item => ({
+              ...item,
+            }))"
+            
           />
         </div>
 
@@ -118,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { Input } from '@/components/ui/input';
@@ -184,7 +189,10 @@ const form = useForm({
 const errors = ref<Record<string, string[]>>({});
 
 // Size items
-const sizeItems = ref<{ size_id: number; qty: number }[]>([{ size_id: 0, qty: 0 }]);
+const sizeItems = ref<{ size_id: string; qty: number }[]>([]);
+
+// Total production quantity from size items
+const totalProduction = ref<number>(0);
 
 // Activity items
 const activityItems = ref<{ activity_role_id: number; price: number }[]>([]);
@@ -210,6 +218,14 @@ onMounted(() => {
     activityItems.value = props.modelData.activity || [];
     modelMaterials.value = props.modelData.modelMaterials || [];
     uploadedDocuments.value = props.modelData.documents || [];
+  }
+});
+
+watch(activeTab, (tab) => {
+  if (tab === 'size') {
+    // Trigger ulang update jika tab Size dibuka
+    const totalQty = sizeItems.value.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+    totalProduction.value = totalQty;
   }
 });
 

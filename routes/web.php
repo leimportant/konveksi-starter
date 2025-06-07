@@ -31,6 +31,10 @@ Route::get('/sizes', function () {
     return Inertia::render('size/Index');
 })->middleware(['auth'])->name('size.index');
 
+Route::get('/customers', function () {
+    return Inertia::render('customer/Index');
+})->middleware(['auth'])->name('customer.index');
+
 Route::get('/price-types', function () {
     return Inertia::render('price-type/Index');
 })->middleware(['auth'])->name('price-type.index');
@@ -38,18 +42,24 @@ Route::get('/price-types', function () {
 Route::get('/product-prices', function () {
     return Inertia::render('product-price/Index');
 })->middleware(['auth'])->name('product-price.index');
-Route::get('/product-price/{id}/edit', function ($id) {
+
+Route::get('/product-prices/{id}/edit', function ($id) {
     return Inertia::render('product-price/Update', [
         'id' => (int) $id,
     ]);
 })->middleware(['auth'])->name('product-price.edit');
 
-Route::get('/product-price/create', function () {
+Route::get('/product-prices/create', function () {
     return Inertia::render('product-price/Create');
 })->middleware(['auth'])->name('product-price.create');
+
 Route::get('/konveksi', function () {
     return Inertia::render('konveksi/Index');
 })->middleware(['auth'])->name('konveksi.index');
+
+Route::get('/notification', function () {
+    return Inertia::render('notification/notification');
+})->middleware(['auth'])->name('notification');
 
 
 Route::get('/konveksi/model/create', function () {
@@ -116,9 +126,34 @@ Route::get('/inventory', function () {
     return Inertia::render('inventory/Index');
 })->middleware(['auth'])->name('inventory.index');
 
+Route::get('/inventory/stock-monitoring', function () {
+    return Inertia::render('inventory/StockMonitoring');
+})->middleware(['auth'])->name('inventory.stock-monitoring');
+
 Route::get('/inventory/create', function () {
     return Inertia::render('inventory/Create');
 })->middleware(['auth'])->name('inventory.create');
+
+// transfer-stock
+Route::get('/transfer-stock', function () {
+    return Inertia::render('transfer-stock/Index');
+})->middleware(['auth'])->name('transfer-stock.index');
+
+Route::get('/transfer-stock/create', function () {
+    return Inertia::render('transfer-stock/Create');
+})->middleware(['auth'])->name('transfer-stock.create');
+
+Route::get('/transfer-stock/{id}/edit', function ($id) {
+    return Inertia::render('transfer-stock/Update', [
+        'id' =>  $id,
+    ]);
+})->middleware(['auth'])->name('transfer-stock.edit');
+
+Route::get('/transfer-stock/{id}/view', function ($id) {
+    return Inertia::render('transfer-stock/View', [
+        'id' => $id,
+    ]);
+})->middleware(['auth'])->name('transfer-stock.view');
 
 Route::get('/good-receive/{id}/edit', function ($id) {
     return Inertia::render('good-receive/Update', [

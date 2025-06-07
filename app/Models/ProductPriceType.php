@@ -15,16 +15,21 @@ class ProductPriceType extends Model
     protected $fillable = [
         'price_id',
         'price_type_id',
+        'product_id',
         'price',
         'qty',
         'uom_id',
         'size_id',
+        'discount',
+        'price_sell',
         'created_by',
         'updated_by'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'price_sell' => 'decimal:2',
         'qty' => 'decimal:2'
     ];
 

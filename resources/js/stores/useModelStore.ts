@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 
 export interface SizeItem {
-    size_id: number;
+    size_id: string;
     qty: number;
   }
 

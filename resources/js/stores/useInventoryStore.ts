@@ -15,10 +15,8 @@ interface InventoryItem {
     id: number;
     name: string;
   };
-  uom: {
-    id: number;
-    name: string;
-  };
+  uom_id: string;
+  size_id: string
   qty: number;
 }
 
@@ -31,7 +29,7 @@ interface State {
   lastPage: number;
   filters: {
     location: number | null;
-    sloc: number | null;
+    sloc: string | null;
     product: number | null;
   };
 }
@@ -52,29 +50,34 @@ export const useInventoryStore = defineStore('inventory', {
   }),
 
   actions: {
-    setFilter(filter: keyof State['filters'], value: string | null) {
-      this.filters[filter] = value === '' ? null : Number(value);
+     setFilter(filter: keyof State['filters'], value: string | number | null) {
+      if (filter === 'location' || filter === 'product') {
+        this.filters[filter] = value === '' ? null : Number(value);
+      } else {
+        this.filters[filter] = value === '' ? null : String(value);
+      }
     },
 
-    async fetchInventory(page: number = 1) {
+    async fetchInventory(page = 1, perPage = 10) {
       this.loading = true;
+      console.log('Fetching inventory...');
       try {
-        const response = await axios.get('/api/inventories', {
+        const response = await axios.get(`/api/inventories?page=${page}&perPage=${perPage}`, {
           params: {
-            page: page,
             ...this.filters,
           },
         });
-        this.inventory = response.data.data; // Assuming the API response structure is similar to production
-        this.total = response.data.total;
-        this.currentPage = response.data.current_page;
-        this.lastPage = response.data.last_page;
-        return response.data;
+        this.inventory = response.data.data;
+        // this.total = response.data.total;
+        // this.currentPage = response.data.current_page;
+        // this.lastPage = response.data.last_page;
+        console.log('Data:', response.data.data);
       } catch (error: any) {
         this.error = error.response?.data?.message || 'Failed to fetch inventory';
-        throw error;
+        console.error('Fetch error:', this.error);
       } finally {
         this.loading = false;
+        console.log('Done loading');
       }
     },
   },

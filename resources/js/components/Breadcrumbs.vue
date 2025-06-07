@@ -7,12 +7,13 @@ interface BreadcrumbItem {
     href?: string;
 }
 
-defineProps<{
-    breadcrumbs: BreadcrumbItem[];
+const { breadcrumbs = [] } = defineProps<{
+  breadcrumbs?: BreadcrumbItem[];
 }>();
+
 </script>
 
-<template>
+<template v-if="breadcrumbs.length > 0">
     <Breadcrumb>
         <BreadcrumbList>
             <template v-for="(item, index) in breadcrumbs" :key="index">
