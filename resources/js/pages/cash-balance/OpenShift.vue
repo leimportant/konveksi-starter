@@ -1,9 +1,7 @@
 <template>
   <Head title="Open New Shift" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-2 py-4 sm:px-4 sm:py-6">
-      <div class="mx-auto max-w-md">
-        <div class="bg-white rounded-lg shadow p-4 sm:p-6">
+    <div class="w-full px-4 py-6">
           <form @submit.prevent="handleSubmit" class="space-y-4 sm:space-y-6">
             <div>
               <label for="shiftNumber" class="block text-sm font-medium mb-1">
@@ -15,6 +13,7 @@
                 type="number"
                 min="1"
                 required
+                class="w-full"
                 :disabled="loading"
                 @blur="validateShiftNumber"
               />
@@ -33,6 +32,7 @@
                 type="number"
                 min="0"
                 step="0.01"
+                class="w-full"
                 required
                 :disabled="loading"
                 @blur="validateOpeningBalance"
@@ -56,13 +56,12 @@
                   <Spinner class="mr-2" />
                   Processing...
                 </span>
-                <span v-else>Create Shift</span>
+                <span v-else>Open Shift</span>
               </Button>
             </div>
           </form>
         </div>
-      </div>
-    </div>
+
   </AppLayout>
 </template>
 

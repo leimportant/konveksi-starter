@@ -31,7 +31,7 @@ const tabs = [
             ]"
         >
             <component :is="Icon" class="-ml-1 h-4 w-4" />
-            <span class="ml-1.5 text-sm">{{ label }}</span>
+            <span class="ml-1 text-sm">{{ label }}</span>
         </button>
     </div>
 </template>

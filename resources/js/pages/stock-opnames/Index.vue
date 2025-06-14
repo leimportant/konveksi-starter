@@ -20,7 +20,7 @@ onMounted(() => {
 <template>
    <Head title="Stock Opname Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
         <Button @click="$inertia.visit(`/stock-opnames/create`)">
           <Plus class="h-4 w-4" />

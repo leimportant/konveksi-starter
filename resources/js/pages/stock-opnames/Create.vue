@@ -251,7 +251,7 @@ const onLocationChange = async () => {
 <template>
   <Head title="Create Stock Opname" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
       <h1 class="text-xl font-bold mb-4">Create Stock Opname</h1>
       
       <div class="bg-white rounded-md shadow p-6">

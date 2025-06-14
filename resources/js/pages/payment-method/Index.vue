@@ -109,7 +109,7 @@ const handleDelete = async (id: string) => {
 <template>
   <Head title="Payment Method Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
         <Button @click="showCreateModal = true">
           <Plus class="h-4 w-4" />

@@ -116,7 +116,7 @@ const handleDelete = async (id: number) => {
 <template>
   <Head title="Category Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
         <Button @click="openCreateModal" aria-label="Add new category" :disabled="loading">
           <Plus class="h-4 w-4" />

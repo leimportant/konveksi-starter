@@ -12,7 +12,7 @@ const props = withDefaults(
 </script>
 
 <template>
-  <td :class="cn('p-4 align-middle [&:has([role=checkbox])]:pr-0', props.class)">
+  <td :class="cn('p-4 align-middle [&:has([role=checkbox])]:pr-1 text-sm', props.class)">
     <slot />
   </td>
 </template>

@@ -83,7 +83,7 @@ const formatDate = (date: string | null | undefined) => {
 <template>
   <Head title="List Model" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
         <div class="flex gap-4 items-center">
           <Input 

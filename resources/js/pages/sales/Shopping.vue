@@ -50,7 +50,7 @@ const handleAddToCart = async (productId: number) => {
 <template>
   <Head title="Belanja Produk" />
   <AppLayout>
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
       <h1 class="text-3xl font-semibold mb-6">Produk Tersedia</h1>
 
       <div v-if="cart.loading && cart.products.length === 0" class="text-center text-gray-500">

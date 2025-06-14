@@ -78,6 +78,10 @@ Route::get('/cash-balance/open-shift', function () {
     return Inertia::render('cash-balance/OpenShift');
 })->middleware(['auth'])->name('cash-balance.openshift');
 
+Route::get('/cash-balance/closing', function () {
+    return Inertia::render('cash-balance/Closing');
+})->middleware(['auth'])->name('cash-balance.closing');
+
 Route::get('/konveksi/model/create', function () {
     return Inertia::render('konveksi/CreateModel');
 })->middleware(['auth'])->name('konveksi.create-model');

@@ -139,7 +139,7 @@ const handleDelete = async (id: number) => {
 <template>
   <Head title="Customer Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
-     <div class="px-4 py-6">
+     <div class="px-4 py-4">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">Customer Management</h2>
       <div class="flex items-center gap-2">

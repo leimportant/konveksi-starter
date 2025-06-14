@@ -2,38 +2,37 @@
   <Head title="Tutup Shift Kasir" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="p-6 max-w-lg mx-auto">
-      <h1 class="text-2xl font-bold mb-4">Tutup Shift Kasir</h1>
+    <div class="w-full px-4 py-6">
 
       <form @submit.prevent="submit">
         <div class="space-y-4">
           <div>
-            <label class="block font-medium">Total Penjualan Tunai</label>
+            <label class="text-[14px]">Total Penjualan Tunai</label>
             <Input v-model="form.cash_sales_total" type="number" step="0.01" required />
           </div>
 
           <div>
-            <label class="block font-medium">Kas Masuk (Cash In)</label>
+            <label class="text-[14px]">Kas Masuk (Cash In)</label>
             <Input v-model="form.cash_in" type="number" step="0.01" required />
           </div>
 
           <div>
-            <label class="block font-medium">Kas Keluar (Cash Out)</label>
+            <label class="text-[14px]">Kas Keluar (Cash Out)</label>
             <Input v-model="form.cash_out" type="number" step="0.01" required />
           </div>
 
           <div>
-            <label class="block font-medium">Saldo Akhir</label>
+            <label class="text-[14px]">Saldo Akhir</label>
             <Input v-model="form.closing_balance" type="number" step="0.01" required />
           </div>
 
           <div>
-            <label class="block font-medium">Selisih</label>
+            <label class="text-[14px]">Selisih</label>
             <Input v-model="form.discrepancy" type="number" step="0.01" required />
           </div>
 
           <div>
-            <label class="block font-medium">Catatan</label>
+            <label class="text-[14px]">Catatan</label>
             <textarea
               v-model="form.notes"
               class="w-full border rounded px-3 py-2"

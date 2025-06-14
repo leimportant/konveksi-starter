@@ -72,7 +72,7 @@ const goNext = () => {
 <template>
   <Head title="Inventory Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
         <h1 class="text-2xl font-bold mb-4">Stock Monitoring</h1>
       <!-- Filters -->
       <div class="flex gap-4 mb-4">

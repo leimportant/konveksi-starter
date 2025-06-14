@@ -66,7 +66,7 @@ const handleDelete = async (id: number) => {
 <template>
   <Head title="Good Receive Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
         <Button @click="$inertia.visit('/good-receive/create')" class="flex items-center gap-2">
           <Plus class="h-4 w-4" />
@@ -87,7 +87,7 @@ const handleDelete = async (id: number) => {
           <TableBody>
             <TableRow v-for="item in goodReceives" :key="item.id">
               <TableCell>{{ item.recipent || '-' }}</TableCell>
-              <TableCell class="px-4 py-2">
+              <TableCell class="px-2 py-1">
                   <template v-if="item.items?.length">
                     <div v-for="i in item.items" :key="i.id">
                       {{ item.model?.description }} ({{ i.qty_convert }} {{ i.uom_convert }})

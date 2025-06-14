@@ -24,6 +24,7 @@ defineProps<{
                         <p class="text-center text-sm text-muted-foreground">{{ description }}</p>
                     </div>
                 </div>
+                
                 <slot />
             </div>
         </div>

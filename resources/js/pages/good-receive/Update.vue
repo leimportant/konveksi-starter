@@ -90,7 +90,7 @@ const handleSubmit = async () => {
 <template>
   <Head title="Edit Good Receive" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
       <div class="mx-auto">
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-lg font-semibold mb-6">Edit Good Receive</h2>

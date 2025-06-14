@@ -88,7 +88,7 @@ const handleDelete = async (id: number) => {
 <template>
   <Head title="Product Prices" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="px-4 py-6">
+    <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
         <Button @click="$inertia.visit('/product-prices/create')" class="bg-blue-600 text-white hover:bg-blue-700 gap-2">
           <Plus class="h-4 w-4" />

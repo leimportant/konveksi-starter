@@ -11,6 +11,7 @@ export default {
     ],
     theme: {
         extend: {
+            scrollBehavior: ['responsive'],
             fontFamily: {
                 sans: ['Instrument Sans', ...defaultTheme.fontFamily.sans],
             },

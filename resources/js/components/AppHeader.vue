@@ -50,8 +50,8 @@ const resolveIcon = async (iconName: string | LucideIcon | undefined): Promise<C
 
 <template>
   <div>
-    <div class="border-b border-sidebar-border/80">
-      <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+    <div class="border-b border-sidebar-border/0">
+      <div class="mx-auto flex h-4 items-center px-2 md:max-w-7xl">
         <!-- Mobile Menu -->
         <div class="lg:hidden">
           <Sheet>
@@ -65,7 +65,7 @@ const resolveIcon = async (iconName: string | LucideIcon | undefined): Promise<C
               <SheetHeader class="flex justify-start text-left">
                 <AppLogoIcon class="size-6 fill-current text-black dark:text-white" />
               </SheetHeader>
-              <div class="flex h-full flex-1 flex-col justify-between space-y-4 py-6">
+              <div class="flex h-full flex-1 flex-col justify-between space-y-4 py-4">
               </div>
             </SheetContent>
           </Sheet>
@@ -89,9 +89,9 @@ const resolveIcon = async (iconName: string | LucideIcon | undefined): Promise<C
             <component :is="resolveIcon('Search')" class="size-5 opacity-80 group-hover:opacity-100" />
           </Button>
 
-          <div class="hidden space-x-1 lg:flex">
+          <!-- <div class="hidden space-x-1 lg:flex">
            
-          </div>
+          </div> -->
 
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
@@ -115,6 +115,7 @@ const resolveIcon = async (iconName: string | LucideIcon | undefined): Promise<C
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" class="w-56">
+              
               <!-- Tambahkan konten dropdown user di sini -->
             </DropdownMenuContent>
           </DropdownMenu>

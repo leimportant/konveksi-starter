@@ -139,56 +139,56 @@ const formatDate = (date: string | null | undefined) => {
       
       <!-- Durasi Proyek -->
       <div class="space-y-2">
-        <h4 class="text-sm sm:text-base font-medium border-b pb-2">Durasi Proyek</h4>
+        <span class="text-[14px]">Durasi Proyek</span>
         <div class="grid gap-1 sm:gap-2 text-sm">
           <div class="flex justify-between">
-            <span>Tanggal Mulai</span>
-            <span>{{ formatDate(startDate) }}</span>
+            <span class="text-[12px]">Tanggal Mulai</span>
+            <span class="text-[12px]">{{ formatDate(startDate) }}</span>
           </div>
           <div class="flex justify-between">
-            <span>Tanggal Selesai</span>
-            <span>{{ formatDate(endDate) }}</span>
+            <span class="text-[12px]">Tanggal Selesai</span>
+            <span class="text-[12px]">{{ formatDate(endDate) }}</span>
           </div>
           <div class="flex justify-between font-medium">
-            <span>Total Durasi</span>
-            <span>{{ calculateDuration(startDate, endDate) }} hari</span>
+            <span class="text-[12px]">Total Durasi</span>
+            <span class="text-[12px]">{{ calculateDuration(startDate, endDate) }} hari</span>
           </div>
         </div>
       </div>
 
       <!-- Material Cost -->
       <div class="space-y-2">
-        <h4 class="text-sm sm:text-base font-medium border-b pb-2">Biaya Material</h4>
+        <span class="text-[14px]">Biaya Material</span>
         <div class="grid gap-1 sm:gap-2 text-sm">
           <div v-for="material in modelMaterials" :key="material.product_id" class="flex justify-between">
-            <span>{{ getMaterialName(material.product_id) }}</span>
-            <span>{{ formatCurrency(material.qty * (material.price || 0)) }}</span>
+            <span class="text-[12px]">{{ getMaterialName(material.product_id) }}</span>
+            <span class="text-[12px]">{{ formatCurrency(material.qty * (material.price || 0)) }}</span>
           </div>
         </div>
         <div class="flex justify-between font-medium pt-2 border-t text-sm sm:text-base">
-          <span>Total Biaya Material</span>
-          <span>{{ formatCurrency(totalMaterialCost) }}</span>
+          <span class="text-[12px]">Total Biaya Material</span>
+          <span class="text-[12px]">{{ formatCurrency(totalMaterialCost) }}</span>
         </div>
          <div class="flex justify-between font-medium pt-2 border-t text-sm sm:text-base">
-          <span>Total Produksi</span>
-          <span>{{ totalProduction }}</span>
+          <span class="text-[12px]">Total Produksi</span>
+          <span class="text-[12px]">{{ totalProduction }}</span>
         </div>
       </div>
 
       <!-- Size Cost -->
       <div class="space-y-2">
-        <h4 class="text-sm sm:text-base font-medium border-b pb-2">Ukuran</h4>
+        <span class="text-[14px]">Ukuran</span>
       
         <div class="grid gap-1 sm:gap-2 text-sm">
             <div v-for="size in sizeItems" :key="size.size_id" class="flex justify-between">
-              <span>{{ size.size_id }}</span> 
-              <span>{{ size.qty }}</span>
+              <span class="text-[12px]">{{ size.size_id }}</span> 
+              <span class="text-[12px]">{{ size.qty }}</span>
             </div>
         </div>
       </div>
       <!-- Activity Cost -->
       <div class="space-y-2">
-        <h4 class="text-sm sm:text-base font-medium border-b pb-2">Biaya Aktivitas</h4>
+        <span class="text-[14px]">Biaya Aktivitas</span>
         <div class="grid gap-1 sm:gap-2">
           <div v-for="activity in activityItems" :key="activity.activity_role_id" class="flex justify-between">
             <div class="flex flex-col">
@@ -206,21 +206,21 @@ const formatDate = (date: string | null | undefined) => {
           </div>
         </div>
         <div class="flex justify-between font-medium pt-2 border-t text-sm sm:text-base">
-          <span>Total Biaya Aktivitas</span>
-          <span>{{ formatCurrency(totalActivityCost) }}</span>
+          <span class="text-[12px]">Total Biaya Aktivitas</span>
+          <span class="text-[12px]">{{ formatCurrency(totalActivityCost) }}</span>
         </div>
       </div>
 
       <!-- Total HPP -->
       <div class="flex justify-between font-bold pt-4 border-t text-base sm:text-lg">
-        <span>Total HPP</span>
-        <span>{{ formatCurrency(totalHPP) }}</span>
+        <span class="text-[12px]">Total HPP</span>
+        <span class="text-[12px]">{{ formatCurrency(totalHPP) }}</span>
       </div>
 
       <!-- HPP per PCS -->
       <div class="flex justify-between font-medium text-sm sm:text-base">
-        <span>HPP per PCS</span>
-        <span>{{ formatCurrency(hppPerPcs) }}</span>
+        <span class="text-[12px]">HPP per PCS</span>
+        <span class="text-[12px]">{{ formatCurrency(hppPerPcs) }}</span>
       </div>
     </div>
   </div>
