@@ -20,6 +20,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'google_id',
         'password',
         'active',
         "phone_number",
@@ -53,6 +54,27 @@ class User extends Authenticatable
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'user_role');
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (!empty($model->google_id)) {
+                // Untuk user dari Google: mulai dari 30001
+                $lastGoogleUser = self::whereNotNull('google_id')->orderBy('id', 'desc')->first();
+                $model->id = $lastGoogleUser && $lastGoogleUser->id >= 30001
+                    ? $lastGoogleUser->id + 1
+                    : 30001;
+            } else {
+                // Untuk user dari admin/manual: mulai dari 10001
+                $lastManualUser = self::whereNull('google_id')->orderBy('id', 'desc')->first();
+                $model->id = $lastManualUser && $lastManualUser->id >= 10001
+                    ? $lastManualUser->id + 1
+                    : 10001;
+            }
+        });
     }
 
     /**

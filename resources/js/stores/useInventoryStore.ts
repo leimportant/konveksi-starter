@@ -20,8 +20,24 @@ interface InventoryItem {
   qty: number;
 }
 
+interface InventoryReport {
+  product_id: string;
+  product_name: string;
+  location_id: string;
+  location_name: string;
+  sloc_id: string;
+  sloc_name: string;
+  uom_id: string;
+  size_id: string;
+  qty_in: number;
+  qty_out: number;
+  qty_available: number;
+}
+
+
 interface State {
   loading: boolean;
+  inventoryRpt: InventoryReport[];
   inventory: InventoryItem[];
   error: string | null;
   total: number;
@@ -38,6 +54,7 @@ export const useInventoryStore = defineStore('inventory', {
   state: (): State => ({
     loading: false,
     inventory: [],
+    inventoryRpt: [],
     error: null,
     total: 0,
     currentPage: 1,
@@ -67,7 +84,7 @@ export const useInventoryStore = defineStore('inventory', {
             ...this.filters,
           },
         });
-        this.inventory = response.data.data;
+        this.inventoryRpt = response.data.data;
         // this.total = response.data.total;
         // this.currentPage = response.data.current_page;
         // this.lastPage = response.data.last_page;

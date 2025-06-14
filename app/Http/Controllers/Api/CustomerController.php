@@ -45,15 +45,24 @@ class CustomerController extends Controller
             $customer = Customer::create($validated);
 
                // automatically insert into table users
-            $isExists = DB::table('users')->where('username', $customer->id)->exists();
+            $isExists = DB::table('users')->where('id', $customer->id)->exists();
             if (!$isExists) {
                 DB::table('users')->insert([
-                    'username' => $customer->id,
+                    'id' => $customer->id,
+                    'name' => $customer->name,  
+                    'email' => $customer->phone_number . '@example.com', // Use phone number as email
                     'password' => bcrypt($request->phone_number), // Set a default password
-                    'role' => 'customer', // Assuming a role for the user
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
+                    'phone_number' => $customer->phone_number,
+                    'is_active' => $customer->is_active === 'Y' ? true : false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
+
+                DB::table('user_role')->insert([
+                    'role_id' => 7, // for customer
+                    'user_id' => $customer->id,
+                ]);
+                   
             }
 
             DB::commit();

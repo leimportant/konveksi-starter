@@ -25,10 +25,6 @@ const submit = () => {
         onFinish: () => form.reset('password'),
     });
 };
-
-function redirectToGoogle() {
-  window.location.href = route('auth.google');
-}
 </script>
 
 <template>
@@ -122,20 +118,7 @@ function redirectToGoogle() {
         </Button>
       </div>
 
-      <div class="relative flex justify-center text-xs uppercase">
-        <span class="bg-background px-2 text-muted-foreground">
-          Or continue with
-        </span>
-      </div>
-
-      <button
-    @click="redirectToGoogle"
-    class="w-full py-3 text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 flex justify-center items-center gap-2"
-  >
-    Login with Google
-  </button>
-
-      <!-- <p class="text-center text-sm text-gray-500">
+      <p class="text-center text-sm text-gray-500">
         Don't have an account?
         <TextLink
           :href="route('register')"
@@ -143,7 +126,7 @@ function redirectToGoogle() {
           :tabindex="5"
           >Sign up</TextLink
         >
-      </p> -->
+      </p>
     </form>
   </AuthBase>
 </template>

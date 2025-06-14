@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const store = useInventoryStore();
-const { inventory, loading, error, currentPage, lastPage, total, filters } = storeToRefs(store);
+const { inventoryRpt, loading, error, currentPage, lastPage, total, filters } = storeToRefs(store);
 
 const breadcrumbs = [
   { title: 'Inventory', href: '/inventory' },
@@ -108,19 +108,23 @@ const goNext = () => {
               <TableHead>SLoc</TableHead>
               <TableHead>UOM</TableHead>
               <TableHead>Size</TableHead>
-              <TableHead>Qty</TableHead>
+              <TableHead>Stock Masuk</TableHead>
+              <TableHead>Stock Keluar (Sold)</TableHead>
+              <TableHead>Stock Tersedia</TableHead>
             </TableRow>
 
 
           </TableHeader>
           <TableBody>
-            <TableRow v-for="item in inventory" :key="item.id">
-              <TableCell>{{ item.product.name }}</TableCell>
-              <TableCell>{{ item.location.name }}</TableCell>
-              <TableCell>{{ item.sloc.name }}</TableCell>
-              <TableCell>{{ item.uom.name }}</TableCell>
+            <TableRow v-for="item in inventoryRpt" :key="item.product_id">
+              <TableCell>{{ item.product_name }}</TableCell>
+              <TableCell>{{ item.location_name }}</TableCell>
+              <TableCell>{{ item.sloc_name }}</TableCell>
+              <TableCell>{{ item.uom_id }}</TableCell>
               <TableCell>{{ item.size_id }}</TableCell>
-              <TableCell>{{ item.qty }}</TableCell>
+              <TableCell>{{ item.qty_in }}</TableCell>
+              <TableCell>{{ item.qty_out }}</TableCell>
+              <TableCell>{{ item.qty_available }}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

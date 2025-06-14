@@ -11,6 +11,11 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/shopping', function () {
+    return Inertia::render('sales/Shopping');
+})->name('Shopping');
+
+
 Route::get('user', function () {
     return Inertia::render('user/Index');
 })->middleware(['auth'])->name('user.index');
@@ -34,6 +39,10 @@ Route::get('/sizes', function () {
 Route::get('/customers', function () {
     return Inertia::render('customer/Index');
 })->middleware(['auth'])->name('customer.index');
+
+Route::get('/catalog-product', function () {
+    return Inertia::render('customer/CatalogProduct');
+})->middleware(['auth'])->name('customer.catalog-product');
 
 Route::get('/price-types', function () {
     return Inertia::render('price-type/Index');
@@ -61,6 +70,13 @@ Route::get('/notification', function () {
     return Inertia::render('notification/notification');
 })->middleware(['auth'])->name('notification');
 
+Route::get('/cash-balance', function () {
+    return Inertia::render('cash-balance/Index');
+})->middleware(['auth'])->name('cash-balance.index');
+
+Route::get('/cash-balance/open-shift', function () {
+    return Inertia::render('cash-balance/OpenShift');
+})->middleware(['auth'])->name('cash-balance.openshift');
 
 Route::get('/konveksi/model/create', function () {
     return Inertia::render('konveksi/CreateModel');
@@ -180,6 +196,13 @@ Route::get('/production/{activity_role}/edit/{id}', function ($activity_role, $i
         'id' => $id,
     ]);
 })->middleware(['auth'])->name('production.update');
+
+Route::get('/documents', function () {
+    return Inertia::render('DocumentPage');
+})->middleware(['auth'])->name('documents.index');
+
+// Google Auth Routes
+
 
 Route::get('/production/{activity_role}/view/{id}', function ($activity_role, $id) {
     return Inertia::render('production/View', [

@@ -13,6 +13,7 @@ use App\Notifications\PushNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\DB;
+use App\Services\InventoryService;
 
 class TransferStockController extends Controller
 {
@@ -44,14 +45,16 @@ class TransferStockController extends Controller
 
         $data = TransferStock::create($validated);
 
-        foreach ($validated['transfer_detail'] as $type) {
+        foreach ($validated['transfer_detail'] as $detail) {
             TransferStockDetail::create([
                 'transfer_id' => $data->id,
-                'uom_id' => $type['uom_id'],
-                'size_id' => $type['size_id'],
-                'product_id' => $type['product_id'],
-                'qty' => $type['qty'],
+                'uom_id' => $detail['uom_id'],
+                'size_id' => $detail['size_id'],
+                'product_id' => $detail['product_id'],
+                'qty' => $detail['qty'],
             ]);
+
+           
         }
 
         return response()->json($data, 201);
@@ -139,10 +142,38 @@ class TransferStockController extends Controller
     public function accept($id)
     {
         try {
-            $transfer = TransferStock::where('id', $id)->firstOrFail();
+            $transfer = TransferStock::with('details')->where('id', $id)->firstOrFail();
+
+            if ($transfer->status !== 'Pending') {
+                return response()->json(['error' => 'Transfer sudah diproses'], 400);
+            }
             $transfer->status = 'Accepted';
             $transfer->updated_by = Auth::id();
             $transfer->save();
+
+            foreach ($transfer->details as $detail) {
+                     // ====== INVENTORY - OUT (lokasi asal)
+                app(InventoryService::class)->updateOrCreateInventory([
+                    'product_id' => $detail['product_id'],
+                    'location_id' => $transfer->location_id,
+                    'uom_id' => $detail['uom_id'],
+                    'sloc_id' => $transfer->sloc_id,
+                ], [
+                    'size_id' => $detail['size_id'],
+                    'qty' => $detail['qty'],
+                ], 'OUT');
+
+                // ====== INVENTORY - IN (lokasi tujuan)
+                app(InventoryService::class)->updateOrCreateInventory([
+                    'product_id' => $detail['product_id'],
+                    'location_id' => $transfer->location_destination_id,
+                    'uom_id' => $detail['uom_id'],
+                    'sloc_id' => $transfer->sloc_id,
+                ], [
+                    'size_id' => $detail['size_id'],
+                    'qty' => $detail['qty'],
+                ], 'IN');
+             }
 
             $user = $transfer->creator();
 

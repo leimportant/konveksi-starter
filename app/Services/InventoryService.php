@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class InventoryService
 {
-    public function updateOrCreateInventory(array $validated, array $item)
+    public function updateOrCreateInventory(array $validated, array $item, $status = "IN")
     {
         // Contoh akses size_id dari $item
         $sizeId = $item['size_id'];
@@ -20,7 +20,8 @@ class InventoryService
             'uom_id' => $validated['uom_id'],
             'sloc_id' => $validated['sloc_id'],
             'size_id' => $sizeId,
-            'qty' => $item['qty_physical'],
+            'qty' => $item['qty'],
+            'status' => $status,
             'created_by' => Auth::id(),
             'updated_by' => Auth::id()
         ];
@@ -42,6 +43,7 @@ class InventoryService
                 ->where('size_id', $data['size_id'])
                 ->update([
                     'qty' => $data['qty'],
+                    'status' => $status,
                     'updated_by' => Auth::id()
                 ]);
             } else {

@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Services\InventoryService;
 class InventoryController extends Controller
 {
     /**
@@ -21,108 +23,185 @@ class InventoryController extends Controller
      */
 
     public function getStock(Request $request): JsonResponse
-{
-    // Ensure the user is authenticated
-    Auth::check();
-    // Get the user's location ID   
-    if (!Auth::user()->location_id) {
-        return response()->json(['error' => 'Location not found'], 404);
-    }
-    $locationId = Auth::user()->location_id;
-    $today = Carbon::today()->toDateString();
+    {
+        // Ensure the user is authenticated
+        Auth::check();
+        // Get the user's location ID   
+        if (!Auth::user()->location_id) {
+            return response()->json(['error' => 'Location not found'], 404);
+        }
+        $locationId = Auth::user()->location_id;
+        $today = Carbon::today()->toDateString();
 
-    $query = DB::table('tr_inventory as a')
-        ->select([
-            'a.product_id',
-            'b.name as product_name',
-            'a.uom_id',
-            'a.size_id',
-            'a.sloc_id',
-            'a.qty as qty_stock',
-            'a.status',
-            'b.image_path',
-            'c.name as category_name',
-        ])
-        ->join('mst_product as b', 'a.product_id', '=', 'b.id')
-        ->leftJoin('mst_category as c', 'b.category_id', '=', 'c.id')
-        ->where('a.location_id', $locationId)
-        ->where('a.status', 'IN');
-
-    if ($request->filled('search')) {
-        $search = $request->input('search');
-        $query->where(function ($q) use ($search) {
-            $q->where('a.product_id', $search)
-              ->orWhere('b.name', 'like', "%{$search}%")
-              ->orWhere('c.name', 'like', "%{$search}%");
-        });
-    }
-
-    // paginate instead of get()
-    $inventory = $query->paginate(10);
-
-    // Add price info to each item
-    $inventory->getCollection()->transform(function ($item) use ($today) {
-        $price = DB::table('mst_product_price as a')
-            ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
+        $query = DB::table('tr_inventory as a')
             ->select([
-                'b.price',
-                'b.size_id',
-                'b.discount',
-                'b.price_sell',
-                'a.effective_date',
-                'a.end_date',
-                'a.is_active'
+                'a.product_id',
+                'b.name as product_name',
+                'a.uom_id',
+                'a.size_id',
+                'a.sloc_id',
+                'a.qty as qty_stock',
+                'a.status',
+                'b.image_path',
+                'c.name as category_name',
             ])
-            ->where('a.product_id', $item->product_id)
-            ->where('b.size_id', $item->size_id)
-            ->whereDate('a.effective_date', '<=', $today)
-            ->where(function ($query) use ($today) {
-                $query->whereNull('a.end_date')
-                      ->orWhereDate('a.end_date', '>=', $today);
-            })
-            ->where('a.is_active', 1)
-            ->orderByDesc('a.effective_date')
-            ->get();
+            ->join('mst_product as b', 'a.product_id', '=', 'b.id')
+            ->leftJoin('mst_category as c', 'b.category_id', '=', 'c.id')
+            ->where('a.location_id', $locationId)
+            ->where('a.status', 'IN');
 
-        if ($price->isNotEmpty()) {
-            $item->price_sell = floatval($price->first()->price_sell);
-            $item->discount = floatval($price->first()->discount);
-            $item->price = floatval($price->first()->price);
-        } else {
-            $item->price_sell = null;
-            $item->discount = null;
-            $item->price = null;
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('a.product_id', $search)
+                    ->orWhere('b.name', 'like', "%{$search}%")
+                    ->orWhere('c.name', 'like', "%{$search}%");
+            });
         }
 
-        $item->image_path = $item->image_path ? $item->image_path : "not_available.png";
+        // paginate instead of get()
+        $inventory = $query->paginate(10);
 
-        return $item;
-    });
+        // Add price info to each item
+        $inventory->getCollection()->transform(function ($item) use ($today) {
+            $price = DB::table('mst_product_price as a')
+                ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
+                ->select([
+                    'b.price',
+                    'b.size_id',
+                    'b.discount',
+                    'b.price_sell',
+                    'a.effective_date',
+                    'a.end_date',
+                    'a.is_active'
+                ])
+                ->where('a.product_id', $item->product_id)
+                ->where('b.size_id', $item->size_id)
+                ->whereDate('a.effective_date', '<=', $today)
+                ->where(function ($query) use ($today) {
+                    $query->whereNull('a.end_date')
+                        ->orWhereDate('a.end_date', '>=', $today);
+                })
+                ->where('a.is_active', 1)
+                ->orderByDesc('a.effective_date')
+                ->get();
 
-    return response()->json($inventory);
-}
+            if ($price->isNotEmpty()) {
+                $item->price_sell = floatval($price->first()->price_sell);
+                $item->discount = floatval($price->first()->discount);
+                $item->price = floatval($price->first()->price);
+            } else {
+                $item->price_sell = null;
+                $item->discount = null;
+                $item->price = null;
+            }
+
+            $item->image_path = $item->image_path ? $item->image_path : "not_available.png";
+
+            return $item;
+        });
+
+        return response()->json($inventory);
+    }
 
 
     public function index(Request $request): JsonResponse
     {
-        $query = Inventory::with(['product', 'location', 'sloc', 'uom']);
+        $perPage = $request->input('perPage', 10);
+        $page = $request->input('page', 1);
+        $location = $request->input('location');
+        $sloc = $request->input('sloc');
+        $product = $request->input('product');
 
-        if ($request->has('location')) {
-            $query->where('location_id', $request->input('location'));
+        $bindings = [];
+
+        $where = "WHERE 1 = 1";
+        $where .= " AND a.location_id = ?";
+        $bindings[] = $location;
+
+        if ($sloc) {
+            $where .= " AND a.sloc_id = ?";
+            $bindings[] = $sloc;
+        }
+        if ($product) {
+            $where .= " AND a.product_id = ?";
+            $bindings[] = $product;
         }
 
-        if ($request->has('sloc')) {
-            $query->where('sloc_id', $request->input('sloc'));
-        }
+        $sql = "
+        SELECT 
+            a.product_id,
+            b.name AS product_name,
+            a.location_id,
+            d.name AS location_name,
+            a.uom_id,
+            a.sloc_id,
+            c.name AS sloc_name,
+            a.size_id,
+            COALESCE(qty_in_data.qty_in, 0) AS qty_in,
+            COALESCE(qty_out_data.qty_out, 0) AS qty_out,
+            (COALESCE(qty_in_data.qty_in, 0) - COALESCE(qty_out_data.qty_out, 0)) AS qty_available
+        FROM tr_inventory a
+        LEFT JOIN mst_product b ON a.product_id = b.id
+        LEFT JOIN mst_sloc c ON a.sloc_id = c.id
+        LEFT JOIN mst_location d ON a.location_id = d.id
+        LEFT JOIN (
+            SELECT 
+                product_id, location_id, uom_id, sloc_id, size_id, 
+                SUM(qty) AS qty_in
+            FROM tr_inventory
+            WHERE status = 'IN'
+            GROUP BY product_id, location_id, uom_id, sloc_id, size_id
+        ) qty_in_data
+            ON a.product_id = qty_in_data.product_id
+            AND a.location_id = qty_in_data.location_id
+            AND a.uom_id = qty_in_data.uom_id
+            AND a.sloc_id = qty_in_data.sloc_id
+            AND a.size_id = qty_in_data.size_id
+        LEFT JOIN (
+            SELECT 
+                product_id, location_id, uom_id, sloc_id, size_id, 
+                SUM(qty) AS qty_out
+            FROM tr_inventory
+            WHERE status = 'OUT'
+            GROUP BY product_id, location_id, uom_id, sloc_id, size_id
+        ) qty_out_data
+            ON a.product_id = qty_out_data.product_id
+            AND a.location_id = qty_out_data.location_id
+            AND a.uom_id = qty_out_data.uom_id
+            AND a.sloc_id = qty_out_data.sloc_id
+            AND a.size_id = qty_out_data.size_id
+        $where
+       GROUP BY 
+        a.product_id,
+        b.name,
+        a.location_id,
+        d.name,
+        a.uom_id,
+        a.sloc_id,
+        c.name,
+        a.size_id,
+        qty_in_data.qty_in,
+        qty_out_data.qty_out";
 
-        if ($request->has('product')) {
-            $query->where('product_id', $request->input('product'));
-        }
+        // Execute the query
+        $results = DB::select($sql, $bindings);
 
-        $inventory = $query->paginate(10);
+        // Convert to collection
+        $collection = collect($results);
 
-        return response()->json($inventory);
+        // Manual pagination
+        $paginated = new LengthAwarePaginator(
+            $collection->forPage($page, $perPage),
+            $collection->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+         return response()->json($paginated);
     }
+
 
     /**
      * Store a newly created inventory record.
@@ -146,6 +225,17 @@ class InventoryController extends Controller
             $validated['updated_by'] = Auth::id();
 
             $inventory = Inventory::create($validated);
+
+            // ====== INVENTORY - IN (lokasi tujuan)
+            app(InventoryService::class)->updateOrCreateInventory([
+                'product_id' => $validated['product_id'],
+                'location_id' => $validated['location_id'],
+                'uom_id' => $validated['uom_id'],
+                'sloc_id' => $validated['sloc_id'],
+            ], [
+                'size_id' => $validated['size_id'],
+                'qty' => $validated['qty'],
+            ], 'IN');
 
             return response()->json([
                 'status' => 'success',
@@ -209,7 +299,7 @@ class InventoryController extends Controller
                 'sloc_id' => $request->sloc_id,
                 'product_id' => $request->product_id,
                 'uom_id' => $request->uom_id,
-                'size_id' => $request->size_id, 
+                'size_id' => $request->size_id,
             ],
             [
                 'qty' => $request->qty

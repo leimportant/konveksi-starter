@@ -2,10 +2,12 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
+import DocumentUpload from '@/components/DocumentUpload.vue';
+import DocumentList from '@/components/DocumentList.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit, Trash2, Plus } from 'lucide-vue-next';
+import { Edit, Trash2, Plus, Upload } from 'lucide-vue-next';
 import { useToast } from "@/composables/useToast";
 import { useProductStore } from '@/stores/useProductStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
@@ -16,6 +18,15 @@ import { storeToRefs } from 'pinia';
 const toast = useToast();
 
 const showCreateModal = ref(false);
+const showUploadModal = ref(false);
+const currentProductIdForUpload = ref<number | null>(null);
+const documentListRef = ref<InstanceType<typeof DocumentList> | null>(null);
+
+const handleDocumentUploaded = () => {
+  if (documentListRef.value) {
+    documentListRef.value.fetchDocuments();
+  }
+};
 const showEditModal = ref(false);
 const currentProduct = ref<{ id: number; name: string; category_id: number; uom_id: string } | null>(null);
 
@@ -208,6 +219,10 @@ const getUomName = (uomId: string) => {
                 <Button variant="ghost" size="icon" @click="handleDelete(product.id)">
                   <Trash2 class="h-4 w-4" />
                 </Button>
+
+                <Button variant="ghost" size="icon" @click="showUploadModal = true; currentProductIdForUpload = product.id;">
+                  <Upload class="h-4 w-4" />
+                </Button>
               </TableCell>
             </TableRow>
           </TableBody>
@@ -238,9 +253,25 @@ const getUomName = (uomId: string) => {
         </button>
       </div>
 
+      <!-- upload image -->
+       <div v-if="showUploadModal" class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-bold mb-4">Upload Document</h2>
+          <DocumentUpload
+            :visible="showUploadModal"
+            @update:visible="showUploadModal = $event"
+            :reference-id="'1'"
+            :doc-id="currentProductIdForUpload?.toString() || ''"
+            @uploaded="handleDocumentUploaded"
+          />
+          <DocumentList ref="documentListRef" :reference-id="'1'" :doc-id="currentProductIdForUpload?.toString() || ''" />
+          <div class="mt-4 flex justify-end">
+            <Button @click="showUploadModal = false" variant="outline">Close</Button>
+          </div>
+       </div>
 
       <!-- Create Modal -->
       <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+
         <div class="bg-white p-6 rounded-lg w-96">
           <h2 class="text-lg font-semibold mb-4">Add New Product</h2>
           <form @submit.prevent="handleCreate">

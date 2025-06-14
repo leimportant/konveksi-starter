@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
+    protected $table = 'mst_customer';
+    protected $primaryKey = 'id';
+    public $incrementing = false; // Use custom ID generation
     protected $fillable = [
         'id',
         'name',

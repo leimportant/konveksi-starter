@@ -46,11 +46,6 @@
                     <XCircle class="h-4 w-4" />
                   </Button>
                 </div>
-                <Input
-                  v-model="remarks[file.name]"
-                  placeholder="Keterangan file"
-                  class="w-full text-sm"
-                />
               </li>
             </ul>
           </div>
@@ -87,7 +82,6 @@
 import { ref, watch } from 'vue';
 import { Upload, XCircle } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Dialog } from '@/components/ui/dialog';
 import { useDocumentUploadStore } from '@/stores/useDocumentUploadStore';
 
@@ -114,6 +108,7 @@ const isUploading = ref(false);
 const uploadProgress = ref(0);
 
 const triggerFileInput = () => {
+  console.log('triggerFileInput called');
   fileInput.value?.click();
 };
 
@@ -121,6 +116,7 @@ const handleFileChange = (e: Event) => {
   const target = e.target as HTMLInputElement;
   if (target.files) {
     selectedFiles.value = Array.from(target.files);
+    console.log('Selected files:', selectedFiles.value);
   }
 };
 
@@ -137,6 +133,7 @@ const removeSelectedFile = (file: File) => {
 };
 
 const handleUpload = async () => {
+  console.log('handleUpload called');
   isUploading.value = true;
   for (const file of selectedFiles.value) {
     const remark = remarks.value[file.name] || '';
@@ -150,7 +147,12 @@ const handleUpload = async () => {
       props.module || 'general'
     );
 
-    if (result) emit('uploaded', result.document);
+    if (result) {
+      console.log('Upload successful:', result.document);
+      emit('uploaded', result.document);
+    } else {
+      console.error('Upload failed for file:', file.name);
+    }
   }
 
   closeDialog();

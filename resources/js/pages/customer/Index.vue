@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue'
 import { useCustomerStore } from '@/stores/useCustomerStore'
 import { storeToRefs } from 'pinia'
@@ -24,6 +26,10 @@ const perPage = 10
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
+
+const breadcrumbs = [
+  { title: 'Customer', href: '/Customers' }
+];
 
 interface CustomerForm {
   id: number
@@ -131,7 +137,9 @@ const handleDelete = async (id: number) => {
 </script>
 
 <template>
-  <div class="px-4 py-6">
+  <Head title="Customer Management" />
+  <AppLayout :breadcrumbs="breadcrumbs">
+     <div class="px-4 py-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">Customer Management</h2>
       <div class="flex items-center gap-2">
@@ -249,4 +257,6 @@ const handleDelete = async (id: number) => {
       </div>
     </div>
   </div>
+  </AppLayout>
+ 
 </template>

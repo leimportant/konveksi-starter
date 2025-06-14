@@ -53,7 +53,7 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
       formData.append('doc_id', docId);
       formData.append('module', module);
 
-      const response = await fetch('/api/documents/upload', {
+      const response = await fetch('/api/document-attachments/upload', {
         method: 'POST',
         body: formData,
       });
@@ -80,9 +80,9 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
     }
   };
 
-  const removeFile = async (referenceId: string, documentId: string) => {
+  const removeFile = async (id: string) => {
     try {
-      const res = await fetch(`/api/documents/${referenceId}/${documentId}`, {
+      const res = await fetch(`/api/document-attachments/${id}`, {
         method: 'DELETE',
       });
       return res.ok;
