@@ -18,6 +18,7 @@ class ProductController extends Controller
 
         if ($search) {
             $query->where('name', 'like', '%' . $search . '%')
+                ->orWhere('descriptions', 'like', '%' . $search . '%')
 ;
         }
 
@@ -39,6 +40,7 @@ class ProductController extends Controller
 
         if ($search) {
             $query->where('name', 'like', '%' . $search . '%')
+                ->orWhere('descriptions', 'like', '%' . $search . '%')
                 ->orWhereHas('category', function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%');
                 })
@@ -59,6 +61,7 @@ class ProductController extends Controller
         $validated = $request->validate([
             'category_id' => 'required|exists:mst_category,id',
             'uom_id' => 'exists:mst_uom,id',
+            'descriptions' => 'nullable|string',
             'name' => 'required|max:255|unique:mst_product,name'
         ]);
         $newId = $this->generateNumber($validated['category_id']);
@@ -101,6 +104,7 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'max:255', Rule::unique('mst_product')->ignore($product->id)],
             'category_id' => 'required|exists:mst_category,id',
+            'descriptions' => 'nullable|string',
             'uom_id' => 'exists:mst_uom,id',
         ]);
 

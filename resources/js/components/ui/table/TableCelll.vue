@@ -9,6 +9,7 @@ const props = withDefaults(
     class: '',
   }
 )
+
 </script>
 
 <template>

@@ -16,10 +16,6 @@ const sidebarNavItems: NavItem[] = [
         title: 'Password',
         href: '/settings/password',
     },
-    {
-        title: 'Appearance',
-        href: '/settings/appearance',
-    },
 ];
 
 const page = usePage<PageProps>();

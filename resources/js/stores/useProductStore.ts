@@ -53,11 +53,12 @@ export const useProductStore = defineStore('product', {
       }
     },
 
-    async createProduct(data: { name: string; category_id: number; uom_id: string }) {
+    async createProduct(data: { name: string; descriptions: string; category_id: number; uom_id: string }) {
       try {
         await axios.post('/api/products', {
           name: data.name,
           category_id: data.category_id,
+          descriptions: data.descriptions,
           uom_id: data.uom_id,
         });
         this.loaded = false;
@@ -68,7 +69,7 @@ export const useProductStore = defineStore('product', {
       }
     },
 
-    async updateProduct(id: number, data: { name: string; category_id: number; uom_id: string }) {
+    async updateProduct(id: number, data: { name: string; descriptions: string; category_id: number; uom_id: string }) {
       try {
         await axios.put(`/api/products/${id}`, data);
         this.loaded = false;

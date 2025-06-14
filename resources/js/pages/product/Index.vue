@@ -13,12 +13,15 @@ import { useProductStore } from '@/stores/useProductStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useUomStore } from '@/stores/useUomStore';
 import debounce from 'lodash-es/debounce';
+import { QuillEditor } from '@/components/ui/quill-editor';
+import { truncateHtml } from '@/lib/truncateHtml'
 import { storeToRefs } from 'pinia';
 
 const toast = useToast();
 
 const showCreateModal = ref(false);
 const showUploadModal = ref(false);
+const addUploadModal = ref(false);
 const currentProductIdForUpload = ref<number | null>(null);
 const documentListRef = ref<InstanceType<typeof DocumentList> | null>(null);
 
@@ -32,6 +35,7 @@ const currentProduct = ref<{ id: number; name: string; category_id: number; uom_
 
 const form = useForm({
   name: '',
+  descriptions: '',
   category_id: 0,
   uom_id: '' // empty string for select default
 });
@@ -93,6 +97,10 @@ const handleInput = (e: Event) => {
   debouncedSetFilter('name', target.value);
 };
 
+function openUploadModal() {
+  addUploadModal.value = true;
+}
+
 const handleCreate = async () => {
   if (!form.name) return toast.error("Name is required");
   if (!form.category_id) return toast.error("Category is required");
@@ -101,6 +109,7 @@ const handleCreate = async () => {
   try {
     await productStore.createProduct({
       name: form.name,
+      descriptions: form.descriptions,
       category_id: Number(form.category_id),
       uom_id: form.uom_id
     });
@@ -114,9 +123,10 @@ const handleCreate = async () => {
   }
 };
 
-const handleEdit = (product: { id: number; name: string; category_id: number; uom_id: string }) => {
+const handleEdit = (product: { id: number; name: string; descriptions: string, category_id: number; uom_id: string }) => {
   currentProduct.value = product;
   form.name = product.name;
+  form.descriptions = form.descriptions;
   form.category_id = product.category_id;
   form.uom_id = product.uom_id;
   showEditModal.value = true;
@@ -132,6 +142,7 @@ const handleUpdate = async () => {
   try {
     await productStore.updateProduct(productId, {
       name: form.name,
+      descriptions: form.descriptions,
       category_id: form.category_id,
       uom_id: form.uom_id
     });
@@ -203,6 +214,7 @@ const getUomName = (uomId: string) => {
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>UOM</TableHead>
+              <TableHead>Descriptions</TableHead>
               <TableHead class="w-24">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -212,6 +224,8 @@ const getUomName = (uomId: string) => {
               <TableCell>{{ product.name }}</TableCell>
               <TableCell>{{ getCategoryName(product.category_id) }}</TableCell>
               <TableCell>{{ getUomName(product.uom_id) }}</TableCell>
+              <TableCell>{{ truncateHtml(product.descriptions, 50) }}</TableCell>
+
               <TableCell class="flex gap-2">
                 <Button variant="ghost" size="icon" @click="handleEdit(product)">
                   <Edit class="h-4 w-4" />
@@ -238,7 +252,7 @@ const getUomName = (uomId: string) => {
 
         <template v-for="page in totalPages" :key="page">
           <button @click="goToPage(page)" :class="[
-            'px-3 py-1 rounded border text-sm',
+            'px-3 py-1 rounded border text-xs',
             page === currentPage
               ? 'bg-blue-600 border-blue-600 text-white'
               : 'border-gray-300 text-gray-700 hover:bg-gray-100'
@@ -254,31 +268,51 @@ const getUomName = (uomId: string) => {
       </div>
 
       <!-- upload image -->
-       <div v-if="showUploadModal" class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <h2 class="text-2xl font-bold mb-4">Upload Document</h2>
-          <DocumentUpload
-            :visible="showUploadModal"
-            @update:visible="showUploadModal = $event"
+      <!-- Modal Overlay -->
+      <div
+        v-if="showUploadModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
+        <!-- Modal Box -->
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <h2 class="text-xl font-bold mb-4">Upload Gambar</h2>
+
+          <Button @click="openUploadModal">Add Gambar</Button>
+
+          <div v-if="addUploadModal">
+             <DocumentUpload
+            :visible="addUploadModal"
+            @update:visible="addUploadModal = $event"
             :reference-id="'1'"
             :doc-id="currentProductIdForUpload?.toString() || ''"
             @uploaded="handleDocumentUploaded"
           />
-          <DocumentList ref="documentListRef" :reference-id="'1'" :doc-id="currentProductIdForUpload?.toString() || ''" />
+          </div>
+         
+
+          <DocumentList
+            ref="documentListRef"
+            :reference-id="'1'"
+            :doc-id="currentProductIdForUpload?.toString() || ''"
+          />
+
           <div class="mt-4 flex justify-end">
             <Button @click="showUploadModal = false" variant="outline">Close</Button>
           </div>
-       </div>
+        </div>
+      </div>
+
 
       <!-- Create Modal -->
       <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 
-        <div class="bg-white p-6 rounded-lg w-96">
+        <div class="bg-white p-6 rounded-lg w-[1000px]">
           <h2 class="text-lg font-semibold mb-4">Add New Product</h2>
           <form @submit.prevent="handleCreate">
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium mb-1">Category</label>
-                <select v-model="form.category_id" class="w-full rounded-md border border-input px-3 py-2" required>
+                <label class="block text-xs font-medium mb-1">Category</label>
+                <select v-model="form.category_id" class="w-full text-xs rounded-md border border-input px-3 py-2" required>
                   <option value="0">Select Category</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
                     {{ category.name }}
@@ -286,18 +320,22 @@ const getUomName = (uomId: string) => {
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1">Name</label>
-                <Input v-model="form.name" placeholder="Product Name" required />
+                <label class="block text-xs font-medium mb-1">Name</label>
+                <Input v-model="form.name" placeholder="Product Name" class="text-xs" required />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1">UOM</label>
-                <select v-model="form.uom_id" class="w-full rounded-md border border-input px-3 py-2" required>
+                <label class="block text-xs font-medium mb-1">UOM</label>
+                <select v-model="form.uom_id" class="w-full rounded-md border  text-xs border-input px-3 py-2" required>
                   <option value="">Select UOM</option>
                   <option v-for="uom in uoms" :key="uom.id" :value="uom.id">
                     {{ uom.name }}
                   </option>
                 </select>
               </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium mb-1">Description</label>
+              <QuillEditor  v-model:content="form.descriptions" contentType="html" class="w-full border-input px-3 py-2 border min-h-[50px]"/>
             </div>
             <div class="flex justify-end gap-2 mt-4">
               <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
@@ -309,13 +347,13 @@ const getUomName = (uomId: string) => {
 
       <!-- Edit Modal -->
       <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg w-96">
+        <div class="bg-white p-6 rounded-lg  w-[1000px]">
           <h2 class="text-lg font-semibold mb-4">Edit Product</h2>
           <form @submit.prevent="handleUpdate">
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium mb-1">Category</label>
-                <select v-model="form.category_id" class="w-full rounded-md border border-input px-3 py-2" required>
+                <label class="block text-xs font-medium mb-1">Category</label>
+                <select v-model="form.category_id" class="w-full text-xs rounded-md border border-input px-3 py-2" required>
                   <option value="0">Select Category</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
                     {{ category.name }}
@@ -323,18 +361,22 @@ const getUomName = (uomId: string) => {
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1">Name</label>
-                <Input v-model="form.name" placeholder="Product Name" required />
+                <label class="block text-xs font-medium mb-1">Name</label>
+                <Input v-model="form.name" placeholder="Product Name" class="text-xs" required />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1">UOM</label>
-                <select v-model="form.uom_id" class="w-full rounded-md border border-input px-3 py-2" required>
+                <label class="block text-xs font-medium mb-1">UOM</label>
+                <select v-model="form.uom_id" class="w-full text-xs rounded-md border border-input px-3 py-2" required>
                   <option value="">Select UOM</option>
                   <option v-for="uom in uoms" :key="uom.id" :value="uom.id">
                     {{ uom.name }}
                   </option>
                 </select>
               </div>
+              <div>
+                <label class="block text-xs font-medium mb-1">Description</label>
+              <QuillEditor  v-model:content="form.descriptions"  contentType="html" class="w-full text-xs border-input px-3 py-2 border min-h-[50px]"/>
+            </div>
             </div>
             <div class="flex justify-end gap-2 mt-4">
               <Button type="button" variant="outline" @click="showEditModal = false">Cancel</Button>

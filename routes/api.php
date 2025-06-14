@@ -29,6 +29,7 @@ use App\Http\Controllers\PushController;
 use App\Http\Controllers\Api\PosOrderController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\CashBalanceController;
+use App\Http\Controllers\Api\DocumentAttachmentController;
 
 Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
 Route::apiResource('kasbon-payments', KasbonPaymentController::class);
@@ -96,9 +97,9 @@ Route::middleware('auth')->group(function () {
     Route::post('api/pos/orders', [PosOrderController::class, 'placeOrder']);
 
     // Document Attachments
-    Route::post('api/document-attachments/upload', [App\Http\Controllers\DocumentAttachmentController::class, 'upload']);
-    Route::get('api/document-attachments', [App\Http\Controllers\DocumentAttachmentController::class, 'index']);
-    Route::delete('api/document-attachments/{id}', [App\Http\Controllers\DocumentAttachmentController::class, 'destroy']);
+    Route::post('api/document-attachments/upload', [DocumentAttachmentController::class, 'upload']);
+    Route::get('api/document-attachments', [DocumentAttachmentController::class, 'index']);
+    Route::delete('api/document-attachments/{id}', [DocumentAttachmentController::class, 'destroy']);
 });
 
 Route::prefix('approvals')->group(function () {

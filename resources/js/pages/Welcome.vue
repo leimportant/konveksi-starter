@@ -5,15 +5,7 @@
     <!-- Navigation Bar -->
     <header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-lg">
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <h1 class="text-3xl font-extrabold tracking-tight text-gray-800 dark:text-white"><span class="text-pink-500">ANINKA</span> Fashion</h1>
-        <nav class="hidden md:flex space-x-6 text-base font-medium">
-          <Link :href="route('home')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Home</Link>
-          <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Dashboard</Link>
-          <template v-else>
-            <Link :href="route('login')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Login</Link>
-            <Link :href="route('register')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Register</Link>
-          </template>
-        </nav>
+        <h1 class="text-3xl font-extrabold tracking-tight text-gray-800 dark:text-white"><span class="text-pink-500">ICo-nic</span> Fashion</h1>
           <div class="md:hidden flex items-center">
             <button @click="toggleMobileMenu" class="text-gray-600 dark:text-gray-300 focus:outline-none">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -28,11 +20,8 @@
       <nav v-if="showMobileMenu" class="md:hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-md px-6 py-4">
         <div class="flex flex-col space-y-3 text-base font-medium">
           <Link :href="route('home')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Home</Link>
-          <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Dashboard</Link>
-          <template v-else>
-            <Link :href="route('login')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Login</Link>
-            <Link :href="route('register')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Register</Link>
-          </template>
+          <Link :href="route('login')" class="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg transition duration-300 hover:from-blue-600 hover:to-blue-800">Login</Link>
+          <Link :href="route('register')" class="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg transition duration-300 hover:from-blue-600 hover:to-blue-800">Register</Link>
         </div>
       </nav>
 
@@ -41,10 +30,10 @@
       <Swiper class="h-full w-full" :autoplay="{ delay: 5000 }" :loop="true" effect="fade">
         <SwiperSlide v-for="(img, index) in ['/images/fashion1.png', '/images/fashion2.png']" :key="index" class="relative bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-in-out">
           <div class="h-full w-full bg-cover bg-center" :style="`background-image: url(${img})`">
-            <div class="absolute inset-0 bg-black/50 flex flex-col justify-center items-center text-center p-6 md:p-12 text-white">
+            <div class="absolute inset-0 bg-black/50 flex flex-col justify-center items-end text-right p-6 md:p-12 text-white w-full">
               <h2 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4 drop-shadow-lg">Temukan Gaya Terbaik Anda</h2>
-              <p class="text-base md:text-xl max-w-3xl mb-8 opacity-90 drop-shadow-md">Aplikasi fashion terintegrasi dengan sistem kasir, produksi & manajemen stok terbaik.</p>
-              <div class="flex space-x-4">
+              <p class="text-base md:text-xl max-w-3xl mb-8 opacity-90 drop-shadow-md">Platform fashion modern untuk pengguna yang ingin belanja dengan mudah, cepat, dan stylish.</p>
+              <div class="flex space-x-4 justify-end">
                 <Link :href="route('login')" class="bg-pink-600 hover:bg-pink-700 text-white px-8 py-3 rounded-full shadow-lg transition duration-300 transform hover:scale-105">Mulai Sekarang</Link>
                 <Link :href="route('register')" class="border border-white text-white px-8 py-3 rounded-full shadow-lg transition duration-300 transform hover:scale-105 hover:bg-white hover:text-pink-600">Daftar Gratis</Link>
               </div>
@@ -92,6 +81,8 @@
 </template>
 
 <script lang="ts" setup>
+import { Head, Link } from '@inertiajs/vue3';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import 'swiper/css';
+
 </script>

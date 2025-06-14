@@ -9,6 +9,11 @@ import { ZiggyVue } from 'ziggy-js';
 import Toast from 'vue-toastification';
 import { createPinia } from 'pinia';
 import { initializeTheme } from './composables/useAppearance';
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
+
+
+
 import PrimeVue from 'primevue/config';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -25,6 +30,9 @@ createInertiaApp({
 
         // ✅ Pinia harus digunakan setelah createApp
         const pinia = createPinia();
+       // dalam createApp
+      app.component('QuillEditor', QuillEditor)
+
         app.use(plugin)
             .use(ZiggyVue)
             .use(Toast)

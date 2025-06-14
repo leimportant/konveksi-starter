@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
-import DeleteUser from '@/components/DeleteUser.vue';
+// import DeleteUser from '@/components/DeleteUser.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -101,8 +101,8 @@ const submit = () => {
                     </div>
                 </form>
             </div>
-
-            <DeleteUser />
+            
         </SettingsLayout>
+        
     </AppLayout>
 </template>

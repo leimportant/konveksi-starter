@@ -21,6 +21,7 @@ class Product extends Model
         'category_id',
         'uom_id',
         'name',
+        'descriptions',
         'image_path',
         'created_by',
         'updated_by',

@@ -1,6 +1,6 @@
 <template>
   <div class="document-list">
-    <h3 class="text-lg font-semibold mb-4">Uploaded Documents</h3>
+    <h3 class="text-lg font-semibold mb-4 p-2">List Gambar</h3>
     <div v-if="loading" class="text-center text-gray-500">Loading documents...</div>
     <div v-else-if="error" class="text-center text-red-500">Error loading documents: {{ error }}</div>
     <div v-else-if="documents.length === 0" class="text-center text-gray-500">No documents uploaded yet.</div>
