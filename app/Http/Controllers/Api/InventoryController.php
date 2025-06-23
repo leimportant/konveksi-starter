@@ -32,6 +32,7 @@ class InventoryController extends Controller
         }
         $locationId = Auth::user()->location_id;
         $today = Carbon::today()->toDateString();
+        $price_type_id = $request->price_type_id ?? 1;
 
         $query = DB::table('tr_inventory as a')
             ->select([
@@ -63,7 +64,7 @@ class InventoryController extends Controller
         $inventory = $query->paginate(10);
 
         // Add price info to each item
-        $inventory->getCollection()->transform(function ($item) use ($today) {
+        $inventory->getCollection()->transform(function ($item) use ($today, $price_type_id) {
             $price = DB::table('mst_product_price as a')
                 ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
                 ->select([
@@ -83,6 +84,7 @@ class InventoryController extends Controller
                         ->orWhereDate('a.end_date', '>=', $today);
                 })
                 ->where('a.is_active', 1)
+                ->where('b.price_type_id', $price_type_id)
                 ->orderByDesc('a.effective_date')
                 ->get();
 

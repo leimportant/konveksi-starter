@@ -1,0 +1,522 @@
+<template>
+  <Head title="Belanja" />
+  <AppLayout>
+
+     <!-- Product Catalog -->
+       <section class="space-y-4 w-full">
+        <div class="p-2 mx-auto">
+                <!-- Product Catalog -->
+       <section class="space-y-4 w-full">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h2 class="text-xl font-bold text-gray-800">Available Products</h2>
+          <input
+            type="text"
+            v-model="searchText"
+            @input="onSearchInput"
+            placeholder="Search products..."
+            class="border rounded px-3 py-1 text-sm w-full sm:w-52 sm:ml-auto"
+          />
+        </div>
+
+
+        <!-- Product Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-8 gap-1">
+          <div
+            v-for="product in products"
+            :key="product.product_id"
+            @click="viewProductDetail(product)"
+            class="bg-green-50 hover:bg-green-100 rounded-xl p-3 border border-gray-200 shadow-sm hover:shadow-md transition cursor-pointer"
+            :title="`Stock: ${product.qty_stock}`"
+          >
+            <div class="w-full h-24 mb-2">
+              <img
+                v-if="product.image_path"
+                :src="getImageUrl(product.image_path)"
+                alt="product"
+                class="w-full h-full object-cover rounded-lg"
+              />
+              <div
+                v-else
+                class="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-400 rounded-lg"
+              >No Image</div>
+            </div>
+            <p class="text-sm font-semibold text-gray-900 truncate">{{ product.product_name }}</p>
+            <p class="text-xs text-gray-500">Stock: {{ product.qty_stock }} {{ product.uom_id }}</p>
+            <div class="mt-1 text-sm">
+              <template v-if="product.discount && product.discount > 0">
+                <p class="line-through text-xs text-gray-400">{{ formatRupiah(product.price) }}</p>
+                <p>
+                  {{ formatRupiah(product.price_sell || product.price) }}
+                  <span class="text-green-500 text-xs">(Diskon {{ formatRupiah(product.discount) }})</span>
+                </p>
+              </template>
+              <p v-else class="font-semibold text-gray-700">{{ formatRupiah(product.price) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center items-center gap-2 pt-4">
+          <button
+            @click="prevPage"
+            :disabled="currentPage === 1"
+            class="px-3 py-1 border rounded disabled:opacity-50"
+          >Prev</button>
+          <span class="px-3 py-1 border rounded bg-white">Page {{ currentPage }} of {{ lastPage }}</span>
+          <button
+            @click="nextPage"
+            :disabled="currentPage === lastPage"
+            class="px-3 py-1 border rounded disabled:opacity-50"
+          >Next</button>
+        </div>
+      </section>
+        </div>
+       </section>
+    <div class="min-h-screen bg-white p-2 overflow-x-hidden grid gap-8 md:grid-cols-[1fr_400px]">
+
+      <!-- Floating Cart Icon -->
+      <div class="hidden md:block absolute top-4 right-4 z-50">
+        <button @click="toggleCart" class="relative bg-white p-2 rounded-full shadow hover:shadow-md">
+          🛒
+          <span v-if="cartQty > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {{ cartQty }}
+          </span>
+        </button>
+      </div>
+
+      <div class="fixed top-4 right-4 z-50 md:hidden">
+        <button @click="toggleCart" class="relative bg-white p-2 rounded-full shadow hover:shadow-md">
+          🛒
+          <span v-if="cartQty > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {{ cartQty }}
+          </span>
+        </button>
+      </div>
+    
+      </div>
+
+       <!-- Cart Backdrop -->
+      <div
+        v-if="showCart"
+        class="fixed inset-0 bg-black bg-opacity-30 z-30 md:hidden"
+        @click="showCart = false"
+      />
+
+      <!-- Cart Sidebar -->
+      <aside
+        :class="[
+          'fixed inset-y-0 right-0 max-w-full w-80 bg-gray-100 dark:bg-gray-800 dark:text-blue-400 shadow-xl z-40 transform transition-transform duration-300',
+          showCart ? 'translate-x-0' : 'translate-x-full'
+        ]"
+      >
+
+        <h2 class="text-xl font-bold mb-4">Cart</h2>
+
+        <div ref="orderList" class="flex-1 overflow-y-auto space-y-4 pr-1">
+          <div v-if="cartItems.length === 0" class="text-gray-400 text-center mt-10">
+            Cart is empty
+          </div>
+
+          <div
+            v-for="item in cartItems"
+            :key="item.product_id"
+            class="flex items-center gap-3 border-b pb-2"
+          >
+            <img
+              v-if="item.image_path"
+              :src="getImageUrl(item.image_path)"
+              alt="product"
+              class="w-14 h-14 object-cover rounded"
+            />
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-sm truncate">{{ item.product_name }}</p>
+              <p class="text-xs text-gray-400">Stock: {{ item.qty_stock }}</p>
+              <p class="text-xs text-gray-800">
+                {{ formatRupiah((item.price_sell ?? 0) > 0 ? item.price_sell ?? 0 : item.price ?? 0) }}
+              </p>
+            </div>
+            <div class="flex items-center space-x-1">
+              <button
+                @click="decreaseQty(item)"
+                :disabled="item.quantity <= 1"
+                class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
+              >-</button>
+              <span class="w-8 text-center text-sm">{{ item.quantity }}</span>
+              <button
+                @click="increaseQty(item)"
+                class="px-2 py-1 bg-gray-200 rounded"
+              >+</button>
+            </div>
+            <button @click="removeFromCart(item.cartItemId)" class="text-red-500 text-lg hover:text-red-700">&times;</button>
+          </div>
+        </div>
+
+        <div class="mt-4 border-t pt-4 space-y-2">
+          <p class="text-lg font-semibold">Total: {{ formatRupiah(cartTotal) }}</p>
+          <button
+            @click="proceedToCheckout"
+            class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+          >Proceed to Checkout</button>
+        </div>
+      </aside>
+
+      <!-- Product Detail Modal -->
+      <div
+        v-if="showDetailModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4"
+        @click.self="closeDetailModal"
+      >
+        <div class="bg-white rounded-xl p-6 w-full max-w-md relative">
+          <button
+            @click="closeDetailModal"
+            class="absolute top-2 right-3 text-gray-600 hover:text-gray-900 text-xl font-bold"
+          >&times;</button>
+
+          <div>
+            <img
+              v-if="selectedProduct?.image_path"
+              :src="getImageUrl(selectedProduct.image_path)"
+              alt="product"
+              class="mb-4 w-full h-48 object-cover rounded-lg"
+            />
+            <div
+              v-else
+              class="mb-4 w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-xs"
+            >No Image</div>
+
+            <h3 class="text-xl font-semibold mb-2">{{ selectedProduct?.product_name }}</h3>
+            <p class="text-sm text-gray-600 mb-2">
+              Stock: {{ selectedProduct?.qty_stock }} {{ selectedProduct?.uom_id }} - Ukuran {{ selectedProduct?.size_id }}
+            </p>
+            <p class="mb-3 text-lg font-semibold text-gray-800">
+              <span
+                v-if="selectedProduct?.discount && selectedProduct.discount > 0"
+                class="line-through text-gray-400 mr-2"
+              >{{ formatRupiah(selectedProduct.price) }}</span>
+              <span>
+                {{ formatRupiah(
+                  (selectedProduct?.price_sell ?? 0) > 0
+                    ? selectedProduct?.price_sell ?? 0
+                    : selectedProduct?.price ?? 0
+                ) }}
+              </span>
+              <span
+                v-if="selectedProduct?.discount && selectedProduct.discount > 0"
+                class="text-green-500 ml-1"
+              >(Diskon {{ formatRupiah(selectedProduct.discount ?? 0) }})</span>
+            </p>
+
+            <div class="flex items-center space-x-3 mb-4">
+              <button
+                @click="decreaseDetailQty"
+                :disabled="detailQty <= 1"
+                class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+              >-</button>
+              <input
+                type="number"
+                min="1"
+                :max="selectedProduct?.qty_stock ?? 1"
+                v-model.number="detailQty"
+                class="w-16 text-center border rounded py-1"
+              />
+              <button
+                @click="increaseDetailQty"
+                :disabled="detailQty >= (selectedProduct?.qty_stock ?? 1)"
+                class="px-3 py-1 bg-gray-200 rounded"
+              >+</button>
+            </div>
+
+            <button
+              @click="addToCart"
+              :disabled="(selectedProduct?.qty_stock ?? 0) === 0"
+              class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            >Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    
+  </AppLayout>
+</template>
+
+
+<script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, router } from '@inertiajs/vue3';
+import { ref, computed, onMounted } from 'vue';
+import { useCartStore } from '@/stores/useCartStore';
+import { useToast } from '@/composables/useToast';
+import axios from 'axios';
+import { debounce } from '@/lib/debounce';
+
+const isLoading = ref(false);
+
+interface Product {
+  product_id: number; // This is the product ID
+  product_name: string;
+  uom_id: string;
+  size_id: string;
+  qty_stock: number;
+  image_path: string;
+  price: number;
+  discount?: number;
+  price_sell?: number;
+  quantity: number; // This is quantity in cart, not stock
+  cartItemId?: number; // Add this to store the cart item's ID
+}
+
+const toast = useToast();
+const cartStore = useCartStore();
+const products = ref<Product[]>([]);
+
+const searchText = ref('');
+const currentPage = ref(1);
+const lastPage = ref(1);
+
+const orderList = ref<HTMLElement | null>(null);
+
+const showDetailModal = ref(false);
+const selectedProduct = ref<Product | null>(null);
+const detailQty = ref(1);
+
+const showCart = ref(false);
+const toggleCart = () => (showCart.value = !showCart.value);
+
+const getImageUrl = (path: string) => {
+  if (!path) return '';
+  if (path.startsWith('storage/')) return '/' + path;
+  if (path.startsWith('/storage/')) return path;
+  return '/storage/' + path;
+};
+
+function formatRupiah(value: number | string): string {
+  const numericValue = typeof value === 'string' ? parseFloat(value) : value;
+
+  if (!numericValue || numericValue <= 0) {
+    return '-'; // atau return 'Harga belum tersedia'
+  }
+
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 2,
+  }).format(numericValue);
+}
+
+
+async function fetchProducts() {
+  try {
+    const response = await axios.get(`/api/stock?page=${currentPage.value}&search=${searchText.value}`);
+    products.value = response.data.data;
+    lastPage.value = response.data.last_page;
+    await cartStore.fetchCartItems();
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    toast.error('Failed to fetch products');
+  }
+}
+
+function onSearchInput() {
+  currentPage.value = 1;
+  fetchProducts();
+}
+
+function viewProductDetail(product: Product) {
+  selectedProduct.value = { ...product };
+  detailQty.value = 1;
+  showDetailModal.value = true;
+}
+
+function closeDetailModal() {
+  showDetailModal.value = false;
+  selectedProduct.value = null;
+  detailQty.value = 1;
+}
+
+
+
+const cartQty = computed(() =>
+  cartStore.cartItems.reduce((total: number, item) => total + (item.quantity || 0), 0)
+);
+
+const addToCart = async () => { 
+  const product = selectedProduct.value; 
+  
+  console.log(product); 
+  if (!product) return; 
+  
+  // Validasi stok 
+  if (detailQty.value > product.qty_stock) { 
+  toast.error('Jumlah melebihi stok tersedia'); 
+  return; 
+  } 
+  
+  // Hitung harga (gunakan price_sell jika > 0, jika tidak pakai price) 
+  const price: number = product.price ?? 0;
+  
+  const discount: number = product.discount ?? 0;
+  
+  // Gunakan price_sell jika ada, jika tidak gunakan price - discount
+  const price_sell: number = (product.price_sell ?? 0) > 0 
+  ? product.price_sell ?? 0 
+  : price - discount;
+  
+  try { 
+  await cartStore.addToCart( 
+  product.product_id ?? 0, 
+  detailQty.value, 
+  product.size_id ?? "", 
+  product.uom_id ?? "PCS", 
+  price, 
+  discount, 
+  price_sell 
+  ); 
+  toast.success('Product added to cart'); 
+  closeDetailModal(); 
+  } catch { 
+  toast.error(cartStore.error || 'Failed to add product to cart'); 
+  } 
+  };
+
+
+
+const increaseDetailQty = debounce(async () => {
+  isLoading.value = true;
+  if (selectedProduct.value && detailQty.value < selectedProduct.value.qty_stock) {
+    detailQty.value++;
+  }
+  isLoading.value = false;
+}, 300);
+
+const decreaseDetailQty = debounce(async () => {
+  isLoading.value = true;
+  if (detailQty.value > 1) {
+    detailQty.value--;
+  }
+  isLoading.value = false;
+}, 300);
+
+const increaseQty = debounce(async (item: Product) => {
+
+  const price_sell = item.price - (item.discount ?? 0);
+  isLoading.value = true;
+  if (item.quantity < item.qty_stock) {
+    try {
+      await cartStore.addToCart(item.product_id, 1, item.size_id, item.uom_id, item.price, item.discount ?? 0, item.price_sell ?? price_sell);
+    } catch {
+      toast.error('Error increasing quantity');
+    }
+  } else {
+    toast.error('Stok maksimum tercapai');
+  }
+  isLoading.value = false;
+}, 300);
+
+const decreaseQty = debounce(async (item: Product) => {
+  isLoading.value = true;
+  if (item.quantity > 1) {
+    try {
+      const price_sell = item.price - (item.discount ?? 0);
+      await cartStore.addToCart(item.product_id ?? 0, -1, item.size_id, item.uom_id, item.price, item.discount ?? 0, item.price_sell ?? price_sell);
+    } catch {
+      toast.error('Error decreasing quantity');
+    }
+  }
+  isLoading.value = false;
+}, 300);
+
+const removeFromCart = async (cartItemId: number | undefined) => {
+  try {
+    await cartStore.removeFromCart(cartItemId ?? 0);
+    toast.success('Item removed');
+  } catch {
+    toast.error(cartStore.error || 'Failed to remove item');
+  }
+};
+
+const cartItems = computed(() => {
+  return cartStore.cartItems.map(item => {
+
+    const product = products.value.find(p => p.product_id === item.product_id);
+    return {
+      ...product, // Spread product properties
+      ...item,    // Spread cart item properties (will overwrite product properties if names conflict)
+      id: item.product_id, // Ensure 'id' is the product ID for this 'Product' type
+      cartItemId: item.id, // Store the cart item's actual ID here
+      quantity: item.quantity, // Ensure quantity is from cart item
+      price: item.price,
+      size_id: item.size_id,
+      uom_id: item.uom_id
+    } as Product;
+  }).filter(Boolean);
+});
+
+const cartTotal = computed(() =>
+  cartStore.cartItems.reduce((total: number, item) => {
+    const price = (item.price ?? 0) > 0 ? item.price ?? 0 : item.price ?? 0;
+    return total + (item.quantity || 0) * price;
+  }, 0)
+);
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchProducts();
+  }
+};
+
+const nextPage = () => {
+  if (currentPage.value < lastPage.value) {
+    currentPage.value++;
+    fetchProducts();
+  }
+};
+
+
+const proceedToCheckout = () => {
+  console.log('Proceeding to checkout');
+  router.visit('/checkout');
+};
+
+onMounted(() => {
+  fetchProducts();
+});
+</script>
+
+
+<style scoped>
+/* Mobile optimizations */
+@media (max-width: 768px) {
+ aside {
+    width: 100% !important;
+    border-radius: 1rem;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+    transform: translateX(0);
+    height: fit-content;
+    top: 4rem;
+  }
+
+  .fixed-cart-toggle {
+    bottom: 2rem;
+    right: 2rem;
+    left: 2rem;
+  }
+}
+
+/* Smooth cart drawer transition */
+aside {
+  padding-top: 20px;
+  padding-left: 5px;
+  padding-right: 5px;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Improve modal backdrop on mobile */
+.cart-backdrop {
+  backdrop-filter: blur(4px);
+}
+</style>
+
+

@@ -39,21 +39,23 @@ class CustomerOrderController extends Controller
 
             $validated = $request->validate([
                 'customer_id' => 'required|exists:customers,id',
-                'items' => 'required|array|min:1',
-                'items.*.product_id' => 'required|exists:mst_product,id',
-                'items.*.qty' => 'required|numeric|min:0.01',
-                'items.*.price' => 'required|numeric|min:0',
-                'items.*.discount' => 'numeric|min:0',
+                'items' => 'required|string',
+                'payment_method' => 'required|string',
             ]);
+
+            $validated['items'] = json_decode($validated['items'], true);
 
             $totalAmount = collect($validated['items'])->sum(function ($item) {
                 return ($item['price'] - ($item['discount'] ?? 0)) * $item['qty'];
             });
 
+            $status = ($validated['payment_method'] === 'bank_transfer') ? 'waiting' : 'pending';
+
             $order = CustomerOrder::create([
                 'customer_id' => $validated['customer_id'],
                 'total_amount' => $totalAmount,
-                'status' => 'pending'
+                'status' => $status,
+                'payment_method' => $validated['payment_method'],
             ]);
 
             foreach ($validated['items'] as $item) {

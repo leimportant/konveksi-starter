@@ -1,0 +1,120 @@
+<?php
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+class ReportController extends Controller
+{
+    public function reportSalesSummary(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $searchKey = $request->input('search_key');
+
+        $query = DB::table('t_orders as a')
+            ->leftJoin('t_order_items as b', 'a.id', '=', 'b.order_id')
+            ->leftJoin('mst_product as c', 'b.product_id', '=', 'c.id')
+            ->leftJoin('mst_customer as d', 'a.customer_id', '=', 'd.id')
+            ->select('a.customer_id', 'a.payment_method', 'a.status', 'b.product_id', 'c.name as product_name', 'b.qty', 'b.uom_id', 'b.size_id', 'b.discount', 'b.price', 'b.price_final')
+            ->whereBetween(DB::raw('DATE(a.created_at)'), [$startDate, $endDate])
+            ->where('a.status', '!=', 'pending');
+
+        if ($searchKey) {
+            $query->where('c.name', 'like', "%" . $searchKey . "%");
+        }
+
+        $results = $query->get();
+
+        return response()->json($results);
+    }
+
+    public function reportProductionSummary(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $searchKey = $request->input('search_key');
+
+        $query = DB::table('tr_model as a')
+            ->join('tr_production as b', 'a.id', '=', 'b.model_id')
+            ->leftJoin('tr_production_item as c', 'b.id', '=', 'c.production_id')
+            ->leftJoin('mst_activity_role as d', 'b.activity_role_id', '=', 'd.id')
+            ->select(
+                'a.id',
+                'a.description',
+                'a.estimation_price_pcs',
+                'a.estimation_qty',
+                'a.start_date',
+                'a.end_date',
+                'b.activity_role_id',
+                'd.name as activity_role_name',
+                'c.size_id',
+                'c.qty'
+            )
+            ->whereNull('b.deleted_at')
+            ->whereNull('c.deleted_at')
+            ->whereNull('a.deleted_at')
+            ->whereBetween('a.created_at', [$startDate, $endDate]);
+
+        if ($searchKey) {
+            $query->where(function ($q) use ($searchKey) {
+                $q->where('a.description', 'like', "%" . $searchKey . "%")
+                    ->orWhere('b.activity_role_id', 'like', "%" . $searchKey . "%")
+                    ->orWhere('c.size_id', 'like', "%" . $searchKey . "%");
+            });
+        }
+
+        $data = $query->get();
+
+        $activityTotals = [];
+
+        foreach ($data as $row) {
+            $modelId = $row->id;
+
+            if (!isset($pivot[$modelId])) {
+                $pivot[$modelId] = [
+                    'model_id' => $row->id,
+                    'description' => $row->description,
+                    'estimation_price_pcs' => $row->estimation_price_pcs,
+                    'estimation_qty' => $row->estimation_qty,
+                    'start_date' => Carbon::parse($row->start_date)->format('d/m/Y'),
+                    'end_date' => $row->end_date ? Carbon::parse($row->end_date)->format('d/m/Y') : null,
+                    'activities' => [],
+                    'subtotal_qty' => 0,
+                ];
+            }
+
+            $activity = $row->activity_role_id ?? 'unknown';
+            $activityName = $row->activity_role_name ?? 'Unknown';
+            $qty = $row->qty ?? 0;
+
+            if (!isset($pivot[$modelId]['activities'][$activity])) {
+                $pivot[$modelId]['activities'][$activity] = [
+                    'role_id' => $activity,
+                    'name' => $activityName,
+                    'qty' => 0
+                ];
+            }
+
+            $pivot[$modelId]['activities'][$activity]['qty'] += $qty;
+            $pivot[$modelId]['subtotal_qty'] += $qty;
+
+            // Tambahkan ke total per activity type
+            if (!isset($activityTotals[$activity])) {
+                $activityTotals[$activity] = 0;
+            }
+            $activityTotals[$activity] += $qty;
+        }
+
+        $productionSummary = array_values($pivot); // reset keys
+
+        return response()->json([
+            'data' => $productionSummary,
+            'activity_totals' => $activityTotals, // ⬅️ Global subtotal by activity_type
+        ]);
+
+
+    }
+}

@@ -6,10 +6,12 @@ import {  onMounted } from 'vue';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { storeToRefs } from 'pinia';
 import { ShirtIcon, Truck, ShoppingBag } from 'lucide-vue-next';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+
+import SalesChart from '../components/SalesChart.vue';
 
 const dashboardStore = useDashboardStore();
 const { stats } = storeToRefs(dashboardStore);
+
 
 onMounted(() => {
     dashboardStore.fetchStats();
@@ -54,11 +56,7 @@ const breadcrumbs: BreadcrumbItem[] = [
             </div>
 
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border md:min-h-min">
-                <div class="relative z-10 p-4">
-                    <h3 class="text-gray-500 text-sm font-medium">Total Users</h3>
-                    <p class="text-3xl font-semibold mt-2">{{ stats.total_users }}</p>
-                </div>
-                <PlaceholderPattern />
+                <SalesChart />
             </div>
            
         </div>

@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('customer_order_items', function (Blueprint $table) {
+        Schema::create('t_order_items', function (Blueprint $table) {
             $table->string('item_id')->primary(); // uniqid
-            $table->bigInteger('customer_order_id');
+            $table->bigInteger('order_id');
             $table->bigInteger('product_id');
             $table->decimal('qty', 15, 2);
             $table->decimal('discount', 15, 2)->default(0);
@@ -18,12 +18,12 @@ return new class extends Migration
             $table->decimal('price_final', 15, 2);
             $table->timestamps();
 
-            $table->foreign('customer_order_id')->references('id')->on('customer_orders');
+            $table->foreign('order_id')->references('id')->on('t_orders');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('customer_order_items');
+        Schema::dropIfExists('t_order_items');
     }
 };

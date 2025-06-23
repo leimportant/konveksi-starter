@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+
 
 class CustomerOrder extends Model
 {
@@ -12,6 +14,7 @@ class CustomerOrder extends Model
         'customer_id',
         'total_amount',
         'status',
+        'payment_method',
         'created_by',
         'updated_by'
     ];
@@ -35,11 +38,11 @@ class CustomerOrder extends Model
                 $model->id = (int)($today->format('Ymd') . '00001');
             }
 
-            $model->created_by = auth()->id();
+            $model->created_by = Auth::id();
         });
 
         static::updating(function ($model) {
-            $model->updated_by = auth()->id();
+            $model->updated_by = Auth::id();
         });
     }
 

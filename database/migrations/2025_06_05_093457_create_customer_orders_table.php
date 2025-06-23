@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('customer_orders', function (Blueprint $table) {
+        Schema::create('t_orders', function (Blueprint $table) {
             $table->bigInteger('id')->primary(); // yearmonthday00001
             $table->bigInteger('customer_id');
             $table->decimal('total_amount', 15, 2);
@@ -25,6 +25,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('customer_orders');
+        Schema::dropIfExists('t_orders');
     }
 };

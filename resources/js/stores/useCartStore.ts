@@ -1,64 +1,126 @@
-import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
-import axios from 'axios';
+import { defineStore } from 'pinia'
+import axios from 'axios'
 
-export const useCartStore = defineStore('cart', () => {
-  const items = ref<number[]>(JSON.parse(localStorage.getItem('cart') || '[]'));
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  price_sell?: number;
+  image: string;
+  stock: number;
+  category_id: number;
+  size_id: string;
+  uom_id: string;
+  discount?: number;
+}
 
-  const products = ref<any[]>([]);
-  const currentPage = ref(1);
-  const lastPage = ref(1);
-  const loading = ref(false);
-  const searchText = ref('');
+interface CartItem {
+  id: number;
+  product_id: number;
+  quantity: number;
+  price: number;
+  discount?: number;
+  price_sell?: number;
+  size_id?: string;
+  uom_id?: string;
+  created_by: number;
+  updated_by?: number;
+  created_at: string;
+  updated_at?: string;
+  product: Product;
+}
 
-  const fetchProducts = async (page = 1) => {
-    try {
-      loading.value = true;
-      const response = await axios.get(`/api/stock?page=${page}&search=${searchText.value}`);
+interface State {
+  cartItems: CartItem[]
+  loading: boolean
+  error: string | null
+}
 
-      if (page === 1) {
-        products.value = response.data.data;
-      } else {
-        products.value = [...products.value, ...response.data.data];
+export const useCartStore = defineStore('cart', {
+  state: (): State => ({
+    cartItems: [],
+    loading: false,
+    error: null,
+  }),
+
+  actions: {
+    async fetchCartItems() {
+      this.loading = true
+      try {
+        const response = await axios.get('/api/cart-items');
+        const cartItemsData = response.data;
+
+        const itemsWithProducts = await Promise.all(cartItemsData.map(async (item: any) => {
+          if (!item.product) {
+            const productResponse = await axios.get(`/api/products/${item.product_id}`);
+            return {
+              ...item,
+              product: productResponse.data
+            };
+          }
+          return item;
+        }));
+
+        this.cartItems = itemsWithProducts;
+        this.error = null
+      } catch (error: any) {
+        this.error = error.response?.data?.message || 'Error fetching cart items'
+      } finally {
+        this.loading = false
       }
+    },
+    
 
-      currentPage.value = page;
-      lastPage.value = response.data.last_page;
-    } catch (error) {
-      console.error('Gagal memuat produk:', error);
-    } finally {
-      loading.value = false;
-    }
-  };
+    async addToCart(productId: number, quantity: number, sizeId: string, uomId: string, price: number, discount: number, price_sell: number) {
+      this.loading = true
+      try {
+        const response = await axios.post('/api/cart-items/add', {
+          product_id: productId,
+          quantity: quantity,
+          price: price,
+          discount: discount,
+          price_sell: price_sell, // Assuming price_sell is the same as price for now
+          size_id: sizeId,
+          uom_id: uomId
+        })
+        this.error = null
+        await this.fetchCartItems() // Refresh cart items after adding
+        return response.data
+      } catch (error: any) {
+        this.error = error.response?.data?.message || 'Error adding to cart'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
 
-  const addToCart = (productId: number) => {
-    if (!items.value.includes(productId)) {
-      items.value.push(productId);
-    }
-  };
+    async removeFromCart(cartItemId: number) {
+      this.loading = true
+      try {
+        await axios.delete(`/api/cart-items/${cartItemId}/remove`)
+        this.error = null
+        await this.fetchCartItems() // Refresh cart items after removing
+      } catch (error: any) {
+        this.error = error.response?.data?.message || 'Error removing from cart'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
 
-  const removeFromCart = (productId: number) => {
-    items.value = items.value.filter(id => id !== productId);
-  };
-
-  const clearCart = () => {
-    items.value = [];
-  };
-
-  watch(items, (val) => {
-    localStorage.setItem('cart', JSON.stringify(val));
-  }, { deep: true });
-
-  return {
-    items,
-    products,
-    currentPage,
-    lastPage,
-    loading,
-    searchText,
-    fetchProducts,
-    addToCart,
-    removeFromCart,
-    clearCart,
-  };
-});
+    async clearCart() {
+      this.loading = true
+      try {
+        await axios.delete('/api/cart-items/clear')
+        this.cartItems = [] // Clear cart items locally
+        this.error = null
+      } catch (error: any) {
+        this.error = error.response?.data?.message || 'Error clearing cart'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+  },
+})

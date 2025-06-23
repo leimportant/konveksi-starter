@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class PosOrderController extends Controller
@@ -20,7 +21,7 @@ class PosOrderController extends Controller
             'paid_amount' => 'nullable|numeric|min:0', // optional, or use total_amount for paid
         ]);
 
-        $userId = auth()->id();
+        $userId = Auth::id();
         $products = $request->input('items');
         $paymentMethodId = $request->input('payment_method_id');
         $paidAmount = $request->input('paid_amount', null);

@@ -6,7 +6,18 @@ import tailwindcss from 'tailwindcss';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
+const mailhogPort = 1025;
+const mailhogHost = 'localhost';
+
 export default defineConfig({
+    server: {
+        proxy: {
+            '/api': {
+                target: `http://${mailhogHost}:${mailhogPort}`,
+                secure: false,
+            },
+        },
+    },
     plugins: [
         laravel({
             input: ['resources/js/app.ts'],

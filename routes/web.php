@@ -2,10 +2,17 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+    return Inertia::render('Home/Cart', [
+        'customers' => App\Models\Customer::all(['id', 'name']),
+    ]);
+});
+
+Route::get('/checkout', function () {
+    return Inertia::render('Home/Checkout');
+})->middleware(['auth', 'verified'])->name('checkout');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
@@ -24,6 +31,10 @@ Route::get('role', function () {
     return Inertia::render('role/Index');
 })->middleware(['auth'])->name('role.index');
 
+Route::get('setting', function () {
+    return Inertia::render('setting/Index');
+})->middleware(['auth'])->name('setting.index');
+
 Route::get('/uoms', function () {
     return Inertia::render('uoms/Index');
 })->middleware(['auth'])->name('uoms.index');
@@ -40,9 +51,9 @@ Route::get('/customers', function () {
     return Inertia::render('customer/Index');
 })->middleware(['auth'])->name('customer.index');
 
-Route::get('/catalog-product', function () {
-    return Inertia::render('customer/CatalogProduct');
-})->middleware(['auth'])->name('customer.catalog-product');
+Route::get('/home', function () {
+    return Inertia::render('home/Cart');
+})->middleware(['auth'])->name('home.cart');
 
 Route::get('/price-types', function () {
     return Inertia::render('price-type/Index');
@@ -187,6 +198,10 @@ Route::get('/production/{activity_role}', function ($activity_role) {
     ]);
 })->middleware(['auth'])->name('production.index');
 
+Route::get('/order-history', function () {
+    return Inertia::render('home/OrderHistory');
+})->middleware(['auth'])->name('order.history');
+
 Route::get('/production/{activity_role}/create', function ($activity_role) {
     return Inertia::render('production/Create', [
         'activity_role' => $activity_role,
@@ -214,6 +229,14 @@ Route::get('/production/{activity_role}/view/{id}', function ($activity_role, $i
         'id' => $id,
     ]);
 })->middleware(['auth'])->name('production.view');
+
+Route::get('/reports/sales-summary', function () {
+        return Inertia::render('reports/SalesSummary');
+    })->middleware(['auth'])->name('reports.sales-summary');
+
+Route::get('/reports/production-summary', function () {
+        return Inertia::render('reports/ProductionSummary');
+    })->middleware(['auth'])->name('reports.production-summary');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

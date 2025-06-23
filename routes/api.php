@@ -30,6 +30,22 @@ use App\Http\Controllers\Api\PosOrderController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\CashBalanceController;
 use App\Http\Controllers\Api\DocumentAttachmentController;
+use App\Http\Controllers\Api\CartItemController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Api\ReportController;
+
+Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+
+Route::middleware('auth')->group(function () {
+    Route::post('api/orders', [OrderController::class, 'store']);
+        Route::put('api/orders/{order}', action: [OrderController::class, 'updateStatus']);
+    Route::get('api/orders/{order}/status/approved', [OrderController::class, 'approve']);
+    Route::get('api/orders/{order}/status/rejected', [OrderController::class, 'reject']);
+    Route::get('api/orders/customer', [OrderController::class, 'customerOrders']);
+    Route::get('api/orders/scan/{orderId}', [OrderController::class, 'scan']);
+});
 
 Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
 Route::apiResource('kasbon-payments', KasbonPaymentController::class);
@@ -52,6 +68,8 @@ Route::get('auth/google/callback', 'App\Http\Controllers\Auth\GoogleController@h
 
 Route::middleware('auth')->group(function () {
 
+    Route::get('api/dashboard', [DashboardController::class, 'index']);
+    Route::get('api/dashboard/sales', [DashboardController::class, 'getSalesData']);
     // User management
     Route::apiResource('api/users', UserController::class);
     Route::get('/user-menus', [MenuController::class, 'getUserMenus']);
@@ -67,7 +85,7 @@ Route::middleware('auth')->group(function () {
 
     Route::apiResource('api/stock-opnames', StockOpnameController::class);
     Route::apiResource('api/roles', RoleController::class);
-    Route::apiResource('api/dashboard', DashboardController::class);
+   
     Route::apiResource('api/productions', ProductionController::class);
     Route::apiResource('api/uoms', UomController::class);
     Route::apiResource('api/slocs', SlocController::class);
@@ -100,6 +118,18 @@ Route::middleware('auth')->group(function () {
     Route::post('api/document-attachments/upload', [DocumentAttachmentController::class, 'upload']);
     Route::get('api/document-attachments', [DocumentAttachmentController::class, 'index']);
     Route::delete('api/document-attachments/{id}', [DocumentAttachmentController::class, 'destroy']);
+
+    Route::get('api/cart-items', [CartItemController::class, 'index']);
+    Route::post('api/cart-items/add', [CartItemController::class, 'addToCart']); // Add to cart
+    Route::delete('api/cart-items/{id}/remove', [CartItemController::class, 'removeFromCart']); // Remove from cart
+    Route::delete('api/cart-items/clear', [CartItemController::class, 'clearCart']); // Clear cart
+
+    Route::apiResource('api/settings', SettingController::class)->only(['index', 'update']);
+
+    Route::get('api/reports/sales-summary', [ReportController::class, 'reportSalesSummary']);
+    Route::get('api/reports/production-summary', [ReportController::class, 'reportProductionSummary']);
+    Route::get('api/setting/{key}', [SettingController::class, 'getData']);
+
 });
 
 Route::prefix('approvals')->group(function () {

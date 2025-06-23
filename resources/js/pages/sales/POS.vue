@@ -38,8 +38,9 @@
         </section>
 
         <!-- Order Summary Section -->
-        <section
-          class="bg-white rounded-xl shadow-md p-6 flex flex-col max-h-[80vh] sticky top-4 overflow-auto border border-gray-100">
+          <!-- Cart Sidebar -->
+        <aside
+          class="bg-gray-100 dark:bg-gray-800 dark:text-blue-400 rounded-l shadow p-2 flex flex-col max-h-[calc(90vh-4rem)]">
           <h2 class="text-lg font-semibold text-gray-800 mb-4 flex justify-between items-center">
             Order Summary
             <div class="flex space-x-2">
@@ -47,7 +48,7 @@
                 :disabled="selectedForDiscount.length === 0" class="flex items-center gap-1">
                 <PercentIcon class="h-4 w-4" /> Disc ({{ selectedForDiscount.length }})
               </Button>
-              <Button variant="outline" size="sm" @click="startScanning" class="flex items-center gap-1">
+              <Button variant="outline" size="sm" @click="showQrScanner = true" class="flex items-center gap-1">
                 <ScanQrCode class="h-4 w-4" /> QR
               </Button>
               <Button variant="outline" size="sm" @click="clearCart" class="flex items-center gap-1">
@@ -115,7 +116,7 @@
               <span v-else>Bayar</span>
             </Button>
           </div>
-        </section>
+        </aside>
       </div>
 
       <!-- Modals... (Your modal markup remains unchanged, just ensure responsive widths, max widths, and padding) -->
@@ -159,6 +160,13 @@
         </div>
       </div>
 
+
+      <!-- QR Code Scanner Modal -->
+      <Modal :show="showQrScanner" @close="showQrScanner = false" title="Scan QR Code">
+        <div class="w-full h-64">
+          <qrcode-stream @detect="onDetect" />
+        </div>
+      </Modal>
 
       <!-- Print Preview Modal -->
       <div v-if="showPrintPreview"
@@ -244,12 +252,14 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, computed, nextTick } from 'vue';
 import { Button } from '@/components/ui/button';
-import { Trash2, ScanQrCode } from 'lucide-vue-next';
+import { Trash2, PercentIcon, ScanQrCode } from 'lucide-vue-next';
 import { useToast } from '@/composables/useToast';
 import type { User } from '@/types';
 
 import axios from 'axios';
-import jsQR from 'jsqr';
+// import jsQR from 'jsqr';
+import { QrcodeStream } from 'vue-qrcode-reader';
+import Modal from '@/components/Modal.vue';
 
 
 interface Product {
@@ -274,16 +284,29 @@ interface OrderItem {
   product_id: number;
   product_name: string;
   quantity: number;
-  discount?: number;
   price: number;
+  discount: number;
+  price_sell: number;
+  uom_id: string;
+  qty_stock: number;
+  image_path: string;
 }
 
 
+interface OrderPayload {
+  items: OrderItem[];
+  payment_method_id: number;
+  total_amount: number;
+  paid_amount: number;
+}
 
-const showScanner = ref(false);
-const videoElement = ref<HTMLVideoElement>();
-const stream = ref<MediaStream | null>(null);
+
+// const showScanner = ref(false);
+// const videoElement = ref<HTMLVideoElement>();
+// const stream = ref<MediaStream | null>(null);
 const showModal = ref(false)
+
+const showQrScanner = ref(false);
 
 const toast = useToast();
 const products = ref<Product[]>([]);
@@ -358,70 +381,70 @@ const formatRupiah = (value: number): string => {
 };
 
 // Add these functions
-const startScanning = async () => {
-  try {
-    stream.value = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment' }
-    });
+// const startScanning = async () => {
+//   try {
+//     stream.value = await navigator.mediaDevices.getUserMedia({
+//       video: { facingMode: 'environment' }
+//     });
 
-    if (videoElement.value && stream.value) {
-      videoElement.value.srcObject = stream.value;
-      videoElement.value.play();
+//     if (videoElement.value && stream.value) {
+//       videoElement.value.srcObject = stream.value;
+//       videoElement.value.play();
 
-      requestAnimationFrame(scan);
-    }
+//       requestAnimationFrame(scan);
+//     }
 
-    showScanner.value = true;
-  } catch (err) {
-    console.error(err);
-    toast.error('Failed to start camera');
-  }
-};
+//     showScanner.value = true;
+//   } catch (err) {
+//     console.error(err);
+//     toast.error('Failed to start camera');
+//   }
+// };
 
 
-const scan = () => {
-  if (!videoElement.value || !showScanner.value) return;
+// const scan = () => {
+//   if (!videoElement.value || !showScanner.value) return;
 
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
+//   const canvas = document.createElement('canvas');
+//   const context = canvas.getContext('2d');
 
-  if (context && videoElement.value) {
-    canvas.width = videoElement.value.videoWidth;
-    canvas.height = videoElement.value.videoHeight;
+//   if (context && videoElement.value) {
+//     canvas.width = videoElement.value.videoWidth;
+//     canvas.height = videoElement.value.videoHeight;
 
-    context.drawImage(videoElement.value, 0, 0, canvas.width, canvas.height);
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+//     context.drawImage(videoElement.value, 0, 0, canvas.width, canvas.height);
+//     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
+//     const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-    if (code) {
-      try {
-        const productData = JSON.parse(code.data);
-        if (productData.id) {
-          const product = products.value.find(p => p.id === productData.id);
-          if (product) {
-            addToCart(product);
-            stopScanning();
-            toast.success('Product added to cart');
-            return;
-          }
-        }
-      } catch (err) {
-        console.error('Invalid QR code data:', err);
-      }
-    }
+//     if (code) {
+//       try {
+//         const productData = JSON.parse(code.data);
+//         if (productData.id) {
+//           const product = products.value.find(p => p.id === productData.id);
+//           if (product) {
+//             addToCart(product);
+//             stopScanning();
+//             toast.success('Product added to cart');
+//             return;
+//           }
+//         }
+//       } catch (err) {
+//         console.error('Invalid QR code data:', err);
+//       }
+//     }
 
-    requestAnimationFrame(scan);
-  }
-};
+//     requestAnimationFrame(scan);
+//   }
+// };
 
-const stopScanning = () => {
-  if (stream.value) {
-    stream.value.getTracks().forEach(track => track.stop());
-    stream.value = null;
-  }
-  showScanner.value = false;
-};
+// const stopScanning = () => {
+//   if (stream.value) {
+//     stream.value.getTracks().forEach(track => track.stop());
+//     stream.value = null;
+//   }
+//   showScanner.value = false;
+// };
 
 const toggleProductSelection = (productId: number) => {
   const index = selectedForDiscount.value.indexOf(productId);
@@ -565,43 +588,55 @@ async function placeOrder() {
     toast.error('Please add items to the cart');
     return;
   }
+
   if (!selectedPaymentMethod.value) {
     toast.error('Please select a payment method');
     return;
   }
+
   isLoading.value.placingOrder = true;
+
   try {
-    const orderPayload = {
-      items: selectedProducts.value.map(p => ({
-        product_id: p.product_id || p.id,
+    // Prepare items
+    const items: OrderItem[] = selectedProducts.value.map(p => {
+      const discount = p.discount || 0;
+      return {
+        product_id: p.product_id ?? p.id,
         product_name: p.product_name,
         quantity: p.quantity,
         price: p.price,
-        discount: p.discount || 0,
-        price_sell: p.price_sell || p.price_sell,
-      })),
+        uom_id: p.uom_id,
+        qty_stock: 0,
+        image_path: '',
+        discount,
+        price_sell: p.price_sell ?? (p.price - discount),
+      };
+    });
+
+ 
+    const orderPayload: OrderPayload = {
+      items,
       payment_method_id: selectedPaymentMethod.value,
       total_amount: totalAmount.value,
-      paid_amount: paidAmount.value,  // <-- kirim nilai paidAmount ke backend
+      paid_amount: paidAmount.value!,
     };
 
     const response = await axios.post('/api/pos/orders', orderPayload);
-    lastOrderItems.value = selectedProducts.value.map(p => ({
-          product_id: p.product_id ?? p.id,
-          product_name: p.product_name,
-          quantity: p.quantity,
-          price: p.price,
-          discount: p.discount || 0,
-          price_sell: p.price_sell ?? (p.price - (p.discount || 0)),
-        }));
 
+    // For print preview or record
+    lastOrderItems.value = items.map(item => ({
+      ...item,
+      uom_id: selectedProducts.value.find(p => (p.product_id ?? p.id) === item.product_id)?.uom_id || '',
+    }));
 
     lastOrderTotal.value = response.data.total_amount;
-    lastOrderPaymentMethodName.value = paymentMethods.value.find(pm => pm.id === selectedPaymentMethod.value)?.name || '';
+    lastOrderPaymentMethodName.value =
+      paymentMethods.value.find(pm => pm.id === selectedPaymentMethod.value)?.name || '';
     lastOrderDate.value = new Date(response.data.created_at).toLocaleString();
     transactionNumber.value = response.data.transaction_number || '';
 
     showPrintPreview.value = true;
+
   } catch (error) {
     console.error('Error placing order:', error);
     toast.error('Failed to place order');
@@ -615,6 +650,46 @@ function closePrintPreview() {
   clearCart();                  // reset cart
   selectedPaymentMethod.value = null;  // reset payment method
 }
+
+const onDetect = async (detectedCodes: { rawValue: string }[]) => {
+  if (detectedCodes.length > 0) {
+    const qrCodeData = detectedCodes[0].rawValue;
+    console.log("QR Code detected:", qrCodeData);
+    showQrScanner.value = false; // Sembunyikan scanner setelah deteksi
+
+    try {
+      const response = await axios.get(`/api/orders/scan/${qrCodeData}`);
+      const order = response.data;
+
+      if (order && order.order_items) {
+        const products: Product[] = [];
+
+        order.order_items.forEach((item: OrderItem) => {
+            const product: Product = {
+              id: item.product_id, // mapped
+              product_id: item.product_id, // optional
+              product_name: item.product_name,
+              uom_id: item.uom_id,
+              qty_stock: item.qty_stock,
+              image_path: item.image_path,
+              price: item.price,
+              discount: item.discount,
+              price_sell: item.price_sell,
+              quantity: 1, // default to 1 or from `item.quantity` if available
+            };
+            products.push(product);
+          });
+
+        console.log("Produk dalam pesanan:", products);
+        // Lanjutkan dengan memproses produk jika perlu (misalnya: tampilkan di UI)
+      }
+
+    } catch (error) {
+      console.error("Gagal memuat data pesanan:", error);
+    }
+  }
+};
+
 
 // function doPrintKasir58mm2() {
 //   const printContent = (printArea.value as HTMLElement)?.innerHTML;
@@ -1000,3 +1075,29 @@ fetchPaymentMethods();
   }
 
 </style>
+
+
+<!--  -->
+
+    <!-- const onDetect = async (detectedCodes) => {
+      if (detectedCodes.length > 0) {
+        const qrCodeData = detectedCodes[0].rawValue;
+        console.log('QR Code Scanned:', qrCodeData);
+        showQrScanner.value = false;
+
+        try {
+          const response = await axios.get(`/api/orders/scan/${qrCodeData}`);
+          const order = response.data;
+          if (order && order.items) {
+            order.items.forEach(item => {
+              addToCart(item.product, item.quantity);
+            });
+          } else {
+            alert('Order not found or no items in order.');
+          }
+        } catch (error) {
+          console.error('Error fetching order:', error);
+          alert('Failed to fetch order details. Please try again.');
+        }
+      }
+    }; -->

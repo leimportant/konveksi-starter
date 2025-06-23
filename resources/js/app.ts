@@ -11,6 +11,8 @@ import { createPinia } from 'pinia';
 import { initializeTheme } from './composables/useAppearance';
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import Order from './components/Order/Order.vue';
+import OrderItem from './components/Order/OrderItem.vue';
 
 
 
@@ -20,11 +22,19 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
-            `./pages/${name}.vue`,
-            import.meta.glob<DefineComponent>('./pages/**/*.vue')
-        ),
+    resolve: (name) => {
+        const pages = import.meta.glob<DefineComponent>('./pages/**/*.vue');
+        let path = `./pages/${name}.vue`;
+
+        // Check if the page is in the 'home' subdirectory
+        if (name.startsWith('Home/')) {
+            path = `./pages/home/${name.substring(5)}.vue`;
+        } else if (name.startsWith('Setting/')) {
+            path = `./pages/setting/${name.substring(8)}.vue`;
+        }
+
+        return resolvePageComponent(path, pages);
+    },
     setup({ el, App, props, plugin }) {
         const app = createApp({ render: () => h(App, props) });
 
@@ -32,6 +42,8 @@ createInertiaApp({
         const pinia = createPinia();
        // dalam createApp
       app.component('QuillEditor', QuillEditor)
+      app.component('Order', Order);
+      app.component('OrderItem', OrderItem);
 
         app.use(plugin)
             .use(ZiggyVue)
