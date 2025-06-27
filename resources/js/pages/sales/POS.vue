@@ -267,7 +267,7 @@
 
             <!-- Print Preview Modal -->
             <div v-if="showPrintPreview" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 p-4">
-                <div class="print-area w-[240px] max-w-full rounded bg-white p-2 font-mono text-[10px] leading-tight shadow" ref="printArea">
+                <div class="print-area w-[450px] max-w-full rounded bg-white p-2 font-mono text-[10px] leading-tight shadow" ref="printArea">
                     <div class="text-center">
                         <p class="text-[12px] font-bold">{{ locationName }}</p>
                         <p>{{ locationAddress }}</p>
@@ -277,8 +277,9 @@
 
                     <div class="mb-1">
                         <p>Tanggal&nbsp;: {{ lastOrderDate }}</p>
-                        <p>Kasir&nbsp;&nbsp;: {{ cashierName }}</p>
-                        <p>Nomor&nbsp;&nbsp;&nbsp;: {{ transactionNumber }}</p>
+                        <p>Kasir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ cashierName }}</p>
+                        <p>Nomor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ transactionNumber }}</p>
+                        <p>Customer&nbsp;&nbsp;: {{ selectedCustomerName || '-' }}</p>
                     </div>
 
                     <hr class="my-1 border-t border-dashed" />
@@ -302,7 +303,7 @@
 
                     <!-- Totals -->
                     <div class="flex justify-between">
-                        <span>Sub Total&nbsp;:</span>
+                        <span>Sub Total&nbsp;&nbsp;&nbsp;&nbsp;:</span>
                         <span>{{ formatRupiah(lastOrderSubTotal) }}</span>
                     </div>
                     <div class="flex justify-between">
@@ -310,15 +311,15 @@
                         <span>{{ formatRupiah(paidAmount || 0) }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Kembalian&nbsp;:</span>
+                        <span>Kembalian&nbsp;&nbsp;&nbsp;&nbsp;:</span>
                         <span>{{ formatRupiah(changeAmount) }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Total Disc&nbsp;:</span>
+                        <span>Total Disc&nbsp;&nbsp;&nbsp;:</span>
                         <span>{{ formatRupiah(totalDiscount) }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Metode&nbsp;:</span>
+                        <span>Metode&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
                         <span>{{ lastOrderPaymentMethodName }}</span>
                     </div>
 
@@ -376,7 +377,7 @@ interface Product {
 }
 
 interface PaymentMethod {
-    id: number;
+    id: string;
     name: string;
 }
 
@@ -395,7 +396,7 @@ interface OrderItem {
 
 interface OrderPayload {
     items: OrderItem[];
-    payment_method_id: number;
+    payment_method_id: string;
     total_amount: number;
     paid_amount: number;
     customer_id?: number | null;
@@ -412,7 +413,7 @@ const toast = useToast();
 const products = ref<Product[]>([]);
 const selectedProducts = ref<Product[]>([]);
 const paymentMethods = ref<PaymentMethod[]>([]);
-const selectedPaymentMethod = ref<number | null>(null);
+const selectedPaymentMethod = ref<string | null>(null);
 const isLoading = ref({ placingOrder: false });
 
 const searchText = ref('');
@@ -670,10 +671,19 @@ function openPaymentDialog() {
 }
 
 async function confirmPayment() {
-    if (paidAmount.value === null || paidAmount.value < totalAmount.value) {
-        toast.error('Paid amount must be at least total amount');
+    if (paymentMethods.value.length === 0) {
+        toast.error('No payment methods available');
         return;
     }
+    const selectedMethod = paymentMethods.value.find(pm => pm.id === selectedPaymentMethod.value);
+    if (!selectedMethod || selectedMethod.name !== 'CREDIT') {
+        if (paidAmount.value === null || paidAmount.value < totalAmount.value) {
+            toast.error('Paid amount must be at least total amount');
+            return;
+        }
+    }
+
+    
     showPaymentDialog.value = false;
     await placeOrder();
 }
@@ -815,19 +825,20 @@ function doPrintKasir80mm() {
         const sisa = (lastOrderTotal.value || totalAmount.value) - (paidAmount.value || 0);
 
         const lines: string[] = [];
-        lines.push('         TOKO ANINKA');
-        lines.push(' Blok A lantai SLG Los F No 91-92');
-        lines.push('--------------------------------------');
+        lines.push(`     ${locationName.value}`);
+        lines.push(` ${locationAddress.value}`);
+        lines.push('----------------------------------------');
         lines.push(`Kasir   : ${kasirName}`);
         lines.push(`Tanggal : ${lastOrderDate.value}`);
         lines.push(`Nomor   : ${transactionNumber.value}`);
+        lines.push('------------------------------------');
         lines.push(`Customer: ${selectedCustomerName.value || '-'}`);
         lines.push('--------------------------------------');
         lastOrderItems.value.forEach(item => {
             lines.push(`${item.product_name}`);
             lines.push(`${item.quantity} x ${formatRupiah(item.price)}${' '.repeat(20 - (item.quantity + '').length - formatRupiah(item.price).length)}${formatRupiah(item.quantity * item.price)}`);
         });
-        lines.push('----------------------------------');
+        lines.push('--------------------------------');
         lines.push(`Total QTY        ${totalQty}`);
         lines.push(`Total Bayar      ${formatRupiah(lastOrderTotal.value || totalAmount.value)}`);
         lines.push(`Jenis Bayar      ${lastOrderPaymentMethodName.value || '-'}`);
@@ -858,9 +869,9 @@ function doPrintKasir80mm() {
 
     const printContent = `
     <div style="font-family: 'Courier New', Courier, monospace; font-size: 12px; width: 80mm; padding: 0; margin: 0;">
-      <div style="text-align:center; font-weight:bold;">TOKO ANINKA</div>
-      <div style="text-align:center;">Blok A lantai SLG Los F No 91-92</div>
-      <div style="text-align:center;">----------------------------------</div>
+      <div style="text-align:center; font-weight:bold;">${locationName.value}</div>
+      <div style="text-align:center;">${locationAddress.value}</div>
+      <div style="text-align:center;">----------------------------------------</div>
       <div style="display:flex; justify-content:space-between;">
         <span>Kasir   : ${cashierName.value}</span>
       </div>
@@ -870,7 +881,12 @@ function doPrintKasir80mm() {
       <div style="display:flex; justify-content:space-between;">
         <span>Nomor   : ${transactionNumber.value}</span>
       </div>
-      <div style="text-align:center;">----------------------------------</div>
+      <div style="text-align:center;">----------------------------------------</div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>Customer</span>
+        <span>${selectedCustomerName.value || '-'}</span>
+      </div>
+      <div style="text-align:center;">----------------------------------------</div>
       ${lastOrderItems.value
           .map(
               (item) => `
@@ -882,7 +898,7 @@ function doPrintKasir80mm() {
         `,
           )
           .join('')}
-      <div style="text-align:center;">----------------------------------</div>
+      <div style="text-align:center;">----------------------------------------</div>
       <div style="display:flex; justify-content:space-between;">
         <span>Total QTY</span>
         <span>${totalQty}</span>
@@ -903,12 +919,7 @@ function doPrintKasir80mm() {
         <span>Sisa</span>
         <span>${formatRupiah(sisa > 0 ? sisa : 0)}</span>
       </div>
-      <div style="text-align:center;">----------------------------------</div>
-      <div style="display:flex; justify-content:space-between;">
-        <span>Customer</span>
-        <span>${selectedCustomerName.value || '-'}</span>
-      </div>
-      <div style="text-align:center;">----------------------------------</div>
+      <div style="text-align:center;">----------------------------------------</div>
       <div style="text-align:center; margin-top:8px;">---TERIMA KASIH---</div>
       <div style="text-align:center;">aninkafashion.com</div>
     </div>

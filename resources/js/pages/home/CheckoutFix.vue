@@ -14,9 +14,6 @@ interface Product {
     description: string;
     price: number;
     price_sell?: number;
-    price_sell_grosir?: number;
-    price_grosir?: number;
-    discount_grosir?: number;
     image: string;
     stock: number;
     category_id: number;
@@ -67,26 +64,13 @@ const orderIdForQr = ref<string | null>(null);
 
 
 const subtotalAmount = computed(() => {
-    
     return cartStore.cartItems.reduce((sum: number, item: CartItem) => {
-        if (item.price_sell_grosir && item.quantity > 1) {
-            // Use price_sell_grosir if available and quantity > 1
-            return sum + (item.quantity || 0) * (item.price_sell_grosir || 0);
-        }
-        return sum + (item.quantity || 0) * (item.price_sell || 0);
+        return sum + (item.quantity || 0) * (item.price || 0);
     }, 0);
 });
 
 const discountAmount = computed(() => {
     return cartStore.cartItems.reduce((sum: number, item: CartItem) => {
-        if (item.price_sell_grosir && item.quantity > 1) {
-            // Calculate discount based on price_grosir and price_sell_grosir
-            const originalPrice = item.price_grosir || 0;
-            const finalPricePerItem = item.price_sell_grosir || 0;
-            const discountPerItem = originalPrice - finalPricePerItem;
-            return sum + discountPerItem * (item.quantity || 0);
-        }
-
         // Assuming item.price is the original price and item.price_sell is the final price after discount
         const originalPrice = item.price || 0;
         const finalPricePerItem = item.price_sell || 0;
@@ -318,57 +302,27 @@ const goBackToCart = () => {
                 <!-- Rincian Pesanan -->
                 <div class="mb-8 rounded-2xl bg-white p-8 shadow-xl lg:col-span-2">
                     <h2 class="mb-6 text-l text-gray-800">Rincian Pesanan</h2>
-                <template v-for="item in cartItemValue" :key="item.product?.id">
-                <div
-                    v-if="item.price_sell_grosir && item.discount_grosir && item.quantity > 1"
-                    class="mt-2 text-sm text-green-600 font-medium mb-4"
-                >
-                    🎉 Hore, selamat Anda mendapatkan promo harga grosir dengan pembelian lebih dari 1!
-                </div>
-                </template>
 
                     <div
-    v-for="item in cartItemValue"
-    :key="item.product?.id"
-    class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 last:mb-0 last:border-b-0"
->
-    <div class="flex items-center space-x-4">
-        <img
-            v-if="item.product?.image"
-            :src="item.product.image"
-            alt="Gambar Produk"
-            class="h-14 w-14 rounded-lg object-cover shadow-md"
-        />
-        <div class="flex-1">
-            <p class="text-sm text-gray-900">{{ item.product?.name ?? 'Produk Tidak Dikenal' }}</p>
-            <p class="text-sm text-gray-600">Jumlah: {{ item.quantity }}</p>
-            <p class="text-sm text-gray-600">Ukuran: {{ item.size_id }} - {{ item.uom_id }}</p>
-
-            <!-- Harga Grosir Promo -->
-            <!-- <div v-if="item.price_sell_grosir && item.discount_grosir && item.quantity > 1" class="mt-2 text-sm text-green-600 font-medium">
-                🎉 Hore, selamat Anda mendapatkan promo harga grosir dengan pembelian lebih dari 1!
-                <div class="mt-1 text-gray-700">
-                    Harga Grosir: <span class="font-semibold">{{ formatRupiah(item.price_sell_grosir) }}</span><br />
-                    Diskon Grosir: <span class="font-semibold">{{ formatRupiah(item.discount_grosir) }}</span>
-                </div>
-            </div> -->
-        </div>
-    </div>
-    <!-- Harga (Gunakan Grosir jika tersedia dan jumlah > 1) -->
-   <div>
-  <p class="text-sm font-bold text-gray-900">
-    {{ formatRupiah(item.quantity > 1 && item.price_sell_grosir ? item.price_sell_grosir : (item.price_sell ?? 0)) }}
-  </p>
-  <p
-    v-if="(item.quantity > 1 && item.price_sell_grosir && item.price) || (item.price_sell && item.price_sell < item.price)"
-    class="text-sm text-gray-500 line-through"
-  >
-    {{ formatRupiah(item.price) }}
-  </p>
-</div>
-
-</div>
-
+                        v-for="item in cartItemValue"
+                        :key="item.product?.id"
+                        class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 last:mb-0 last:border-b-0"
+                    >
+                        <div class="flex items-center space-x-4">
+                            <img
+                                v-if="item.product?.image"
+                                :src="item.product.image"
+                                alt="Gambar Produk"
+                                class="h-14 w-14 rounded-lg object-cover shadow-md"
+                            />
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-900">{{ item.product?.name ?? 'Produk Tidak Dikenal' }}</p>
+                                <p class="text-sm text-gray-600">Jumlah: {{ item.quantity }}</p>
+                                <p class="text-sm text-gray-600">Ukuran: {{ item.size_id }} - {{ item.uom_id }}</p>
+                            </div>
+                        </div>
+                        <p class="text-sm font-bold text-gray-900">{{ formatRupiah(item.price_sell ?? 0) }}</p>
+                    </div>
 
                     <div class="mt-4 space-y-4 border-gray-300 pt-6">
                         <div class="flex items-center justify-between text-sm font-semibold text-gray-800">

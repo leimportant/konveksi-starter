@@ -24,6 +24,8 @@ class PosOrderController extends Controller
         ]);
 
         $userId = Auth::id();
+        $user = Auth::user();
+        $locationId = $user ? $user->location_id : null;
         $products = $request->input('items');
         $paymentMethodId = $request->input('payment_method_id');
         $customerId = $request->input('customer_id', null);
@@ -93,7 +95,7 @@ class PosOrderController extends Controller
                     // Update stock
                     app(InventoryService::class)->updateOrCreateInventory([
                         'product_id' => $p['product_id'],
-                        'location_id' => $p['location_id'],
+                        'location_id' => $locationId,
                         'uom_id' => $p['uom_id'],
                         'sloc_id' => 'GS00', // Assuming GS01 is the source location
                     ], [
@@ -104,7 +106,7 @@ class PosOrderController extends Controller
                      // Update stock
                     app(InventoryService::class)->updateOrCreateInventory([
                         'product_id' => $p['product_id'],
-                        'location_id' => $p['location_id'],
+                        'location_id' => $locationId,
                         'uom_id' => $p['uom_id'],
                         'sloc_id' => 'GS00', // Assuming GS01 is the source location
                     ], [

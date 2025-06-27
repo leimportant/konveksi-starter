@@ -29,7 +29,7 @@ class CartItemController extends Controller
                 'product_id' => 'required|exists:mst_product,id',
                 'size_id' => 'required',
                 'uom_id' => 'required',
-                'price'=> 'required',
+                'price' => 'required',
                 'discount' => 'numeric',
                 'quantity' => 'required|numeric',
             ]);
@@ -41,14 +41,33 @@ class CartItemController extends Controller
 
             $price_sell = ($validated['price'] - ($validated['discount'] ?? 0));
 
+            // Jika Pembelian sudah ada dan qty lebih dari 1 maka ambil harga grosir
+            $cartItemCount = CartItem::where('created_by', Auth::id())
+                ->sum('quantity');
+
+
+            $price_sell_grosir = 0;
+            $price_grosir = 0;
+            $discount_grosir = 0;
+            if ($cartItemCount > 1) {
+                $grosirPrice = $this->getGrossirPrice($validated['product_id'], $validated['price'], $validated['discount'] ?? 0, $price_sell);
+                $price_sell_grosir = $grosirPrice['price_sell'] ?? $price_sell;
+                $price_grosir = $grosirPrice['price'] ?? 0;
+                $discount_grosir = $grosirPrice['discount'] ?? 0;
+            }
+
+
             if ($cartItem) {
-                
+
                 // If the product exists, update the quantity
                 $cartItem->update([
                     'quantity' => $cartItem->quantity + $validated['quantity'],
                     'price' => $validated['price'],
                     'discount' => $validated['discount'],
                     'price_sell' => $validated['price_sell'] ?? $price_sell,
+                    'price_grosir' => $price_grosir,
+                    'discount_grosir' => $discount_grosir,
+                    'price_sell_grosir' => $price_sell_grosir,
                     'size_id' => $validated['size_id'],
                     'uom_id' => $validated['uom_id'],
                     'updated_by' => Auth::id(),
@@ -60,8 +79,11 @@ class CartItemController extends Controller
                     'quantity' => $validated['quantity'],
                     'size_id' => $validated['size_id'],
                     'uom_id' => $validated['uom_id'],
-                    'price'=> $validated['price'],
+                    'price' => $validated['price'],
                     'discount' => $validated['discount'],
+                    'price_grosir' => $price_grosir,
+                    'discount_grosir' => $discount_grosir,
+                    'price_sell_grosir' => $price_sell_grosir,
                     'price_sell' => $validated['price_sell'] ?? $price_sell,
                     'created_by' => Auth::id(),
                 ]);
@@ -81,10 +103,11 @@ class CartItemController extends Controller
         }
     }
 
-    public function getItem() {
+    public function getItem()
+    {
         $cartItem = CartItem::with('product')
-                ->where('created_by', Auth::id())
-                ->get();
+            ->where('created_by', Auth::id())
+            ->get();
         return response()->json($cartItem, 201);
     }
 
@@ -138,5 +161,25 @@ class CartItemController extends Controller
             ], 500);
         }
     }
+
+    private function getGrossirPrice($productId, $defaultPrice, $defaultDiscount, $defaultPriceSell)
+    {
+        $result = DB::table('mst_product_price as a')
+            ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
+            ->where('b.price_type_id', 2) // Grosir
+            ->where('b.product_id', $productId)
+            ->whereDate('a.effective_date', '<=', now())
+            ->whereDate('a.end_date', '>=', now())
+            ->where('b.price_sell', '>', 0)
+            ->select('b.price', 'b.discount', 'b.price_sell')
+            ->first();
+
+        return [
+            'price' => $result->price ?? $defaultPrice,
+            'discount' => $result->discount ?? $defaultDiscount,
+            'price_sell' => $result->price_sell ?? $defaultPriceSell,
+        ];
+    }
+
 
 }

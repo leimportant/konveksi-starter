@@ -63,13 +63,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('api/push/send', [PushController::class, 'send']);
 });
 
-Route::get('auth/google', 'App\Http\Controllers\Auth\GoogleController@redirectToGoogle');
+Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+#Route::get('auth/google', 'App\Http\Controllers\Auth\GoogleController@redirectToGoogle');
 Route::get('auth/google/callback', 'App\Http\Controllers\Auth\GoogleController@handleGoogleCallback');
 
 Route::middleware('auth')->group(function () {
 
     Route::get('api/dashboard', [DashboardController::class, 'index']);
     Route::get('api/dashboard/sales', [DashboardController::class, 'getSalesData']);
+    Route::get('api/dashboard/sales/amount', [DashboardController::class, 'getSalesByOmsetData']);
     // User management
     
     Route::apiResource('api/users', controller: UserController::class);

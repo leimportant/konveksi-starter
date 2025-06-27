@@ -8,6 +8,7 @@ import { storeToRefs } from 'pinia';
 import { ShirtIcon, Truck, ShoppingBag } from 'lucide-vue-next';
 
 import SalesChart from '../components/SalesChart.vue';
+import SalesChartByAmount from '../components/SalesChartByAmount.vue';
 
 const dashboardStore = useDashboardStore();
 const { stats } = storeToRefs(dashboardStore);
@@ -57,6 +58,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border md:min-h-min">
                 <SalesChart />
+            </div>
+
+             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border md:min-h-min">
+                <SalesChartByAmount />
             </div>
            
         </div>
