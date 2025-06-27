@@ -57,13 +57,14 @@ class PosOrderController extends Controller
 
             // Insert pos_transaction
             $transactionId = DB::table('pos_transaction')->insertGetId([
+                'id' => strtoupper(substr(bin2hex(random_bytes(2)), 0, 4)) . $transactionNumber, // 4 CHAR + transactionNumber
                 'transaction_number' => $transactionNumber,
                 'transaction_date' => Carbon::now(),
                 'total_amount' => $totalAmount,
                 'paid_amount' => $paidAmount,
                 'change_amount' => $changeAmount,
                 'payment_method' => $paymentMethod,
-                'customer_id' => $customerId,
+                'customer_id' => $customerId ?: 0, // ensure null if not set
                 'status' => 'completed',
                 'notes' => null,
                 'created_by' => $userId,

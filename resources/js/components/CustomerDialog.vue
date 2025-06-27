@@ -69,7 +69,7 @@ watch(() => props.show, (newVal) => {
   <Dialog :open="show" @update:open="emit('update:show', $event)">
     <DialogContent class="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>Add or Select Customer</DialogTitle>
+        <DialogTitle>Pilih Customer</DialogTitle>
         <DialogDescription>
           Search for an existing customer or add a new one.
         </DialogDescription>
@@ -94,7 +94,7 @@ watch(() => props.show, (newVal) => {
             </div>
           </div>
           <p v-else-if="searchQuery.length >= 2" class="text-sm text-gray-500 mt-2">No customers found.</p>
-          <Button @click="showAddCustomerForm = true" class="mt-4 w-full">Tambah Customer</Button>
+          <Button @click="showAddCustomerForm = true" class="mt-4 w-full bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Tambah Customer</Button>
         </div>
 
         <div v-else>

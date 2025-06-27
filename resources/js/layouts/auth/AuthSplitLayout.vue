@@ -4,6 +4,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 
 const page = usePage();
 const name = page.props.name;
+const location = page.props.location;
 type Quote = { message: string; author: string };
 const quote = page.props.quote as Quote | undefined;
 
@@ -19,7 +20,7 @@ defineProps<{
             <div class="absolute inset-0 bg-zinc-900" />
             <Link :href="route('home')" class="relative z-20 flex items-center text-lg font-medium">
                 <AppLogoIcon class="mr-2 size-8 fill-current text-white" />
-                {{ name }}
+                {{ name }} AA {{  location }}
             </Link>
             <div v-if="quote" class="relative z-20 mt-auto">
                 <blockquote class="space-y-2">
