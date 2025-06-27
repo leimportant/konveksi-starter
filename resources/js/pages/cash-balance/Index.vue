@@ -53,7 +53,7 @@ const prevPage = () => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-6 space-y-6">
       <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-semibold">Cash Balances</h1>
+        <h1 class="text-2xl font-semibold">Saldo Kas</h1>
         <Input
           v-model="search"
           @input="handleSearch"

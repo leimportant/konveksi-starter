@@ -26,6 +26,7 @@ export interface SizeItem {
 interface ModelData {
     description: string;
     remark: string | null;
+    uniqId: string | null;
     estimation_price_pcs: number;
     estimation_qty: number;
     start_date: string | null;

@@ -9,11 +9,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Symfony\Component\String\ByteString;
+use App\Models\Inventory;
 use App\Notifications\PushNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\DB;
 use App\Services\InventoryService;
+use \Illuminate\Support\Facades\Log;
+
 
 class TransferStockController extends Controller
 {
@@ -25,6 +28,8 @@ class TransferStockController extends Controller
 
     public function store(Request $request)
     {
+        try {
+
         $validated = $request->validate([
             'location_id' => 'required|exists:mst_location,id',
             'location_destination_id' => 'required|exists:mst_location,id',
@@ -54,7 +59,31 @@ class TransferStockController extends Controller
                 'qty' => $detail['qty'],
             ]);
 
+            $inventory = Inventory::where('product_id', $detail['product_id'])
+            ->where('location_id', $validated['location_id'])
+            ->where('uom_id', $detail['uom_id'])
+            ->where('sloc_id', $validated['sloc_id'])
+            ->where('size_id', $detail['size_id'])
+            ->first();
+            $qty = $inventory ? $inventory->qty : 0;
+            $qty_reserved = $inventory ? $inventory->qty_reserved : 0;
+            // update inventory for the transfer
+            app(InventoryService::class)->updateOrCreateInventory([
+                'product_id' => $detail['product_id'],
+                'location_id' => $validated['location_id'],
+                'uom_id' => $detail['uom_id'],
+                'sloc_id' => $validated['sloc_id'],
+            ], [
+                'size_id' => $detail['size_id'],
+                'qty' => $qty, // Reduce stock from source location
+                'qty_reserved' => $detail['qty'] +  $qty_reserved, // Reduce stock from source location
+            ], 'IN');
            
+        }
+        DB::commit();
+        } catch (\Exception $e) {
+            Log::error('Store transfer error: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal membuat transfer'], 500);
         }
 
         return response()->json($data, 201);
@@ -68,7 +97,7 @@ class TransferStockController extends Controller
             ->firstOrFail();
 
         if (!$transfer) {
-            return response()->json(['message' => 'Transfer not found'], 404);
+            return response()->json(['message' => 'Transfer tidak ditemukan'], 404);
         }
 
         return response()->json($transfer->load(['location', 'location_destination', 'transfer_detail']));
@@ -120,8 +149,8 @@ class TransferStockController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Update transfer error: ' . $e->getMessage());
-            return response()->json(['message' => 'Failed to update transfer'], 500);
+            Log::error('Update transfer error: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal memperbarui transfer'], 500);
         }
     }
 
@@ -134,7 +163,7 @@ class TransferStockController extends Controller
         $transfer->save();
         $transfer->delete();
 
-        return response()->json(['message' => 'Transfer deleted']);
+        return response()->json(['message' => 'Transfer berhasil dihapus']);
     }
 
 
@@ -161,6 +190,7 @@ class TransferStockController extends Controller
                 ], [
                     'size_id' => $detail['size_id'],
                     'qty' => $detail['qty'],
+                    'qty_reserved' => 0,
                 ], 'OUT');
 
                 // ====== INVENTORY - IN (lokasi tujuan)
@@ -172,53 +202,54 @@ class TransferStockController extends Controller
                 ], [
                     'size_id' => $detail['size_id'],
                     'qty' => $detail['qty'],
+                     'qty_reserved' => 0,
                 ], 'IN');
              }
 
             $user = $transfer->creator();
 
-            if ($user && $user->pushSubscription) {
-                $payload = json_encode([
-                    'title' => 'Transfer Diterima',
-                    'body' => "Transfer dengan ID {$transfer->id} telah diterima",
-                    'icon' => '/icon.png',
-                    'badge' => '/badge.png',
-                    'data' => [
-                        'url' => route('transfer-stock.view', $transfer->id)
-                    ]
-                ]);
+            // if ($user && $user->pushSubscription) {
+            //     $payload = json_encode([
+            //         'title' => 'Transfer Diterima',
+            //         'body' => "Transfer dengan ID {$transfer->id} telah diterima",
+            //         'icon' => '/icon.png',
+            //         'badge' => '/badge.png',
+            //         'data' => [
+            //             'url' => route('transfer-stock.view', $transfer->id)
+            //         ]
+            //     ]);
 
-                $webPush = new \Minishlink\WebPush\WebPush([
-                    'VAPID' => [
-                        'subject' => config('app.url'),
-                        'publicKey' => config('webpush.vapid.public_key'),
-                        'privateKey' => config('webpush.vapid.private_key'),
-                    ]
-                ]);
+            //     $webPush = new \Minishlink\WebPush\WebPush([
+            //         'VAPID' => [
+            //             'subject' => config('app.url'),
+            //             'publicKey' => config('webpush.vapid.public_key'),
+            //             'privateKey' => config('webpush.vapid.private_key'),
+            //         ]
+            //     ]);
 
-                $subscription = \Minishlink\WebPush\Subscription::create([
-                    'endpoint' => $user->pushSubscription->endpoint,
-                    'keys' => [
-                        'p256dh' => $user->pushSubscription->p256dh_key,
-                        'auth' => $user->pushSubscription->auth_token
-                    ]
-                ]);
+                // $subscription = \Minishlink\WebPush\Subscription::create([
+                //     'endpoint' => $user->pushSubscription->endpoint,
+                //     'keys' => [
+                //         'p256dh' => $user->pushSubscription->p256dh_key,
+                //         'auth' => $user->pushSubscription->auth_token
+                //     ]
+                // ]);
 
-                $webPush->queueNotification($subscription, $payload);
+                // $webPush->queueNotification($subscription, $payload);
 
                 // Kirim semua notifikasi yg ada di queue
-                foreach ($webPush->flush() as $report) {
-                    if (!$report->isSuccess()) {
-                        \Log::error('Push failed: ' . $report->getReason());
-                    }
-                }
+                // foreach ($webPush->flush() as $report) {
+                //     if (!$report->isSuccess()) {
+                //         Log::error('Push failed: ' . $report->getReason());
+                //     }
+                // }
 
-            }
+            // }
 
-            return response()->json(['message' => 'Transfer accepted']);
+            return response()->json(['message' => 'Transfer diterima']);
         } catch (\Exception $e) {
-            \Log::error('Accept transfer error: ' . $e->getMessage());
-            return response()->json(['message' => 'Failed to accept transfer'], 500);
+            Log::error('Accept transfer error: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal menerima transfer'], 500);
         }
     }
 

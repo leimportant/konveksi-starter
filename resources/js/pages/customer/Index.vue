@@ -141,8 +141,9 @@ const handleDelete = async (id: number) => {
   <AppLayout :breadcrumbs="breadcrumbs">
      <div class="px-4 py-4">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Customer Management</h2>
-      <div class="flex items-center gap-2">
+        <Button @click="openCreateModal" :disabled="loading" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+          <Plus class="h-4 w-4 mr-1" /> Tambah
+        </Button>
         <Input
           v-model="search"
           placeholder="Search customer name"
@@ -150,10 +151,7 @@ const handleDelete = async (id: number) => {
           @input="handleSearch"
           :disabled="loading"
         />
-        <Button @click="openCreateModal" :disabled="loading">
-          <Plus class="h-4 w-4 mr-1" /> Add
-        </Button>
-      </div>
+
     </div>
 
     <!-- Table -->

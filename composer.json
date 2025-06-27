@@ -18,6 +18,7 @@
         "laravel/tinker": "^2.10.1",
         "masbug/flysystem-google-drive-ext": "^2.4",
         "minishlink/web-push": "^9.0",
+        "php-ffmpeg/php-ffmpeg": "*",
         "tes/laravel-google-drive-storage": "^1.0",
         "tightenco/ziggy": "^2.4"
     },

@@ -84,8 +84,7 @@
 
         <!-- Document Tab -->
         <div v-if="activeTab === 'document'" class="space-y-6">
-          <DocumentUpload v-model:visible="showUploadDialog" :reference-id="'MODEL'" :doc-id="generatedDocId"
-            module="model" accept="image/*" @uploaded="handleDocumentUploaded" @removed="handleDocumentRemoved" />
+          <DocumentList :reference-id="generatedDocId" :reference-type="referenceType" />
         </div>
 
         <!-- Material Tab -->
@@ -113,7 +112,7 @@
         <!-- Submit Buttons -->
         <div class="flex justify-end border-t pt-6 dark:border-gray-300 space-x-2">
           <Button type="button" variant="secondary" @click="router.visit('/konveksi')">Batal</Button>
-          <Button type="submit" :loading="form.processing">
+          <Button type="submit" :loading="form.processing" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
             <i class="pi pi-check" /> {{ isEditMode ? 'Perbarui' : 'Simpan' }}
           </Button>
         </div>
@@ -129,7 +128,7 @@ import { Head, useForm, router } from '@inertiajs/vue3';
 import { Input } from '@/components/ui/input';
 import { DateInput } from '@/components/ui/date-input';
 import { Button } from '@/components/ui/button';
-import DocumentUpload from '@/components/DocumentUpload.vue';
+import DocumentList from '@/components/DocumentList.vue';
 import SizeTab from '@/components/SizeTab.vue';
 import ActivityTab from '@/components/ActivityTab.vue';
 import HPPTab from '@/components/HPPTab.vue';
@@ -137,6 +136,7 @@ import { useModelStore } from '@/stores/useModelStore';
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
 import ModelMaterialTab from '@/components/ModelMaterialTab.vue';
+
 
 // Props for edit mode
 const props = defineProps<{
@@ -152,16 +152,13 @@ const activeTab = ref<Tab>('model');
 
 // Determine mode
 const isEditMode = computed(() => !!props.modelData);
-
+const uniqId = ref<string>(Math.random().toString(36).substring(2, 15));
 // Document handling
 const uploadedDocuments = ref<{ id: string; url: string; filename: string }[]>([]);
-const showUploadDialog = ref(false);
-const generatedDocId = computed(() => (isEditMode.value ? props.modelData.id : 'MDL-' + Date.now()));
+const generatedDocId = computed(() => (isEditMode.value ? props.modelData.id : uniqId.value));
 
-const handleDocumentUploaded = (doc: any) => uploadedDocuments.value.push(doc);
-const handleDocumentRemoved = (docId: string) => {
-  uploadedDocuments.value = uploadedDocuments.value.filter(doc => doc.id !== docId);
-};
+const referenceType = 'Model';
+
 const removeDocument = (idx: number) => uploadedDocuments.value.splice(idx, 1);
 
 // Breadcrumbs
@@ -252,6 +249,7 @@ const handleSubmit = async () => {
         ...form,
         sizes: sizeItems.value,
         activity: activityItems.value,
+        uniqId: uniqId.value, // Ensure unique ID is sent
         documents: uploadedDocuments.value,
         modelMaterials: modelMaterials.value,  // Changed from modelMaterial to modelMaterials
       });

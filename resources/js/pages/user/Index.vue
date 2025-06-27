@@ -4,9 +4,9 @@
     <div class="px-4 py-4">
       <!-- Add User Button -->
       <div class="flex justify-between items-center mb-6">
-        <Button @click="showCreateModal = true">
+        <Button @click="showCreateModal = true"  class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4 mr-2" />
-          Add User
+           Tambah User
         </Button>
 
          <Input
@@ -89,7 +89,7 @@
       <!-- Create User Modal -->
       <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-lg w-full max-w-md">
-          <h2 class="text-base font-semibold mb-4">Add New User</h2>
+          <h2 class="text-base font-semibold mb-4">Tambah User Baru</h2>
 
           <!-- Name -->
           <div class="mb-3">

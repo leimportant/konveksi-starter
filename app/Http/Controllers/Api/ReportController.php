@@ -20,7 +20,7 @@ class ReportController extends Controller
             ->leftJoin('mst_customer as d', 'a.customer_id', '=', 'd.id')
             ->select('a.customer_id', 'a.payment_method', 'a.status', 'b.product_id', 'c.name as product_name', 'b.qty', 'b.uom_id', 'b.size_id', 'b.discount', 'b.price', 'b.price_final')
             ->whereBetween(DB::raw('DATE(a.created_at)'), [$startDate, $endDate])
-            ->where('a.status', '!=', 'pending');
+            ->where('a.status', '!=', '1');
 
         if ($searchKey) {
             $query->where('c.name', 'like', "%" . $searchKey . "%");
@@ -114,7 +114,71 @@ class ReportController extends Controller
             'data' => $productionSummary,
             'activity_totals' => $activityTotals, // ⬅️ Global subtotal by activity_type
         ]);
-
-
     }
+
+    public function reportOmsetPerPayment(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $rawData = DB::select("
+        SELECT 
+            DATE_FORMAT(transaction_date, '%d/%m/%Y') AS tanggal,
+            payment_method,
+            SUM(paid_amount - change_amount) AS total_omset
+        FROM 
+            pos_transaction
+        WHERE 
+            status = 'completed'
+            AND DATE(transaction_date) BETWEEN :startDate AND :endDate
+        GROUP BY 
+            DATE_FORMAT(transaction_date, '%d/%m/%Y'), payment_method
+        ORDER BY 
+            DATE_FORMAT(transaction_date, '%d/%m/%Y') ASC, payment_method ASC
+    ", [
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
+
+        // Convert to array of objects
+        $grouped = [];
+        foreach ($rawData as $item) {
+            $tanggal = $item->tanggal;
+            if (!isset($grouped[$tanggal])) {
+                $grouped[$tanggal] = [];
+            }
+            $grouped[$tanggal][] = $item;
+        }
+
+        // Inject subtotal rows
+        $result = [];
+        foreach ($grouped as $tanggal => $rows) {
+            $subtotal = 0;
+            foreach ($rows as $row) {
+                $subtotal += $row->total_omset;
+                $result[] = $row;
+            }
+            $result[] = (object) [
+                'tanggal' => $tanggal,
+                'payment_method' => 'SUBTOTAL',
+                'total_omset' => $subtotal,
+            ];
+        }
+
+        $perPage = $request->input('per_page', 10); // Default to 10 items per page
+        $page = $request->input('page', 1); // Default to page 1
+
+        $paginatedResult = new \Illuminate\Pagination\LengthAwarePaginator(
+            collect($result)->forPage($page, $perPage),
+            count($result),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return response()->json($paginatedResult);
+    }
+
+
+
 }

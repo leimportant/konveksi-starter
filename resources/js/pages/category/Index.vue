@@ -118,7 +118,7 @@ const handleDelete = async (id: number) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
-        <Button @click="openCreateModal" aria-label="Add new category" :disabled="loading">
+        <Button @click="openCreateModal" aria-label="Tambah Kategori Baru" :disabled="loading" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4" />
           Add
         </Button>
@@ -192,14 +192,14 @@ const handleDelete = async (id: number) => {
       <!-- Create Modal -->
       <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-lg w-96">
-          <h2 class="text-lg font-semibold mb-4">Add New Category</h2>
+          <h2 class="text-lg font-semibold mb-4">Tambah Kategori Baru</h2>
           <form @submit.prevent="handleCreate">
             <div class="mb-4">
               <Input v-model="form.name" placeholder="Category Name" required aria-label="Category Name" />
             </div>
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="closeCreateModal">Cancel</Button>
-              <Button type="submit">Create</Button>
+              <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
             </div>
           </form>
         </div>
@@ -215,7 +215,7 @@ const handleDelete = async (id: number) => {
             </div>
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="closeEditModal">Cancel</Button>
-              <Button type="submit">Update</Button>
+              <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
             </div>
           </form>
         </div>

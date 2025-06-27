@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\DocumentAttachment;
 use App\Models\ModelRef;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -87,17 +88,21 @@ class ModelRefController extends Controller
             
 
             // Store documents
-            // if (!empty($validated['documents'])) {
-            //     foreach ($validated['documents'] as $document) {
-            //         $model->documents()->create([
-            //             'id' => $document['id'],
-            //             'url' => $document['url'],
-            //             'filename' => $document['filename'],
-            //             'created_by' => Auth::id(),
-            //             'updated_by' => Auth::id()
-            //         ]);
-            //     }
-            // }
+           
+            $uniqId = $request->input('uniqId', null);
+            $docs = DocumentAttachment::where('reference_id', $uniqId)
+                    ->where('reference_type', 'Model')
+                    ->get(); 
+
+            if ($docs->isNotEmpty()) {
+                // update doc_id dan reference_id pada dokumen yang sudah ada
+                foreach ($docs as $doc) {
+                    $doc->update([
+                        'doc_id' => $model->id,
+                        'updated_by' => Auth::id()
+                    ]);
+                }
+            }
 
             DB::commit();
 
@@ -120,7 +125,7 @@ class ModelRefController extends Controller
         try {
 
 
-            $models = ModelRef::latest()->paginate(10);
+            $models = ModelRef::with('sizes')->latest()->paginate(10);
 
             return response()->json([
                 'data' => $models
@@ -264,52 +269,50 @@ class ModelRefController extends Controller
         }
     }
 
-    public function list(Request $request)
-    {
-        try {
-            $request->validate([
-                'search' => 'nullable|string',
-                'start_date' => 'nullable|date',
-                'end_date' => 'nullable|date',
-                'sort_field' => 'nullable|string|in:created_at,start_date,description',
-                'sort_order' => 'nullable|in:asc,desc',
-                'per_page' => 'nullable|integer|min:1|max:100',
-            ]);
+   public function list(Request $request)
+{
+    try {
+        $request->validate([
+            'search' => 'nullable|string',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'sort_field' => 'nullable|string|in:created_at,start_date,description',
+            'sort_order' => 'nullable|in:asc,desc',
+            'per_page' => 'nullable|integer|min:1|max:100',
+        ]);
 
-            $query = ModelRef::query(); // Changed from get() to query()
+        $query = ModelRef::query();
 
-            if ($request->filled('search')) {
-                $query->where('description', 'like', '%' . $request->search . '%');
-            }
-
-            if ($request->filled('start_date')) {
-                $query->where('start_date', '>=', $request->start_date);
-            }
-
-            if ($request->filled('end_date')) {
-                $query->where('start_date', '<=', $request->end_date);
-            }
-
-            $sortField = $request->get('sort_field', 'created_at');
-            $sortOrder = $request->get('sort_order', 'desc');
-            $query->orderBy($sortField, $sortOrder);
-
-            $perPage = $request->get('per_page', 10);
-            $models = $query->paginate($perPage);
-
-            return response()->json([
-                'message' => 'Data model berhasil diambil',
-                'data' => $models
-            ]);
-
-        } catch (\Exception $e) {
-
-            Log::info($e->getMessage());
-            return response()->json([
-                'message' => 'Terjadi kesalahan saat mengambil data model',
-                'error' => $e->getMessage()
-            ], 500);
+        if ($request->filled('search')) {
+            $query->where('description', 'like', '%' . $request->search . '%');
         }
+        if ($request->filled('start_date')) {
+            $query->whereDate('start_date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('start_date', '<=', $request->end_date);
+        }
+
+        $sortField = $request->get('sort_field', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortField, $sortOrder);
+
+        $perPage = $request->get('per_page', 10);
+        $models = $query->with('sizes')->paginate($perPage);
+
+        return response()->json([
+            'message' => 'Data model berhasil diambil',
+            'data' => $models
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Model list error: ' . $e->getMessage());
+
+        return response()->json([
+            'message' => 'Terjadi kesalahan saat mengambil data model',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 
 }

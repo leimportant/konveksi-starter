@@ -3,9 +3,9 @@
   <AppLayout>
     <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
-        <Button @click="showCreateModal = true">
+        <Button @click="showCreateModal = true" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4" />
-          Add New
+          Tambah data
         </Button>
 
         <Input

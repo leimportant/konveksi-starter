@@ -18,9 +18,11 @@ return new class extends Migration
             $table->string('payment_method', 20);
             $table->string('status', 20);
             $table->text('notes')->nullable();
+            $table->unsignedBigInteger('customer_id')->nullable();
             $table->unsignedBigInteger('created_by');
             $table->timestamps();
             
+            // $table->foreign('customer_id')->references('id')->on('mst_customer');
             $table->foreign('created_by')->references('id')->on('users');
         });
     }

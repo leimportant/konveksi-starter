@@ -112,7 +112,7 @@ const handleDelete = async (id: number) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
-        <Button @click="showCreateModal = true">
+        <Button @click="showCreateModal = true" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4" />
           Add
         </Button>
@@ -186,7 +186,7 @@ const handleDelete = async (id: number) => {
       <!-- Create Modal -->
       <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-lg w-96">
-          <h2 class="text-lg font-semibold mb-4">Add New UOM</h2>
+          <h2 class="text-lg font-semibold mb-4">Tambah Ukuran Baru</h2>
           <form @submit.prevent="handleCreate">
             <div class="mb-4">
               <Input v-model="form.name" placeholder="UOM Name" required />

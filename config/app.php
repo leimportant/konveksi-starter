@@ -172,6 +172,7 @@ return [
          * Application Service Providers...
          */
         App\Providers\GoogleDriveServiceProvider::class,
+        Laravel\Socialite\SocialiteServiceProvider::class,
 
     ],
 

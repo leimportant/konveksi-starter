@@ -83,11 +83,17 @@
           <div>
             <Label :for="`product_id_${index}`">Produk</Label>
             <input
-              type="text"
-              :value="getProductName(detail.product_id)"
+              type="hidden"
+              :value="detail.product_id"
               readonly
               class="w-full border rounded p-2 bg-gray-100 cursor-not-allowed"
-            />
+            /> 
+            <input
+              type="text"
+              :value="detail.product_name"
+              readonly
+              class="w-full border rounded p-2 bg-gray-100 cursor-not-allowed"
+            /> 
           </div>
 
           <div>
@@ -104,7 +110,7 @@
             <Label :for="`uom_id_${index}`">UOM</Label>
             <input
               type="text"
-              :value="detail.uom_name"
+              :value="detail.uom_id"
               readonly
               class="w-full border rounded p-2 bg-gray-100 cursor-not-allowed"
             />
@@ -125,7 +131,7 @@
 
       <!-- Submit -->
       <div class="flex justify-end">
-        <Button @click="submit" :disabled="form.processing">Simpan</Button>
+        <Button @click="submit" :disabled="form.processing"  class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
         <Button @click="resetForm" variant="outline" class="ml-2">Batal</Button>
       </div>
     </div>
@@ -162,14 +168,14 @@
             </thead>
             <tbody>
               <tr
-                v-for="item in inventoryStore.inventory"
-                :key="item.id"
+                v-for="item in inventoryStore.inventoryRpt"
+                :key="`${item.product_id}-${item.location_id}-${item.sloc_id}-${item.size_id}`"
                 class="hover:bg-gray-100"
               >
-                <td class="border border-gray-300 p-2">{{ item.product?.name }}</td>
+                <td class="border border-gray-300 p-2">{{ item.product_name }}</td>
                 <td class="border border-gray-300 p-2">{{ item.size_id }}</td>
                 <td class="border border-gray-300 p-2">{{ item.uom_id }}</td>
-                <td class="border border-gray-300 p-2">{{ item.qty }}</td>
+                <td class="border border-gray-300 p-2">{{ item.qty_available }}</td>
                 <td class="border border-gray-300 p-2 text-center">
                   <button
                     @click="selectInventoryItem(item)"
@@ -179,7 +185,7 @@
                   </button>
                 </td>
               </tr>
-              <tr v-if="inventoryStore.inventory.length === 0">
+              <tr v-if="inventoryStore.inventoryRpt.length === 0">
                 <td
                   class="border border-gray-300 p-2 text-center"
                   colspan="5"
@@ -218,6 +224,7 @@ const form = useForm({
   sloc_id: undefined as number | undefined,
   transfer_detail: [] as {
     product_id: number | null
+    product_name: string,
     size_id: string
     size_name: string
     uom_id: string
@@ -259,7 +266,7 @@ const openDialog = async () => {
     toast.error('Pilih lokasi dan sloc terlebih dahulu')
     return
   }
-
+  inventoryStore.filters.productName = '';
   try {
     await inventoryStore.fetchInventory()
     dialogOpen.value = true
@@ -273,7 +280,7 @@ const openDialog = async () => {
 const selectInventoryItem = (item: any) => {
   // Cek apakah sudah ada di detail
   const exists = form.transfer_detail.find(
-    d => d.product_id === item.product.id && d.size_id === item.size_id && d.uom_id === item.uom.id
+    d => d.product_id === item.product_id && d.size_id === item.size_id && d.uom_id === item.uom.id
   )
   if (exists) {
     toast.error('Produk ini sudah ada di daftar detail')
@@ -281,20 +288,21 @@ const selectInventoryItem = (item: any) => {
   }
 
   form.transfer_detail.push({
-    product_id: item.product?.id,
+    product_id: item.product_id,
+    product_name: item.product_name,
     size_id: item.size_id,
-    size_name: item.size?.name,
-    uom_id: item.uom?.id,
-    uom_name: item.uom?.name,
-    qty: 1,
+    size_name: item.size_id,
+    uom_id: item.uom_id,
+    uom_name: item.uom_id,
+    qty: item.qty_available ?? 1,
   })
   dialogOpen.value = false
 }
 
-const getProductName = (product_id: number | null) => {
-  const prod = products.find(p => p.id === product_id)
-  return prod ? prod.name : ''
-}
+// const getProductName = (product_id: number | null) => {
+//   const prod = products.find(p => p.id === product_id)
+//   return prod ? prod.name : ''
+// }
 
 const clearError = (field: string) => {
   delete errors[field]

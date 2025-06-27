@@ -51,7 +51,7 @@ const resolveIcon = async (iconName: string | LucideIcon | undefined): Promise<C
 <template>
   <div>
     <div class="border-b border-sidebar-border/0">
-      <div class="mx-auto flex h-4 items-center px-2 md:max-w-7xl">
+      <div class="fixed mx-auto flex h-4 items-center px-2 md:max-w-7xl">
         <!-- Mobile Menu -->
         <div class="lg:hidden">
           <Sheet>
@@ -76,7 +76,7 @@ const resolveIcon = async (iconName: string | LucideIcon | undefined): Promise<C
         </Link>
 
         <!-- Desktop Menu -->
-        <div class="hidden h-full lg:flex lg:flex-1">
+        <div class="fixed hidden h-full lg:flex lg:flex-1">
           <NavigationMenu class="ml-10 flex h-full items-stretch">
             <NavigationMenuList class="flex h-full items-stretch space-x-2">
               

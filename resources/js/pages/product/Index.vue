@@ -2,7 +2,6 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
-import DocumentUpload from '@/components/DocumentUpload.vue';
 import DocumentList from '@/components/DocumentList.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,7 @@ import { useToast } from "@/composables/useToast";
 import { useProductStore } from '@/stores/useProductStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useUomStore } from '@/stores/useUomStore';
+
 import debounce from 'lodash-es/debounce';
 import { QuillEditor } from '@/components/ui/quill-editor';
 import { truncateHtml } from '@/lib/truncateHtml'
@@ -21,17 +21,14 @@ const toast = useToast();
 
 const showCreateModal = ref(false);
 const showUploadModal = ref(false);
-const addUploadModal = ref(false);
 const currentProductIdForUpload = ref<number | null>(null);
-const documentListRef = ref<InstanceType<typeof DocumentList> | null>(null);
 
-const handleDocumentUploaded = () => {
-  if (documentListRef.value) {
-    documentListRef.value.fetchDocuments();
-  }
-};
 const showEditModal = ref(false);
 const currentProduct = ref<{ id: number; name: string; category_id: number; uom_id: string } | null>(null);
+
+
+const referenceType = ref<string>('product');
+
 
 const form = useForm({
   name: '',
@@ -96,10 +93,6 @@ const handleInput = (e: Event) => {
   const target = e.target as HTMLInputElement;
   debouncedSetFilter('name', target.value);
 };
-
-function openUploadModal() {
-  addUploadModal.value = true;
-}
 
 const handleCreate = async () => {
   if (!form.name) return toast.error("Name is required");
@@ -183,6 +176,8 @@ const getUomName = (uomId: string) => {
   const uom = uoms.value.find(u => u.id === uomId);
   return uom?.name || 'N/A';
 };
+
+
 </script>
 
 <template>
@@ -191,7 +186,7 @@ const getUomName = (uomId: string) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
-        <Button @click="showCreateModal = true">
+        <Button @click="showCreateModal = true" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4" />
           Add
         </Button>
@@ -234,6 +229,7 @@ const getUomName = (uomId: string) => {
                   <Trash2 class="h-4 w-4" />
                 </Button>
 
+
                 <Button variant="ghost" size="icon" @click="showUploadModal = true; currentProductIdForUpload = product.id;">
                   <Upload class="h-4 w-4" />
                 </Button>
@@ -268,46 +264,46 @@ const getUomName = (uomId: string) => {
       </div>
 
       <!-- upload image -->
-      <!-- Modal Overlay -->
-      <div
-        v-if="showUploadModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+     <!-- Modal Overlay -->
+<div
+  v-if="showUploadModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+>
+  <!-- Modal Box -->
+  <div class="relative bg-white p-6 rounded-lg shadow-xl w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-4xl max-h-[90vh] overflow-y-auto">
+
+    <!-- Header dengan tombol X -->
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold">Upload Media</h2>
+      <button
+        @click="showUploadModal = false"
+        class="text-gray-500 hover:text-gray-800 transition p-1 rounded-full hover:bg-gray-100"
+        aria-label="Tutup modal"
       >
-        <!-- Modal Box -->
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <h2 class="text-xl font-bold mb-4">Upload Gambar</h2>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
 
-          <Button @click="openUploadModal">Add Gambar</Button>
+    <!-- Konten Upload -->
+    <DocumentList :reference-id="currentProductIdForUpload" :reference-type="referenceType" />
 
-          <div v-if="addUploadModal">
-             <DocumentUpload
-            :visible="addUploadModal"
-            @update:visible="addUploadModal = $event"
-            :reference-id="'1'"
-            :doc-id="currentProductIdForUpload?.toString() || ''"
-            @uploaded="handleDocumentUploaded"
-          />
-          </div>
-         
+    <!-- Footer -->
+    <div class="mt-4 flex justify-end">
+      <Button @click="showUploadModal = false" variant="outline">Tutup</Button>
+    </div>
+  </div>
+</div>
 
-          <DocumentList
-            ref="documentListRef"
-            :reference-id="'1'"
-            :doc-id="currentProductIdForUpload?.toString() || ''"
-          />
-
-          <div class="mt-4 flex justify-end">
-            <Button @click="showUploadModal = false" variant="outline">Close</Button>
-          </div>
-        </div>
-      </div>
 
 
       <!-- Create Modal -->
       <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 
         <div class="bg-white p-6 rounded-lg w-[1000px]">
-          <h2 class="text-lg font-semibold mb-4">Add New Product</h2>
+          <h2 class="text-lg font-semibold mb-4">Buat Produk Baru</h2>
           <form @submit.prevent="handleCreate">
             <div class="space-y-4">
               <div>

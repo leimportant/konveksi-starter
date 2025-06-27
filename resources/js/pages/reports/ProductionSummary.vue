@@ -78,7 +78,7 @@ onMounted(() => {
                     <div v-else>
                         <Table>
                             <TableHeader>
-                                <TableRow>
+                                <TableRow class="bg-gray-100">
                                     <TableHead>ID</TableHead>
                                     <TableHead>Description</TableHead>
                                     <TableHead>Estimation Price/Pcs</TableHead>

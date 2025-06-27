@@ -21,6 +21,7 @@ class Inventory extends Model
         'sloc_id',
         'size_id',
         'qty',
+        'qty_reserved',
         'created_by',
         'updated_by',
         'deleted_by'

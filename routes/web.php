@@ -4,11 +4,21 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 
+
 Route::get('/', function () {
-    return Inertia::render('Home/Cart', [
-        'customers' => App\Models\Customer::all(['id', 'name']),
-    ]);
+    if (Auth::check()) {
+        return Inertia::render('Home/Cart', [
+            'customers' => App\Models\Customer::all(['id', 'name']),
+        ]);
+    } else {
+        return Inertia::render('Welcome');
+    }
 });
+
+
+Route::get('/home', function () {
+    return Inertia::render('Home/Cart');
+})->middleware(['auth', 'verified'])->name('home.cart');
 
 Route::get('/checkout', function () {
     return Inertia::render('Home/Checkout');
@@ -25,31 +35,31 @@ Route::get('/shopping', function () {
 
 Route::get('user', function () {
     return Inertia::render('user/Index');
-})->middleware(['auth'])->name('user.index');
+})->middleware(['auth'])->name('user.getIndex');
 
 Route::get('role', function () {
     return Inertia::render('role/Index');
-})->middleware(['auth'])->name('role.index');
+})->middleware(['auth'])->name('role.getIndex');
 
 Route::get('setting', function () {
     return Inertia::render('setting/Index');
-})->middleware(['auth'])->name('setting.index');
+})->middleware(['auth'])->name('setting.getIndex');
 
 Route::get('/uoms', function () {
     return Inertia::render('uoms/Index');
-})->middleware(['auth'])->name('uoms.index');
+})->middleware(['auth'])->name('uom.getIndex');
 
 Route::get('/payment-methods', function () {
     return Inertia::render('payment-method/Index');
-})->middleware(['auth'])->name('payment-method.index');
+})->middleware(['auth'])->name('payment-method.getIndex');
 
 Route::get('/sizes', function () {
     return Inertia::render('size/Index');
-})->middleware(['auth'])->name('size.index');
+})->middleware(['auth'])->name('size.getIndex');
 
 Route::get('/customers', function () {
     return Inertia::render('customer/Index');
-})->middleware(['auth'])->name('customer.index');
+})->middleware(['auth'])->name('customer.getIndex');
 
 Route::get('/home', function () {
     return Inertia::render('home/Cart');
@@ -57,11 +67,11 @@ Route::get('/home', function () {
 
 Route::get('/price-types', function () {
     return Inertia::render('price-type/Index');
-})->middleware(['auth'])->name('price-type.index');
+})->middleware(['auth'])->name('price-type.getIndex');
 
 Route::get('/product-prices', function () {
     return Inertia::render('product-price/Index');
-})->middleware(['auth'])->name('product-price.index');
+})->middleware(['auth'])->name('product-price.getIndex');
 
 Route::get('/product-prices/{id}/edit', function ($id) {
     return Inertia::render('product-price/Update', [
@@ -75,7 +85,7 @@ Route::get('/product-prices/create', function () {
 
 Route::get('/konveksi', function () {
     return Inertia::render('konveksi/Index');
-})->middleware(['auth'])->name('konveksi.index');
+})->middleware(['auth'])->name('konveksi.getIndex');
 
 Route::get('/notification', function () {
     return Inertia::render('notification/notification');
@@ -83,7 +93,7 @@ Route::get('/notification', function () {
 
 Route::get('/cash-balance', function () {
     return Inertia::render('cash-balance/Index');
-})->middleware(['auth'])->name('cash-balance.index');
+})->middleware(['auth'])->name('cash-balance.getIndex');
 
 Route::get('/cash-balance/open-shift', function () {
     return Inertia::render('cash-balance/OpenShift');
@@ -110,7 +120,7 @@ Route::get('/konveksi/model/list', function () {
 
 Route::get('/sales', function () {
     return Inertia::render('sales/Index');
-})->middleware(['auth'])->name('sales.index');
+})->middleware(['auth'])->name('sale.getIndex');
 
 Route::get('/pos', function () {
     return Inertia::render('sales/POS');
@@ -118,23 +128,23 @@ Route::get('/pos', function () {
 
 Route::get('/products', function () {
     return Inertia::render('product/Index');
-})->middleware(['auth'])->name('products.index');
+})->middleware(['auth'])->name('product.getIndex');
 
 Route::get('/categories', function () {
     return Inertia::render('category/Index');
-})->middleware(['auth'])->name('categories.index');
+})->middleware(['auth'])->name('categorie.getIndex');
 
 Route::get('/slocs', function () {
     return Inertia::render('slocs/Index');
-})->middleware(['auth'])->name('slocs.index');
+})->middleware(['auth'])->name('sloc.getIndex');
 
 Route::get('/locations', function () {
     return Inertia::render('locations/Index');
-})->middleware(['auth'])->name('locations.index');
+})->middleware(['auth'])->name('location.getIndex');
 
 Route::get('/stock-opnames', function () {
     return Inertia::render('stock-opnames/Index');
-})->middleware(['auth'])->name('stock-opnames.index');
+})->middleware(['auth'])->name('stock-opname.getIndex');
 Route::get('/stock-opnames/create', function () {
     return Inertia::render('stock-opnames/Create');
 })->middleware(['auth'])->name('stock-opnames.create');
@@ -147,7 +157,7 @@ Route::get('/stock-opnames/{id}/view', function ($id) {
 
 Route::get('/good-receive', function () {
     return Inertia::render('good-receive/Index');
-})->middleware(['auth'])->name('good-receive.index');
+})->middleware(['auth'])->name('good-receive.getIndex');
 
 Route::get('/good-receive/create', function () {
     return Inertia::render('good-receive/Create');
@@ -155,7 +165,7 @@ Route::get('/good-receive/create', function () {
 
 Route::get('/inventory', function () {
     return Inertia::render('inventory/Index');
-})->middleware(['auth'])->name('inventory.index');
+})->middleware(['auth'])->name('inventory.getIndex');
 
 Route::get('/inventory/stock-monitoring', function () {
     return Inertia::render('inventory/StockMonitoring');
@@ -168,7 +178,7 @@ Route::get('/inventory/create', function () {
 // transfer-stock
 Route::get('/transfer-stock', function () {
     return Inertia::render('transfer-stock/Index');
-})->middleware(['auth'])->name('transfer-stock.index');
+})->middleware(['auth'])->name('transfer-stock.getIndex');
 
 Route::get('/transfer-stock/create', function () {
     return Inertia::render('transfer-stock/Create');
@@ -196,7 +206,11 @@ Route::get('/production/{activity_role}', function ($activity_role) {
     return Inertia::render('production/Index', [
         'activity_role' => $activity_role,
     ]);
-})->middleware(['auth'])->name('production.index');
+})->middleware(['auth'])->name('production.getIndex');
+
+Route::get('/order/approve', function () {
+    return Inertia::render('Order/Approve');
+})->name('order.approve');
 
 Route::get('/order-history', function () {
     return Inertia::render('home/OrderHistory');
@@ -218,7 +232,7 @@ Route::get('/production/{activity_role}/edit/{id}', function ($activity_role, $i
 
 Route::get('/documents', function () {
     return Inertia::render('DocumentPage');
-})->middleware(['auth'])->name('documents.index');
+})->middleware(['auth'])->name('document.getIndex');
 
 // Google Auth Routes
 
@@ -230,9 +244,14 @@ Route::get('/production/{activity_role}/view/{id}', function ($activity_role, $i
     ]);
 })->middleware(['auth'])->name('production.view');
 
+Route::get('/reports/omset-per-payment', function () {
+    return Inertia::render('reports/OmsetReport');
+})->middleware(['auth'])->name('reports.omset-per-payment');
+
 Route::get('/reports/sales-summary', function () {
         return Inertia::render('reports/SalesSummary');
     })->middleware(['auth'])->name('reports.sales-summary');
+
 
 Route::get('/reports/production-summary', function () {
         return Inertia::render('reports/ProductionSummary');

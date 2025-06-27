@@ -10,6 +10,7 @@ import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
     {
+        id: 1,
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid as unknown as string, // Cast to string to resolve type error

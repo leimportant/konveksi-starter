@@ -18,6 +18,8 @@ class OrderItem extends Model
         'item_id',
         'order_id',
         'product_id',
+        'size_id',
+        'uom_id',
         'qty',
         'discount',
         'price',
@@ -25,7 +27,7 @@ class OrderItem extends Model
     ];
 
     protected $casts = [
-        'qty' => 'decimal:2',
+        'qty' => 'integer',
         'discount' => 'decimal:2',
         'price' => 'decimal:2',
         'price_final' => 'decimal:2',

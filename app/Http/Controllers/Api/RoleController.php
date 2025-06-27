@@ -70,4 +70,20 @@ class RoleController extends Controller
         $role->delete();
         return response()->json(null, 204);
     }
+
+    public function assignMenus(Request $request, Role $role)
+    {
+        $validator = Validator::make($request->all(), [
+            'menus' => 'required|array',
+            'menus.*' => 'exists:menus,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $role->menus()->sync($request->input('menus'));
+
+        return response()->json(['message' => 'Menu berhasil ditetapkan'], 200);
+    }
 }

@@ -32,6 +32,7 @@ interface InventoryReport {
   qty_in: number;
   qty_out: number;
   qty_available: number;
+
 }
 
 
@@ -47,6 +48,7 @@ interface State {
     location: number | null;
     sloc: string | null;
     product: number | null;
+    productName: string | null;
   };
 }
 
@@ -63,18 +65,20 @@ export const useInventoryStore = defineStore('inventory', {
       location: null,
       sloc: null,
       product: null,
+      productName: null,
     },
   }),
 
   actions: {
-     setFilter(filter: keyof State['filters'], value: string | number | null) {
+    setFilter(filter: keyof State['filters'], value: string | number | null) {
       if (filter === 'location' || filter === 'product') {
         this.filters[filter] = value === '' ? null : Number(value);
+      } else if (filter === 'productName') {
+        this.filters[filter] = value === '' ? null : String(value);
       } else {
         this.filters[filter] = value === '' ? null : String(value);
       }
     },
-
     async fetchInventory(page = 1, perPage = 10) {
       this.loading = true;
       console.log('Fetching inventory...');
@@ -82,6 +86,7 @@ export const useInventoryStore = defineStore('inventory', {
         const response = await axios.get(`/api/inventories?page=${page}&perPage=${perPage}`, {
           params: {
             ...this.filters,
+            productName: this.filters.productName, // Ensure productName is sent
           },
         });
         this.inventoryRpt = response.data.data;
@@ -97,5 +102,5 @@ export const useInventoryStore = defineStore('inventory', {
         console.log('Done loading');
       }
     },
-  },
+  }
 });

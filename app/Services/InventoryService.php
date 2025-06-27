@@ -21,6 +21,7 @@ class InventoryService
             'sloc_id' => $validated['sloc_id'],
             'size_id' => $sizeId,
             'qty' => $item['qty'],
+            'qty_reserved' => $item['qty_reserved'] ?? 0,
             'status' => $status,
             'created_by' => Auth::id(),
             'updated_by' => Auth::id()
@@ -43,6 +44,7 @@ class InventoryService
                 ->where('size_id', $data['size_id'])
                 ->update([
                     'qty' => $data['qty'],
+                    'qty_reserved' => $item['qty_reserved'] ?? 0,
                     'status' => $status,
                     'updated_by' => Auth::id()
                 ]);

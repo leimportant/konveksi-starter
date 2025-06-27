@@ -18,20 +18,23 @@ class PosOrderController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
             'payment_method_id' => 'required|exists:mst_payment_method,id',
-            'paid_amount' => 'nullable|numeric|min:0', // optional, or use total_amount for paid
+            'paid_amount' => 'nullable|numeric|min:0',
+            'customer_id' => 'nullable|integer|exists:mst_customer,id',
         ]);
 
         $userId = Auth::id();
         $products = $request->input('items');
         $paymentMethodId = $request->input('payment_method_id');
+        $customerId = $request->input('customer_id', null);
         $paidAmount = $request->input('paid_amount', null);
+        $customerId = $request->input('customer_id', null);
 
         DB::beginTransaction();
         try {
             // Ambil nama payment method
             $paymentMethod = DB::table('mst_payment_method')->where('id', $paymentMethodId)->value('name');
             if (!$paymentMethod) {
-                return response()->json(['message' => 'Invalid payment method'], 422);
+                return response()->json(['message' => 'Metode pembayaran tidak valid'], 422);
             }
 
             // Hitung total amount
@@ -60,6 +63,7 @@ class PosOrderController extends Controller
                 'paid_amount' => $paidAmount,
                 'change_amount' => $changeAmount,
                 'payment_method' => $paymentMethod,
+                'customer_id' => $customerId,
                 'status' => 'completed',
                 'notes' => null,
                 'created_by' => $userId,
@@ -95,7 +99,7 @@ class PosOrderController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Failed to place order', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Gagal menempatkan pesanan', 'error' => $e->getMessage()], 500);
         }
     }
 }

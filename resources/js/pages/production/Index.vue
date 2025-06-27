@@ -75,29 +75,26 @@ const handleDelete = async (id: string) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-2 py-2">
       <!-- Top Bar -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4">
-        <div class="flex gap-2 w-full md:w-auto">
+      <div class="flex justify-between items-center mb-6">
+           <Button @click="$inertia.visit(`/production/${props.activity_role}/create`)"  class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+          <Plus class="h-4 w-4 mr-2" />
+          Tambah Data
+        </Button>
           <Input
             v-model="searchQuery"
             placeholder="Search..."
             class="w-full md:w-64"
             @keyup.enter="fetchData"
           />
-          <Button @click="fetchData" class="whitespace-nowrap">Filter</Button>
-        </div>
-        <Button @click="$inertia.visit(`/production/${props.activity_role}/create`)">
-          <Plus class="h-4 w-4 mr-2" />
-          Add
-        </Button>
+       
       </div>
 
       <div class="space-y-4">
         <div v-if="loading" class="text-center py-4 text-gray-500">Loading...</div>
-        <div v-else-if="productions.length === 0" class="text-center py-4 text-gray-400">No records found</div>
-
+        
         <!-- Desktop Table -->
-        <div v-else class="overflow-x-auto rounded-xl border shadow-sm hidden md:block">
-          <Table class="w-full text-sm text-gray-700">
+        <div v-else class="overflow-x-auto hidden md:block">
+          <Table>
             <TableHeader>
               <TableRow class="bg-gray-100">
                 <TableHead>Model</TableHead>
@@ -144,7 +141,7 @@ const handleDelete = async (id: string) => {
               v-for="(item, index) in productions"
               :key="item.id"
               :class="[
-                'rounded-2xl border border-gray-200 p-4 shadow-sm w-full space-y-4 transition hover:shadow-md',
+                'rounded-xl border border-gray-200 p-4 shadow-sm w-full space-y-4 transition hover:shadow-md',
                 index % 2 === 1 ? 'bg-[#f0f5f0]' : 'white'
               ]"
             >

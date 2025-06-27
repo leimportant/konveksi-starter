@@ -23,6 +23,16 @@ export const useMenuStore = defineStore('menu', {
       }
     },
 
+    async fetchAllMenus() {
+      try {
+        const response = await axios.get('/all-menus');
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch all menus', error);
+        return [];
+      }
+    },
+
     toggleCollapse() {
       this.isCollapsed = !this.isCollapsed;
     },

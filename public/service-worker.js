@@ -2,10 +2,11 @@ const CACHE_NAME = 'laravel-vue-starter-kit-cache-v1';
 const urlsToCache = [
     '/',
     '/index.php',
-    '/css/app.css',
-    '/js/app.ts',
-    '/images/icons/icon-192x192.png',
-    '/images/icons/icon-512x512.png',
+
+    '/build/assets/app-CdNUM1aL.js',
+    '/build/assets/app-C9BzIwe6.css',
+    '/images/icons/icon-192x192.svg',
+    '/images/icons/icon-512x512.svg',
     '/manifest.json'
 ];
 

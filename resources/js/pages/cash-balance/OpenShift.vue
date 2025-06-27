@@ -24,7 +24,7 @@
 
             <div>
               <label for="openingBalance" class="block text-sm font-medium mb-1">
-                Opening Balance
+                Saldo Awal
               </label>
               <Input
                 id="openingBalance"
@@ -56,7 +56,7 @@
                   <Spinner class="mr-2" />
                   Processing...
                 </span>
-                <span v-else>Open Shift</span>
+                <span v-else>Mulai Shift</span>
               </Button>
             </div>
           </form>

@@ -70,8 +70,7 @@
         <!-- Document Tab -->
 
         <div v-if="activeTab === 'document'" class="space-y-6">
-          <DocumentUpload v-model:visible="showUploadDialog" reference-id="MODEL" :doc-id="'MDL-' + modelId"
-            module="model" accept="image/*" @uploaded="handleDocumentUploaded" />
+          <DocumentList :reference-id="currentProductIdForUpload" :reference-type="referenceType" />
         </div>
 
         <div v-if="activeTab === 'bahan dan biaya'">
@@ -100,7 +99,7 @@
           <Button type="button" variant="outline" @click="router.visit('/konveksi/model/list')">
             Batal
           </Button>
-          <Button type="submit">Simpan Perubahan</Button>
+          <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan Perubahan</Button>
         </div>
       </form>
     </div>
@@ -116,7 +115,7 @@ import { Head, useForm, router } from '@inertiajs/vue3';
 import { Input } from '@/components/ui/input';
 import { DateInput } from '@/components/ui/date-input';
 import { Button } from '@/components/ui/button';
-import DocumentUpload from '@/components/DocumentUpload.vue';
+import DocumentList from '@/components/DocumentList.vue';
 import SizeTab from '@/components/SizeTab.vue';
 import ActivityTab from '@/components/ActivityTab.vue';
 import ModelMaterialTab from '@/components/ModelMaterialTab.vue';
@@ -132,13 +131,14 @@ const props = defineProps<{
 }>();
 
 const modelId = ref(Number(props.modelId));  // Pastikan tipe data diubah ke Number
-
+const currentProductIdForUpload =  (modelId.value ?? '');
 // Tabs setup
 const tabs = ['model', 'size', 'activity', 'document', 'bahan dan biaya', 'hpp'] as const;
 type Tab = typeof tabs[number];
 const activeTab = ref<Tab>(tabs[0]);
 const errors = ref<Record<string, string[]>>({});
 
+const referenceType = 'Model';
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Konveksi', href: '/konveksi' },
@@ -160,11 +160,7 @@ const form = useForm({
 });
 
 // Document handling
-const showUploadDialog = ref(false);
 const uploadedDocuments = ref<{ id: string; url: string; filename: string }[]>([]);
-
-const handleDocumentUploaded = (doc: any) => uploadedDocuments.value.push(doc);
-// const removeDocument = (idx: number) => uploadedDocuments.value.splice(idx, 1);
 
 // Size items
 const sizeItems = ref<{ size_id: string; qty: number }[]>([]);

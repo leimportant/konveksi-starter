@@ -11,6 +11,7 @@ export interface BreadcrumbItem {
 }
 
 export interface NavItem {
+    id: number;
     title: string;
     href: string;
     icon?: string;

@@ -17,7 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Konveksi', href: '/konveksi' },
 ];
 
-const handleProcessClick = (processId: number) => {
+const handleProcessClick = (processId: string) => {
   router.visit(`/production/${processId}`);
 };
 const handleListModelClick = () => {
@@ -42,7 +42,7 @@ const handleListGoodReceiveClick = () => {
         >
           <ShirtIcon class="h-12 w-12 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-sky-100 dark:bg-sky-800 py-2 text-center font-semibold text-sky-700 dark:text-sky-300 text-sm sm:text-base md:text-sm">
-            ORDER MODEL
+            BUAT DESIGN
           </div>
         </div>
 
@@ -60,7 +60,7 @@ const handleListGoodReceiveClick = () => {
         <!-- CUTTING -->
         <div
           class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
-          @click="handleProcessClick(1)"
+          @click="handleProcessClick('CUTTING')"
         >
           <Scissors class="h-12 w-12 text-green-600 dark:text-green-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-green-100 dark:bg-green-800 py-2 text-center font-semibold text-green-700 dark:text-green-300 text-sm sm:text-base md:text-sm">
@@ -71,18 +71,18 @@ const handleListGoodReceiveClick = () => {
         <!-- SEWING -->
         <div
           class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
-          @click="handleProcessClick(2)"
+          @click="handleProcessClick('SEWING')"
         >
           <Cable class="h-12 w-12 text-blue-600 dark:text-blue-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-blue-100 dark:bg-blue-800 py-2 text-center font-semibold text-blue-700 dark:text-blue-300 text-sm sm:text-base md:text-sm">
-            SEWING
+            JAHIT
           </div>
         </div>
 
         <!-- FINISHING -->
         <div
           class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
-          @click="handleProcessClick(4)"
+          @click="handleProcessClick('FINISHING')"
         >
           <Scale3D class="h-12 w-12 text-orange-600 dark:text-orange-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-orange-100 dark:bg-orange-800 py-2 text-center font-semibold text-orange-700 dark:text-orange-300 text-sm sm:text-base md:text-sm">
@@ -93,7 +93,7 @@ const handleListGoodReceiveClick = () => {
         <!-- PAKING -->
         <div
           class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-yellow-50 dark:bg-yellow-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
-          @click="handleProcessClick(3)"
+          @click="handleProcessClick('PAKING')"
         >
           <ShoppingBag class="h-12 w-12 text-yellow-600 dark:text-yellow-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-yellow-100 dark:bg-yellow-800 py-2 text-center font-semibold text-yellow-700 dark:text-yellow-300 text-sm sm:text-base md:text-sm">
@@ -104,7 +104,7 @@ const handleListGoodReceiveClick = () => {
         <!-- PENGIRIMAN -->
         <div
           class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
-          @click="handleProcessClick(5)"
+          @click="handleProcessClick('PENGIRIMAN')"
         >
           <Truck class="h-12 w-12 text-red-600 dark:text-red-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-red-100 dark:bg-red-800 py-2 text-center font-semibold text-red-700 dark:text-red-300 text-sm sm:text-base md:text-sm">
@@ -115,11 +115,11 @@ const handleListGoodReceiveClick = () => {
         <!-- QUALITY CHECK -->
         <div
           class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-violet-50 dark:bg-violet-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
-          @click="handleProcessClick(6)"
+          @click="handleProcessClick('QUALITY_CHECK')"
         >
           <CalendarCheck class="h-12 w-12 text-violet-600 dark:text-violet-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-violet-100 dark:bg-violet-800 py-2 text-center font-semibold text-violet-700 dark:text-violet-300 text-sm sm:text-base md:text-sm">
-            QUALITY CHECK
+            QUALITY CHECK (REJECT)
           </div>
         </div>
 

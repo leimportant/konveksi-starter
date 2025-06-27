@@ -44,7 +44,7 @@ class DashboardController extends Controller
             ->join('t_order_items as b', 'a.id', '=', 'b.order_id')
             ->leftJoin('mst_product as c', 'b.product_id', '=', 'c.id')
             ->selectRaw('DATE(a.created_at) AS sale_date, b.product_id, c.name AS product_name, SUM(b.qty) AS total_sold')
-            ->whereIn('a.status', ['done', 'diprosess']) // hanya order selesai
+            ->whereIn('a.status', ['done', 'diproses']) // hanya order selesai
             ->whereBetween('a.created_at', [$startDate, $endDate])
             ->groupBy('sale_date', 'b.product_id', 'c.name')
             ->orderBy('sale_date', 'ASC')

@@ -77,14 +77,14 @@
       <!-- Floating Cart Icon -->
       <div class="hidden md:block absolute top-4 right-4 z-50">
         <button @click="toggleCart" class="relative bg-white p-2 rounded-full shadow hover:shadow-md">
-          🛒
+          🛒 
           <span v-if="cartQty > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {{ cartQty }}
           </span>
         </button>
       </div>
 
-      <div class="fixed top-4 right-4 z-50 md:hidden">
+      <div class="block fixed top-4 right-4 z-50 md:hidden">
         <button @click="toggleCart" class="relative bg-white p-2 rounded-full shadow hover:shadow-md">
           🛒
           <span v-if="cartQty > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -98,7 +98,7 @@
        <!-- Cart Backdrop -->
       <div
         v-if="showCart"
-        class="fixed inset-0 bg-black bg-opacity-30 z-30 md:hidden"
+       class="fixed inset-0 bg-black bg-opacity-30 z-30 md:hidden"
         @click="showCart = false"
       />
 
@@ -110,7 +110,7 @@
         ]"
       >
 
-        <h2 class="text-xl font-bold mb-4">Cart</h2>
+        <h2 class="text-xl font-bold mb-4">Keranjang Belanja</h2>
 
         <div ref="orderList" class="flex-1 overflow-y-auto space-y-4 pr-1">
           <div v-if="cartItems.length === 0" class="text-gray-400 text-center mt-10">
@@ -126,13 +126,16 @@
               v-if="item.image_path"
               :src="getImageUrl(item.image_path)"
               alt="product"
-              class="w-14 h-14 object-cover rounded"
+              class="w-12 h-12 object-cover rounded"
             />
             <div class="flex-1 min-w-0">
               <p class="font-semibold text-sm truncate">{{ item.product_name }}</p>
               <p class="text-xs text-gray-400">Stock: {{ item.qty_stock }}</p>
               <p class="text-xs text-gray-800">
                 {{ formatRupiah((item.price_sell ?? 0) > 0 ? item.price_sell ?? 0 : item.price ?? 0) }}
+              </p>
+              <p class="text-xs text-gray-800">Diskon
+                {{ formatRupiah((item.discount ?? 0) > 0 ? item.discount ?? 0 : item.discount ?? 0) }}
               </p>
             </div>
             <div class="flex items-center space-x-1">
@@ -151,12 +154,13 @@
           </div>
         </div>
 
-        <div class="mt-4 border-t pt-4 space-y-2">
-          <p class="text-lg font-semibold">Total: {{ formatRupiah(cartTotal) }}</p>
+        <div class="mt-2 pt-4 space-y-2">
+          <p class="text-sm font-semibold">Total Diskon: {{ formatRupiah(cartTotalDiscount) }}</p>
+          <p class="text-sm font-semibold">Total: {{ formatRupiah(cartTotal) }}</p>
           <button
             @click="proceedToCheckout"
             class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-          >Proceed to Checkout</button>
+          >Lanjut Checkout</button>
         </div>
       </aside>
 
@@ -230,7 +234,7 @@
               @click="addToCart"
               :disabled="(selectedProduct?.qty_stock ?? 0) === 0"
               class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-            >Add to Cart</button>
+            >Tambah Keranjang</button>
           </div>
         </div>
       </div>
@@ -443,19 +447,27 @@ const cartItems = computed(() => {
       id: item.product_id, // Ensure 'id' is the product ID for this 'Product' type
       cartItemId: item.id, // Store the cart item's actual ID here
       quantity: item.quantity, // Ensure quantity is from cart item
-      price: item.price,
+      price: item.price ?? 0,
+      price_sell: item.price_sell ?? 0,
+      discount: item.discount ?? 0,
       size_id: item.size_id,
       uom_id: item.uom_id
     } as Product;
   }).filter(Boolean);
 });
 
-const cartTotal = computed(() =>
-  cartStore.cartItems.reduce((total: number, item) => {
-    const price = (item.price ?? 0) > 0 ? item.price ?? 0 : item.price ?? 0;
-    return total + (item.quantity || 0) * price;
-  }, 0)
-);
+const cartTotal = computed(() => {
+  return cartStore.cartItems.reduce((sum, item) => sum + (item.price_sell ?? 0 > 0 ? item.price_sell ?? 0 : item.price) * item.quantity, 0);
+});
+
+const cartTotalDiscount = computed(() => {
+  return cartStore.cartItems.reduce((sum, item) => {
+    const originalPrice = item.price || 0;
+    const finalPricePerItem = (item.price_sell ?? 0) > 0 ? (item.price_sell ?? 0) : (item.price || 0);
+    const discountPerItem = originalPrice - finalPricePerItem;
+    return sum + (discountPerItem * (item.quantity || 0));
+  }, 0);
+});
 
 const prevPage = () => {
   if (currentPage.value > 1) {
@@ -477,8 +489,9 @@ const proceedToCheckout = () => {
   router.visit('/checkout');
 };
 
-onMounted(() => {
-  fetchProducts();
+onMounted(async () => {
+  showCart.value = false; // Ensure cart is closed on mount
+  await fetchProducts();
 });
 </script>
 
@@ -493,7 +506,6 @@ onMounted(() => {
     padding-bottom: 20px;
     padding-left: 5px;
     padding-right: 5px;
-    transform: translateX(0);
     height: fit-content;
     top: 4rem;
   }

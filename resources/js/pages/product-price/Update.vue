@@ -43,6 +43,7 @@
             <TableHead>Ukuran</TableHead>
             <TableHead>Harga</TableHead>
             <TableHead>Discount</TableHead>
+            <TableHead>Harga Jual</TableHead>
             <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -117,6 +118,13 @@
                   {{ errors[`product_price.${index}.discount`] }}
                 </p>
               </TableCell>
+             <TableCell>
+                <Input type="number" readonly v-model.number="detail.price_sell" :id="`price_sell_${index}`"
+                  @input="clearError(`product_price.${index}.price_sell`)" class="w-full" />
+                <p v-if="errors[`product_price.${index}.price_sell`]" class="text-red-600 text-xs mt-1">
+                  {{ errors[`product_price.${index}.price_sell`] }}
+                </p>
+              </TableCell>
 
           <TableCell class="text-center">
             <Button variant="ghost" size="icon"
@@ -129,7 +137,7 @@
       </TableBody>
     </Table>
 
-        <Button @click="addDetailRow" variant="outline" class="mt-2">Add</Button>
+        <Button @click="addDetailRow" variant="outline" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Add</Button>
       </div>
 
       <!-- Submit -->
@@ -148,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useForm, router } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
@@ -193,6 +201,12 @@ const form = useForm({
 })
 
 const productPriceStore = useProductPriceStore()
+
+watch(() => form.product_price, (newVal) => {
+  newVal.forEach(detail => {
+    detail.price_sell = detail.price - detail.discount;
+  });
+}, { deep: true, immediate: true });
 
 onMounted(async () => {
   await fetchDropdowns()

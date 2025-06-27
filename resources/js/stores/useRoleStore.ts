@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import type { NavItem } from '@/types/index.d';
 
-interface Role {
-    id: string;
-    name: string;
+export interface Role {
+  id: number;
+  name: string;
+  menus?: NavItem[];
 }
 
 export const useRoleStore = defineStore('role', {
@@ -43,10 +45,18 @@ export const useRoleStore = defineStore('role', {
             }
         },
 
-        async deleteRole(id: string) {
+        async deleteRole(id: number) {
             try {
                 await axios.delete(`/api/roles/${id}`);
                 await this.fetchRoles();
+            } catch (error) {
+                throw error;
+            }
+        },
+
+        async assignMenusToRole(roleId: number, menuIds: number[]) {
+            try {
+                await axios.post(`/api/roles/${roleId}/assign-menus`, { menus: menuIds });
             } catch (error) {
                 throw error;
             }

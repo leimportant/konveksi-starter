@@ -25,12 +25,12 @@ class GoodReceiveController extends Controller
             'date' => 'required|date',
             'model_id' => 'required|exists:tr_model,id',
             'recipent' => 'required|string|max:255',
-            'good_receive_items' => 'required|array',
-            'good_receive_items.*.model_material_id' => 'required|exists:mst_product,id',
-            'good_receive_items.*.qty' => 'required|numeric|min:0',
-            'good_receive_items.*.qty_convert' => 'required|numeric|min:0',
-            'good_receive_items.*.uom_base' => 'required|exists:mst_uom,id',
-            'good_receive_items.*.uom_convert' => 'required|exists:mst_uom,id',
+            'items' => 'required|array',
+            'items.*.model_material_id' => 'required|exists:mst_product,id',
+            'items.*.qty' => 'required|numeric|min:0',
+            'items.*.qty_convert' => 'required|numeric|min:0',
+            'items.*.uom_base' => 'required|exists:mst_uom,id',
+            'items.*.uom_convert' => 'required|exists:mst_uom,id',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -39,7 +39,7 @@ class GoodReceiveController extends Controller
         $goodReceive = GoodReceive::create($validated);
         
         // Save items
-        foreach ($request->good_receive_items as $item) {
+        foreach ($request->items as $item) {
             $goodReceive->items()->create([
                 'model_material_id' => $item['model_material_id'],
                 'model_material_item' => $item['model_material_item'],

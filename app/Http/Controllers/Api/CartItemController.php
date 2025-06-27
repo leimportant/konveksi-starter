@@ -81,6 +81,13 @@ class CartItemController extends Controller
         }
     }
 
+    public function getItem() {
+        $cartItem = CartItem::with('product')
+                ->where('created_by', Auth::id())
+                ->get();
+        return response()->json($cartItem, 201);
+    }
+
     /**
      * Remove a product from the cart.
      */

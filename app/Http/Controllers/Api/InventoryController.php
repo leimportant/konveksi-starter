@@ -111,25 +111,24 @@ class InventoryController extends Controller
     {
         $perPage = $request->input('perPage', 10);
         $page = $request->input('page', 1);
-        $location = $request->input('location');
-        $sloc = $request->input('sloc');
-        $product = $request->input('product');
+        $search = $request->input('productName', '');
 
         $bindings = [];
-
+        $location = Auth::user()->location_id ?? null;
         $where = "WHERE 1 = 1";
         $where .= " AND a.location_id = ?";
         $bindings[] = $location;
 
-        if ($sloc) {
-            $where .= " AND a.sloc_id = ?";
-            $bindings[] = $sloc;
-        }
-        if ($product) {
-            $where .= " AND a.product_id = ?";
-            $bindings[] = $product;
+        if ($search) {
+            $search = '%' . $search . '%';
+            $where .= " AND (b.name LIKE ? OR a.product_id LIKE ? OR d.name LIKE ? OR c.name LIKE ?)";
+            $bindings[] = $search;
+            $bindings[] = $search;
+            $bindings[] = $search;
+            $bindings[] = $search;
         }
 
+       
         $sql = "
         SELECT 
             a.product_id,
@@ -142,7 +141,7 @@ class InventoryController extends Controller
             a.size_id,
             COALESCE(qty_in_data.qty_in, 0) AS qty_in,
             COALESCE(qty_out_data.qty_out, 0) AS qty_out,
-            (COALESCE(qty_in_data.qty_in, 0) - COALESCE(qty_out_data.qty_out, 0)) AS qty_available
+            (COALESCE(qty_in_data.qty_in, 0) - COALESCE(qty_in_data.qty_reserved, 0) - COALESCE(qty_out_data.qty_out, 0)) AS qty_available
         FROM tr_inventory a
         LEFT JOIN mst_product b ON a.product_id = b.id
         LEFT JOIN mst_sloc c ON a.sloc_id = c.id
@@ -150,7 +149,8 @@ class InventoryController extends Controller
         LEFT JOIN (
             SELECT 
                 product_id, location_id, uom_id, sloc_id, size_id, 
-                SUM(qty) AS qty_in
+                SUM(qty) AS qty_in,
+                SUM(qty_reserved) AS qty_reserved
             FROM tr_inventory
             WHERE status = 'IN'
             GROUP BY product_id, location_id, uom_id, sloc_id, size_id
@@ -184,6 +184,7 @@ class InventoryController extends Controller
         c.name,
         a.size_id,
         qty_in_data.qty_in,
+        qty_in_data.qty_reserved,
         qty_out_data.qty_out";
 
         // Execute the query
@@ -237,6 +238,7 @@ class InventoryController extends Controller
             ], [
                 'size_id' => $validated['size_id'],
                 'qty' => $validated['qty'],
+                'qty_reserved' => 0, // Set reserved qty to 0 for new inventory
             ], 'IN');
 
             return response()->json([

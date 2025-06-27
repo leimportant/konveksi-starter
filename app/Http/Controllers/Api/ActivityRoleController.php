@@ -10,9 +10,14 @@ use Illuminate\Support\Facades\Auth;
 
 class ActivityRoleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $roles = ActivityRole::latest()->paginate(10);
+        $groupMenu = $request->query('group_menu');
+        $query = ActivityRole::latest();
+        if ($groupMenu) {
+            $query = $query->where('group_menu', $groupMenu);
+        }
+        $roles = $query->paginate(10);
         return response()->json($roles);
     }
 

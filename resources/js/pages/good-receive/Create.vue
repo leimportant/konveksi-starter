@@ -134,7 +134,7 @@ const handleSubmit = async () => {
     <div class="px-2 py-4 sm:px-4 sm:py-6">
       <div class="mx-auto">
         <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-          <h2 class="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Create Good Receive</h2>
+          <h2 class="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Penerimaan Kain</h2>
           <form @submit.prevent="handleSubmit" class="space-y-4 sm:space-y-6">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
               <div>
@@ -211,7 +211,7 @@ const handleSubmit = async () => {
               <Button type="button" variant="outline" @click="$inertia.visit('/good-receive')">
                 Cancel
               </Button>
-              <Button type="submit">Create</Button>
+              <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
             </div>
           </form>
         </div>

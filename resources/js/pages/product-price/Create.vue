@@ -35,6 +35,7 @@
               <TableHead>Ukuran</TableHead>
               <TableHead>Harga</TableHead>
               <TableHead>Discount</TableHead>
+              <TableHead>Harga Jual</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -83,6 +84,14 @@
                 </p>
               </TableCell>
 
+              <TableCell>
+                <Input type="number" readonly v-model.number="detail.price_sell" :id="`price_sell_${index}`"
+                  @input="clearError(`product_price.${index}.price_sell`)" class="w-full" />
+                <p v-if="errors[`product_price.${index}.price_sell`]" class="text-red-600 text-xs mt-1">
+                  {{ errors[`product_price.${index}.price_sell`] }}
+                </p>
+              </TableCell>
+
 
               <TableCell class="text-center">
                 <Button variant="ghost" size="icon" @click="removeDetailRow(index)">
@@ -109,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useForm, router } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
@@ -120,11 +129,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import axios from 'axios'
 import Vue3Select from 'vue3-select'
 import 'vue3-select/dist/vue3-select.css'
+import { useProductPriceStore } from '@/stores/useProductPriceStore';
 import { Head } from '@inertiajs/vue3'
 import { Trash2 } from 'lucide-vue-next'
 
 const toast = useToast()
-
+const productPriceStore = useProductPriceStore();
 const breadcrumbs = [
   { title: 'Add Product Prices', href: '/product-prices/create' }
 ]
@@ -140,10 +150,11 @@ const form = useForm({
   effective_date: new Date().toISOString().split('T')[0],
   cost_price: 0,
   product_price: [] as {
-    price_type_id: number | undefined
+    price_type_id: number
     discount: number | 0
     size_id: string | ""
     price: number
+    price_sell: number
   }[],
 })
 
@@ -192,12 +203,14 @@ const removeDetailRow = (index: number) => {
 
 
 const addDetailRow = () => {
-  form.product_price.push({
-    price_type_id: undefined,
+  const newRow = {
+    price_type_id: 0, // Initialize with a default number, assuming 0 is a valid default or will be replaced by user selection
     size_id: "",
     price: 0,
     discount: 0,
-  })
+    price_sell: 0,
+  };
+  form.product_price.push(newRow);
 }
 
 
@@ -208,6 +221,12 @@ const clearError = (field: string) => {
     }
   })
 }
+
+watch(() => form.product_price, (newVal) => {
+  newVal.forEach(detail => {
+    detail.price_sell = detail.price - detail.discount;
+  });
+}, { deep: true, immediate: true });
 
 const submit = async () => {
   if (form.product_id === undefined) {
@@ -223,12 +242,14 @@ const submit = async () => {
   }
   const productId = typeof form.product_id === 'object' ? form.product_id.id : form.product_id;
   try {
-    await axios.post('/api/product-price', {
+
+    await productPriceStore.createProductPrice({
       product_id: productId,
       effective_date: form.effective_date,
       cost_price: form.cost_price,
       price_types: form.product_price,
     })
+
     toast.success('Data created successfully')
     router.visit('/product-prices')
   } catch (error: any) {

@@ -3,23 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Minishlink\WebPush\WebPush;
-use Minishlink\WebPush\Subscription;
+use App\Notifications\PushNotification;
+use Illuminate\Support\Facades\Log;
 
 class PushController extends Controller
 {
-    protected function getWebPush()
-    {
-        return new WebPush([
-            'VAPID' => [
-                'subject' => env('APP_URL'),
-                'publicKey' => env('VAPID_PUBLIC_KEY'),
-                'privateKey' => env('VAPID_PRIVATE_KEY'),
-                'pemFile' => null,
-                'pem' => null,
-            ]
-        ]);
-    }
+
 
     public function subscribe(Request $request)
     {
@@ -31,7 +20,7 @@ class PushController extends Controller
             $request->input('keys.auth')
         );
 
-        return response()->json(['message' => 'Successfully subscribed']);
+        return response()->json(['message' => 'Berhasil berlangganan']);
     }
 
     public function send(Request $request)
@@ -39,34 +28,20 @@ class PushController extends Controller
         try {
             $user = $request->user();
             if (!$user->pushSubscription) {
-                return response()->json(['message' => 'Not subscribed'], 400);
+                return response()->json(['message' => 'Tidak berlangganan'], 400);
             }
 
-            $subscription = Subscription::create([
-                'endpoint' => $user->pushSubscription->endpoint,
-                'publicKey' => $user->pushSubscription->p256dh_key,
-                'authToken' => $user->pushSubscription->auth_token,
-            ]);
+            $title = 'Test Notification';
+            $body = 'This is a test notification';
+            $url = null; // You can set a URL here if needed
 
-            $payload = json_encode([
-                'title' => 'Test Notification',
-                'body' => 'This is a test notification',
-                'icon' => '/icon.png',
-                'badge' => '/badge.png'
-            ]);
+            $user->notify(new PushNotification($title, $body, $url));
 
-            $webPush = $this->getWebPush();
-            $report = $webPush->sendOneNotification($subscription, $payload);
-
-            if ($report->isSuccess()) {
-                return response()->json(['message' => 'Notification sent successfully']);
-            }
-
-            return response()->json(['message' => 'Failed: ' . $report->getReason()], 500);
+            return response()->json(['message' => 'Notifikasi berhasil dikirim']);
 
         } catch (\Exception $e) {
-            \Log::error('Push notification error: ' . $e->getMessage());
-            return response()->json(['message' => 'Error sending notification'], 500);
+            Log::error('Push notification error: ' . $e->getMessage());
+            return response()->json(['message' => 'Kesalahan saat mengirim notifikasi'], 500);
         }
     }
 }

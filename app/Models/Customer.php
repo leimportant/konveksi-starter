@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Customer extends Model
 {
@@ -27,11 +28,11 @@ class Customer extends Model
         static::creating(function ($model) {
             $lastCustomer = self::orderBy('id', 'desc')->first();
             $model->id = $lastCustomer ? $lastCustomer->id + 1 : 10001;
-            $model->created_by = auth()->id();
+            $model->created_by = Auth::id();
         });
 
         static::updating(function ($model) {
-            $model->updated_by = auth()->id();
+            $model->updated_by = Auth::id();
         });
     }
 }

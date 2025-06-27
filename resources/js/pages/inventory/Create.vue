@@ -18,14 +18,14 @@ const toast = useToast()
 // Form data
 const formData = ref<{
   product_id: number | { id: number };       // bisa number atau object berisi id
-  location_id: number | { id: number };
+  location_id: Location;
   sloc_id: string | { id: string };
   uom_id: string;
   size_id?: string | { id: number };
   qty: number;
 }>({
   product_id: 0,
-  location_id: { id: 1 },
+  location_id: { id: 1, name: 'Loading Location...' },
   sloc_id: 'GS00',
   uom_id: 'PCS',
   size_id: '',
@@ -88,7 +88,10 @@ const fetchDropdownData = async () => {
     ]);
 
     products.value = productsRes.data.data;
-    locations.value = locationsRes.data.data;
+    locations.value = locationsRes.data.data.map((location: { id: number; name?: string }) => ({
+      id: location.id,
+      name: location?.name || `Location ${location.id}` // Provide meaningful default name
+    }));
     slocs.value = slocsRes.data.data;
     sizes.value = sizeRes.data.data;
   } catch (err: any) {
@@ -124,36 +127,42 @@ const handleSubmit = async () => {
 };
 
 
-onMounted(() => {
-  fetchDropdownData();
+onMounted(async () => {
+  await fetchDropdownData();
+
+  // Set default location after data is fetched
+  if (locations.value.length > 0) {
+    const defaultLocation = locations.value.find(loc => loc.id === 1);
+    if (defaultLocation) {
+      formData.value.location_id = defaultLocation;
+    }
+  }
 });
 
 
 
 watch(() => formData.value.product_id, (newProduct) => {
   const id = typeof newProduct === 'object' ? newProduct.id : newProduct;
-  const selected = products.value.find((p: any) => p.id === id);
+  const selected = searchResults.value.find((p: any) => p.id === id); // Search in searchResults
 
   if (selected && selected.uom_id) {
     formData.value.uom_id = selected.uom_id;
   } else {
     formData.value.uom_id = '';
   }
-});
-
+}, { deep: true });
 
 </script>
 
 <template>
 
-  <Head title="Add Product Prices" />
+  <Head title="Tambah Stock Gudang" />
   <AppLayout :breadcrumbs="breadcrumbs">
 
 
     <div class="p-6">
-      <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-semibold mb-8 text-gray-900">Create Inventory</h1>
-
+      <div class="full-w mx-auto">
+     
         <form @submit.prevent="handleSubmit" class="space-y-6">
           <!-- Error message -->
           <div v-if="error" class="bg-red-50 text-red-700 border border-red-300 p-4 rounded-md shadow-sm">
@@ -166,7 +175,7 @@ watch(() => formData.value.product_id, (newProduct) => {
             <!-- Location -->
             <div>
               <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
-              <Vue3Select id="location" v-model="formData.location_id" :options="locations" label="name" value="id"
+              <Vue3Select id="location" v-model="formData.location_id" :options="locations" label="name"
                 placeholder="Select Location" class="w-full" />
             </div>
 

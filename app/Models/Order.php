@@ -20,6 +20,7 @@ class Order extends Model
         'total_amount',
         'payment_method',
         'payment_proof',
+        'total_amount',
         'is_paid',
         'status',
         'created_by',
@@ -27,9 +28,20 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'total_amount' => 'decimal:2',
         'status' => \App\Enums\OrderStatusEnum::class,
     ];
+
+
+    public static function generateUniqueShortId()
+    {
+        do {
+            $numbers = str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            $letters = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(4));
+            $id = $numbers . $letters;
+        } while (self::where('id', $id)->exists());
+
+        return $id;
+    }
 
     public function customer()
     {

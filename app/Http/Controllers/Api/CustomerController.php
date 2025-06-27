@@ -24,6 +24,17 @@ class CustomerController extends Controller
         return response()->json($categories);
     }
 
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+
+        $customers = Customer::where('name', 'like', '%' . $query . '%')
+            ->orWhere('phone_number', 'like', '%' . $query . '%')
+            ->limit(10)
+            ->get();
+
+        return response()->json($customers);
+    }
 
     public function store(Request $request)
     {
@@ -32,8 +43,8 @@ class CustomerController extends Controller
 
             $validated = $request->validate([
                 'name' => 'required|string|max:100',
-                'address' => 'required|string|max:200',
-                'phone_number' => 'required|string|max:20',
+                'address' => 'nullable|string|max:200',
+                'phone' => 'nullable|string|max:20',
                 'saldo_kredit' => 'numeric|min:0',
                 'is_active' => 'in:Y,N'
             ]);
@@ -42,16 +53,22 @@ class CustomerController extends Controller
             $validated['created_by'] = Auth::id();
             $validated['updated_by'] = Auth::id();
 
+            // Map 'phone' from request to 'phone_number' for the Customer model
+            if (isset($validated['phone'])) {
+                $validated['phone_number'] = $validated['phone'];
+                unset($validated['phone']); // Remove 'phone' as it's not a direct column
+            }
+
             $customer = Customer::create($validated);
 
-               // automatically insert into table users
+            // automatically insert into table users
             $isExists = DB::table('users')->where('id', $customer->id)->exists();
             if (!$isExists) {
                 DB::table('users')->insert([
                     'id' => $customer->id,
-                    'name' => $customer->name,  
-                    'email' => $customer->phone_number . '@example.com', // Use phone number as email
-                    'password' => bcrypt($request->phone_number), // Set a default password
+                    'name' => $customer->name,
+                    'email' => ($customer->phone_number ?? $customer->name) . '@example.com', // Use phone number or name as email
+                    'password' => bcrypt($customer->phone_number ?? $customer->name), // Set a default password
                     'phone_number' => $customer->phone_number,
                     'is_active' => $customer->is_active === 'Y' ? true : false,
                     'created_at' => now(),

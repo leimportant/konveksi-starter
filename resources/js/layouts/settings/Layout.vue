@@ -4,21 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import type { PageProps } from '@/types/page-props'; // adjust path as needed
 import { useSidebarStore } from '@/stores/useSidebarStore'
 
 const sidebarNavItems: NavItem[] = [
     {
+        id: 1,
         title: 'Profile',
         href: '/settings/profile',
     },
     {
+        id: 2,
         title: 'Password',
         href: '/settings/password',
     },
 ];
 
-const page = usePage<PageProps>();
+const page = usePage();
 
 const sidebarStore = useSidebarStore()
 
@@ -42,7 +43,7 @@ const currentPath = page.props.ziggy?.location
                         v-for="item in sidebarNavItems"
                         :key="item.href"
                         variant="ghost"
-                        :class="['w-full justify-start', { 'bg-muted': currentPath === item.href }]"
+                        :class="['w-full justify-start text-sm', { 'bg-muted': currentPath === item.href }]"
                         as-child
                     >
                         <Link :href="item.href">
