@@ -96,4 +96,15 @@ class LocationController extends Controller
 
         return response()->noContent();
     }
+
+    
+    public function getLocations(Request $request)
+    {
+        $user = Auth::user();
+        $locationId = $user ? $user->location_id : null;
+
+        $query = $locationId ? Location::where('id', $locationId)->first() : null;
+
+        return response()->json($query);
+    }
 }

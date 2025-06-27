@@ -115,6 +115,7 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/price-types', PriceTypeController::class);
     Route::apiResource('api/product-prices', ProductPriceController::class);
     Route::apiResource('api/locations', LocationController::class);
+    Route::get('api/locations/get', [LocationController::class, 'getLocations']);
     Route::get('api/stock', [InventoryController::class, 'getStock']);
     Route::apiResource('api/inventories', InventoryController::class);
 
