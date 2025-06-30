@@ -63,9 +63,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('api/push/send', [PushController::class, 'send']);
 });
 
-Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
-#Route::get('auth/google', 'App\Http\Controllers\Auth\GoogleController@redirectToGoogle');
-Route::get('auth/google/callback', 'App\Http\Controllers\Auth\GoogleController@handleGoogleCallback');
 
 Route::middleware('auth')->group(function () {
 
@@ -127,6 +124,7 @@ Route::middleware('auth')->group(function () {
     Route::post('api/document-attachments/upload', [DocumentAttachmentController::class, 'upload']);
     Route::get('api/document-attachments', [DocumentAttachmentController::class, 'index']);
     Route::delete('api/document-attachments/{id}', [DocumentAttachmentController::class, 'destroy']);
+    Route::get('api/document-attachments/{id}/view', [DocumentAttachmentController::class, 'viewAttachment']);
 
     Route::get('api/cart-items', [CartItemController::class, 'index']);
     Route::post('api/cart-items/add', [CartItemController::class, 'addToCart']); // Add to cart

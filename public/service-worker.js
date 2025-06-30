@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aninkafashion.com-cache-v1';
+const CACHE_NAME = 'laravel-vue-starter-kit-cache-v1';
 const urlsToCache = [
     '/',
     '/index.php',

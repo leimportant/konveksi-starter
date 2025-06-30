@@ -188,12 +188,34 @@
           >&times;</button>
 
           <div>
-            <img
-              v-if="selectedProduct?.image_path"
-              :src="getImageUrl(selectedProduct.image_path)"
-              alt="product"
-              class="mb-4 w-full h-48 object-cover rounded-lg"
-            />
+            <div v-if="selectedProduct?.gallery_images && selectedProduct.gallery_images.length > 0">
+              <Swiper
+                :slides-per-view="1"
+                :space-between="10"
+                :modules="modules"
+                :pagination="{ clickable: true }"
+                :navigation="true"
+                class="mb-4 w-full h-48 rounded-lg"
+              >
+                <SwiperSlide v-for="(image, index) in selectedProduct.gallery_images" :key="index">
+                  <img
+                    :src="getImageUrl(image.path)"
+                    alt="product gallery image"
+                    class="w-full h-full object-cover rounded-lg"
+                  />
+                </SwiperSlide>
+              </Swiper>
+            </div>
+            <div
+              v-else-if="selectedProduct?.image_path"
+              class="mb-4 w-full h-48 rounded-lg"
+            >
+              <img
+                :src="getImageUrl(selectedProduct.image_path)"
+                alt="product"
+                class="w-full h-full object-cover rounded-lg"
+              />
+            </div>
             <div
               v-else
               class="mb-4 w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-xs"
@@ -262,6 +284,13 @@ import { useCartStore } from '@/stores/useCartStore';
 import { useToast } from '@/composables/useToast';
 import axios from 'axios';
 import { debounce } from '@/lib/debounce';
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+import { Pagination, Navigation } from 'swiper/modules';
+
+const modules = [Pagination, Navigation];
 
 const isLoading = ref(false);
 
@@ -277,6 +306,7 @@ interface Product {
   price_sell?: number;
   quantity: number; // This is quantity in cart, not stock
   cartItemId?: number; // Add this to store the cart item's ID
+  gallery_images?: { filename: string; path: string }[]; // Add this for multiple images
 }
 
 const toast = useToast();
@@ -321,7 +351,10 @@ function formatRupiah(value: number | string): string {
 async function fetchProducts() {
   try {
     const response = await axios.get(`/api/stock?page=${currentPage.value}&search=${searchText.value}`);
-    products.value = response.data.data;
+    products.value = response.data.data.map((product: Product) => ({
+      ...product,
+      gallery_images: product.gallery_images || [], // Ensure gallery_images is an array
+    }));
     lastPage.value = response.data.last_page;
     await cartStore.fetchCartItems();
   } catch (error) {
@@ -336,7 +369,7 @@ function onSearchInput() {
 }
 
 function viewProductDetail(product: Product) {
-  selectedProduct.value = { ...product };
+  selectedProduct.value = { ...product, gallery_images: product.gallery_images || [] };
   detailQty.value = 1;
   showDetailModal.value = true;
 }

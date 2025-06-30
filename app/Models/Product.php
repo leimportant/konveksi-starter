@@ -25,8 +25,14 @@ class Product extends Model
         'image_path',
         'created_by',
         'updated_by',
-        'deleted_by'
+        'deleted_by',
+        'doc_id'
     ];
+
+    public function galleryImages()
+    {
+        return $this->hasMany(DocumentAttachment::class, 'doc_id', 'doc_id');
+    }
 
     public function category()
     {

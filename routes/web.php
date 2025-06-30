@@ -235,6 +235,9 @@ Route::get('/documents', function () {
 })->middleware(['auth'])->name('document.getIndex');
 
 // Google Auth Routes
+Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+#Route::get('auth/google', 'App\Http\Controllers\Auth\GoogleController@redirectToGoogle');
+Route::get('auth/google/callback', 'App\Http\Controllers\Auth\GoogleController@handleGoogleCallback');
 
 
 Route::get('/production/{activity_role}/view/{id}', function ($activity_role, $id) {

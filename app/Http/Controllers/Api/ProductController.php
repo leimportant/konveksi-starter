@@ -22,7 +22,7 @@ class ProductController extends Controller
 ;
         }
 
-        $products = $query->with(['category', 'uom'])
+        $products = $query->with(['category', 'uom', 'galleryImages'])
             ->orderBy('name')
             ->get();
 
@@ -34,7 +34,7 @@ class ProductController extends Controller
 
    public function index(Request $request)
     {
-        $query = Product::with(['category', 'uom']); // eager load relasi
+        $query = Product::with(['category', 'uom', 'galleryImages']); // eager load relasi
 
         $search = $request->input('search');
 
@@ -62,7 +62,8 @@ class ProductController extends Controller
             'category_id' => 'required|exists:mst_category,id',
             'uom_id' => 'exists:mst_uom,id',
             'descriptions' => 'nullable|string',
-            'name' => 'required|max:255|unique:mst_product,name'
+            'name' => 'required|max:255|unique:mst_product,name',
+            'doc_id' => 'nullable|string|exists:tr_document_attachment,doc_id'
         ]);
         $newId = $this->generateNumber($validated['category_id']);
         $validated['id'] = $newId;
@@ -106,6 +107,7 @@ class ProductController extends Controller
             'category_id' => 'required|exists:mst_category,id',
             'descriptions' => 'nullable|string',
             'uom_id' => 'exists:mst_uom,id',
+            'doc_id' => 'nullable|string|exists:tr_document_attachment,doc_id',
         ]);
 
         $product->update($validated);

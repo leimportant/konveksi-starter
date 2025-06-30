@@ -20,11 +20,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Inertia::share([
-            'auth' => function () {
-                $user = Auth::user();
-                return $user ? $user->newQuery()->with('roles')->find($user->id) : null;
-            },
+      Inertia::share([
+            'auth' => [
+                'user' => fn () => Auth::user()?->load('roles'),
+            ],
         ]);
     }
 

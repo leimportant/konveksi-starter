@@ -9,7 +9,7 @@ const isActive = (path: string) => cleanPath(currentUrl) === path;
 </script>
 
 <template>
-  <div class="fixed bottom-0 left-0 right-0 bg-indigo-600 shadow-lg border-t border-indigo-700 z-50">
+  <div class="fixed bottom-0 left-0 right-0 bg-indigo-600 shadow-lg border-t border-indigo-700 z-[999]">
     <nav class="flex justify-around items-center h-16 max-w-md mx-auto px-2">
 
       <!-- Home Tab -->

@@ -18,7 +18,7 @@ const page = usePage();
 const showBottomNavigation = computed(() => {
   const currentUrl = page.url;
   const user = page.props?.auth?.user;
-  const isCustomer = user?.role_id === 7;
+  const isCustomer = user?.employee_status === "customer";
 
 console.log(user.roles); // -> array of roles
 
@@ -40,6 +40,7 @@ withDefaults(defineProps<Props>(), {
     <AppContent variant="sidebar">
       <AppSidebarHeader :breadcrumbs="breadcrumbs" />
       <slot /> 
+      <div class="pb-16 md:pb-0"></div> 
     </AppContent>
   </AppShell>
 
