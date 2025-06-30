@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Exception;
 
 class GoogleController extends Controller
@@ -26,23 +28,29 @@ class GoogleController extends Controller
 
             if($finduser){
                 Auth::login($finduser);
-                return redirect()->intended('/dashboard');
+                return redirect()->intended('/home');
             }else{
                 $newUser = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'google_id'=> $googleUser->id,
-                    'employee_status' => '-', // Set to null or a default value if not applicable
-                    'password' => encrypt('123456dummy')
+                    "location_id" => 1, // Set to null or a default value if not applicable
+                    'employee_status' => 'customer', // Set to null or a default value if not applicable
+                    'password' => Hash::make('123456dummy')
                 ]);
 
                 // Assign the default role to the new user
-                $newUser->roles()->attach(7); // Assuming 2 is the ID for as customer
+                // insert into user_roles (user_id, role_id) values ($newUser->id, 1);
+                DB::table('user_role')->insert([
+                    'user_id' => $newUser->id,
+                    'role_id' => 7 // Assuming 1 is the ID for the default role
+                ]);
+
                 // the default role, adjust as necessary
 
 
                 Auth::login($newUser);
-                return redirect()->intended('/dashboard');
+                return redirect()->intended('/home');
             }
 
         } catch (Exception $e) {
@@ -50,4 +58,5 @@ class GoogleController extends Controller
             echo($e->getMessage());
         }
     }
+
 }

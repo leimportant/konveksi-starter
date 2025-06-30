@@ -9,12 +9,17 @@ Route::get('/', function () {
     if (Auth::check()) {
         return Inertia::render('Home/Cart', [
             'customers' => App\Models\Customer::all(['id', 'name']),
-        ]);
+        ])->middleware(['auth', 'verified'])->name('home.cart');
     } else {
         return Inertia::render('Welcome');
     }
 });
 
+
+Route::get('/welcome', function () {
+        return Inertia::render('Welcome');
+    
+});
 
 Route::get('/home', function () {
     return Inertia::render('Home/Cart');

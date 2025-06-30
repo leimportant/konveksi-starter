@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Home, ShoppingCart } from 'lucide-vue-next';
+import { Home, ShoppingCart, User2Icon } from 'lucide-vue-next';
 import { Link, usePage } from '@inertiajs/vue3';
 
 // Ambil URL saat ini
@@ -17,7 +17,7 @@ const isActive = (path: string) => cleanPath(currentUrl) === path;
         href="/home"
         class="flex flex-col items-center justify-center px-4 py-2 rounded-md transition-all duration-200"
         :class="isActive('/home') 
-          ? 'bg-indigo-600 text-white font-bold shadow-md' 
+          ? 'bg-indigo-600 text-white-500 text-opacity-50 font-bold shadow-md' 
           : 'text-white/60 hover:text-white'"
       >
         <Home class="h-5 w-5" />
@@ -29,11 +29,23 @@ const isActive = (path: string) => cleanPath(currentUrl) === path;
         href="/order-history"
         class="flex flex-col items-center justify-center px-4 py-2 rounded-md transition-all duration-200"
         :class="isActive('/order-history') 
-          ? 'bg-indigo-600 text-white font-bold shadow-md' 
+          ? 'bg-indigo-600 text-white-500 text-opacity-50 font-bold shadow-md' 
           : 'text-white/60 hover:text-white'"
       >
         <ShoppingCart class="h-5 w-5" />
         <span class="text-xs mt-1">Order</span>
+      </Link>
+
+       <!-- Order Tab -->
+      <Link
+        href="/settings/profile"
+        class="flex flex-col items-center justify-center px-4 py-2 rounded-md transition-all duration-200"
+        :class="isActive('/settings/profile') 
+          ? 'bg-indigo-600 text-white-500 text-opacity-50 font-bold shadow-md' 
+          : 'text-white/60 hover:text-white'"
+      >
+        <User2Icon class="h-5 w-5" />
+        <span class="text-xs mt-1">Profile</span>
       </Link>
 
     </nav>

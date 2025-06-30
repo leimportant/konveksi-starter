@@ -12,6 +12,14 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasPushSubscriptions;
 
+    protected $table = 'users';
+
+    protected $primaryKey = 'id';
+
+    protected $keyType = 'int';
+
+    public  $incrementing = false;
+    
     /**
      * The attributes that are mass assignable.
      *
@@ -24,7 +32,8 @@ class User extends Authenticatable
         'password',
         'active',
         "phone_number",
-        "location_id"
+        "location_id",
+        "employee_status",
     ];
 
     /**

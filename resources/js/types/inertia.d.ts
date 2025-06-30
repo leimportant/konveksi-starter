@@ -8,4 +8,14 @@ declare module '@inertiajs/core' {
       } | null
     }
   }
+
+  export interface PageProps {
+      component: string;
+      props: {
+          ziggy: ZiggyConfig;
+          [key: string]: any;
+      };
+      url: string;
+      version: string | null;
+  }
 }
