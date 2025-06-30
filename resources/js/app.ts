@@ -1,6 +1,7 @@
 import '../css/app.css';
 import 'vue-toastification/dist/index.css';
 
+import axios from 'axios'
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
@@ -19,6 +20,18 @@ import OrderItem from './components/Order/OrderItem.vue';
 import PrimeVue from 'primevue/config';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Aninkafashion';
+
+// Axios interceptor
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      window.location.href = '/welcome' // Redirect ke landing/welcome page
+    }
+    return Promise.reject(error)
+  }
+)
+
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
