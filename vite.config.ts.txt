@@ -18,14 +18,6 @@ export default defineConfig({
             },
         },
     },
-    build: {
-        manifest: true,
-        outDir: 'build',
-        rollupOptions: {
-            input: ['resources/js/app.ts'],
-        },
-        emptyOutDir: true, // opsional: bersihkan folder saat build
-    },
     plugins: [
         laravel({
             input: ['resources/js/app.ts'],

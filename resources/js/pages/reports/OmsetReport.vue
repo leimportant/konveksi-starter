@@ -88,12 +88,12 @@ onMounted(() => {
     <Head title="Omset Report" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="py-2">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-white p-6 shadow-sm sm:rounded-lg">
+            <div class="mx-auto max-w-7xl sm:px-2 lg:px-2">
+                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="mb-4 flex space-x-4">
                         <Input type="date" v-model="startDate" />
                         <Input type="date" v-model="endDate" />
-                        <Button @click="fetchReport(1, perPage)">Generate Report</Button>
+                        <Button @click="fetchReport(1, perPage)" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Tampilkan</Button>
                     </div>
 
                     <div v-if="reportStore.loading">Loading...</div>

@@ -165,4 +165,26 @@ class DocumentAttachmentController extends Controller
             return response()->json(['message' => 'Gagal menghapus file', 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function viewAttachment(Request $request, $id)
+    {
+        try {
+            $attachment = DocumentAttachment::where('doc_id', $id);
+
+            if ($request->has('doc_id')) {
+                $attachment->orWhere('reference_id', $request->query('doc_id'));
+            }
+            if ($request->has('reference_type')) {
+                $attachment->where('reference_type', $request->query('reference_type'));
+            }   
+            if ($attachment->isEmpty()) {
+                return response()->json(['message' => 'Attachment not found'], 404);
+            }
+            $filePath = $attachment->first()->path;
+            $fileUrl = Storage::disk('public')->url($filePath);
+            return response()->json(['url' => $fileUrl], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to retrieve attachment', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

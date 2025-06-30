@@ -40,17 +40,37 @@ class DashboardController extends Controller
         $endDate = $request->input('end_date') ?? now()->endOfMonth()->format('Y-m-d'); // Default to the last day of the current month
 
         // Query sales data
-        $salesData = DB::table('t_orders as a')
-            ->join('t_order_items as b', 'a.id', '=', 'b.order_id')
+        $salesData = DB::table('pos_transaction as a')
+            ->join('pos_transaction_detail as b', 'a.id', '=', 'b.transaction_id')
             ->leftJoin('mst_product as c', 'b.product_id', '=', 'c.id')
-            ->selectRaw('DATE(a.created_at) AS sale_date, b.product_id, c.name AS product_name, SUM(b.qty) AS total_sold')
-            ->whereIn('a.status', ['done', 'diproses']) // hanya order selesai
+            ->selectRaw('DATE(a.created_at) AS sale_date, b.product_id, c.name AS product_name, SUM(b.quantity) AS total_sold')
+            ->whereIn('a.status', ['completed']) // hanya order selesai
             ->whereBetween('a.created_at', [$startDate, $endDate])
-            ->groupBy('sale_date', 'b.product_id', 'c.name')
-            ->orderBy('sale_date', 'ASC')
+            ->groupBy('a.created_at', 'b.product_id', 'c.name')
+            ->orderBy('a.created_at', 'ASC')
             ->get();
 
         return response()->json( ['data' => $salesData]);
     }
+
+    public function getSalesByOmsetData(Request $request)
+    {
+        $startDate = $request->input('start_date') ?? now()->startOfMonth()->toDateString();
+        $endDate = $request->input('end_date') ?? now()->endOfMonth()->toDateString();
+
+        $salesData = DB::table('pos_transaction as a')
+            ->join('pos_transaction_detail as b', 'a.id', '=', 'b.transaction_id')
+            ->where('a.status', 'completed')
+            ->whereBetween('a.created_at', [$startDate, $endDate])
+            ->selectRaw('DATE(a.created_at) as sale_date, SUM(a.total_amount) as total_amount')
+            ->groupByRaw('DATE(a.created_at)')
+            ->orderBy('sale_date')
+            ->get();
+
+        return response()->json([
+            'data' => $salesData
+        ]);
+    }
+
 
 }

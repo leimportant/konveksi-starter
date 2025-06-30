@@ -18,7 +18,7 @@ import OrderItem from './components/Order/OrderItem.vue';
 
 import PrimeVue from 'primevue/config';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Aninkafashion';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

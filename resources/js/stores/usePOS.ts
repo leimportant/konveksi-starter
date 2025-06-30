@@ -99,11 +99,11 @@ export function usePOS() {
     }
   };
 
-  const fetchOrders = async () => {
+    const fetchOrdersCustomer = async () => {
     isLoading.value.orders = true;
     try {
-      const { data } = await axios.get('/api/orders');
-      orders.value = data.data;
+      const { data } = await axios.get('/api/orders/customer');
+      orders.value = data.data.data;
     } catch (error) {
       toast.error('Failed to fetch orders');
       console.error('Order fetch error:', error);
@@ -111,6 +111,7 @@ export function usePOS() {
       isLoading.value.orders = false;
     }
   };
+
 
   const addToCart = (product: Product) => {
     const existing = selectedProducts.value.find(item => item.id === product.id);
@@ -175,7 +176,7 @@ export function usePOS() {
         payment_method_id: selectedPaymentMethod.value
       });
       toast.success('Order placed successfully');
-      await fetchOrders();
+      await fetchOrdersCustomer();
       clearCart();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to place order');
@@ -188,16 +189,18 @@ export function usePOS() {
   loadStorage();
   fetchInventoryProducts();
   fetchPaymentMethods();
-  fetchOrders();
+
 
   return {
     products,
     paymentMethods,
     orders,
     selectedProducts,
+    fetchOrdersCustomer,
     selectedPaymentMethod,
     isLoading,
     orderList,
+
     totalAmount,
     addToCart,
     removeFromCart,
@@ -206,6 +209,6 @@ export function usePOS() {
     placeOrder,
     fetchInventoryProducts,
     fetchPaymentMethods,
-    fetchOrders,
+
   };
 }

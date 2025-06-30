@@ -32,8 +32,14 @@ class GoogleController extends Controller
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'google_id'=> $googleUser->id,
+                    'employee_status' => '-', // Set to null or a default value if not applicable
                     'password' => encrypt('123456dummy')
                 ]);
+
+                // Assign the default role to the new user
+                $newUser->roles()->attach(7); // Assuming 2 is the ID for as customer
+                // the default role, adjust as necessary
+
 
                 Auth::login($newUser);
                 return redirect()->intended('/dashboard');

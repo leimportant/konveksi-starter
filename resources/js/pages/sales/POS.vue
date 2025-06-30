@@ -82,6 +82,9 @@
                         <Button variant="outline" size="sm" @click="applyCustomer" class="flex items-center gap-1">
                             <UserPlusIcon class="h-4 w-4" /> Customer
                         </Button>
+                        <Button variant="outline" size="sm" @click="applyReturn" class="flex items-center gap-1">
+                            <ReplaceAll class="h-4 w-4" /> Retur
+                        </Button>
                         <Button variant="outline" size="sm" @click="clearCart" class="flex items-center gap-1">
                             <Trash2 class="h-4 w-4" /> Clear
                         </Button>
@@ -240,21 +243,43 @@
                 </div>
             </Modal>
 
+            <Modal :show="showReturnDialog" @close="closeReturnDialog" title="Retur Barang">
+    <div class="space-y-2">
+        <label class="block text-xs font-medium">Produk</label>
+        <select v-model="returnProductId" class="w-full border rounded p-1 text-xs">
+            <option value="">Pilih Produk</option>
+            <option v-for="product in products" :key="product.id" :value="product.id">
+                {{ product.product_name }} (Stok: {{ product.qty_stock }})
+            </option>
+        </select>
+        <label class="block text-xs font-medium">Qty</label>
+        <input type="number" v-model.number="returnQty" min="1" class="w-full border rounded p-1 text-xs" />
+        <label class="block text-xs font-medium">Harga Retur</label>
+        <input type="number" v-model.number="returnPrice" min="0" class="w-full border rounded p-1 text-xs" />
+        <div class="flex justify-end gap-2 mt-2">
+            <Button variant="outline" @click="closeReturnDialog">Batal</Button>
+            <Button class="bg-red-600 text-white" @click="handleReturnAddToCart">Simpan</Button>
+        </div>
+        <div v-if="returnError" class="text-xs text-red-600 mt-1">{{ returnError }}</div>
+        <div v-if="returnSuccess" class="text-xs text-red-600 mt-1">Retur berhasil ditambahkan ke keranjang!</div>
+    </div>
+</Modal>
+
             <!-- Print Preview Modal -->
             <div v-if="showPrintPreview" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 p-4">
-                <div class="print-area w-[240px] max-w-full rounded bg-white p-2 font-mono text-[10px] leading-tight shadow" ref="printArea">
+                <div class="print-area w-[450px] max-w-full rounded bg-white p-2 font-mono text-[10px] leading-tight shadow" ref="printArea">
                     <div class="text-center">
-                        <p class="text-[12px] font-bold">TOKO ANINKA</p>
-                        <p>RUKO KALIBATA No.112</p>
-                        <p>TLP. 12345677</p>
+                        <p class="text-[12px] font-bold">{{ locationName }}</p>
+                        <p>{{ locationAddress }}</p>
                     </div>
 
                     <hr class="my-1 border-t border-dashed" />
 
                     <div class="mb-1">
                         <p>Tanggal&nbsp;: {{ lastOrderDate }}</p>
-                        <p>Kasir&nbsp;&nbsp;: {{ cashierName }}</p>
-                        <p>Nomor&nbsp;&nbsp;&nbsp;: {{ transactionNumber }}</p>
+                        <p>Kasir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ cashierName }}</p>
+                        <p>Nomor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ transactionNumber }}</p>
+                        <p>Customer&nbsp;&nbsp;: {{ selectedCustomerName || '-' }}</p>
                     </div>
 
                     <hr class="my-1 border-t border-dashed" />
@@ -278,7 +303,7 @@
 
                     <!-- Totals -->
                     <div class="flex justify-between">
-                        <span>Sub Total&nbsp;:</span>
+                        <span>Sub Total&nbsp;&nbsp;&nbsp;&nbsp;:</span>
                         <span>{{ formatRupiah(lastOrderSubTotal) }}</span>
                     </div>
                     <div class="flex justify-between">
@@ -286,15 +311,15 @@
                         <span>{{ formatRupiah(paidAmount || 0) }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Kembalian&nbsp;:</span>
+                        <span>Kembalian&nbsp;&nbsp;&nbsp;&nbsp;:</span>
                         <span>{{ formatRupiah(changeAmount) }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Total Disc&nbsp;:</span>
+                        <span>Total Disc&nbsp;&nbsp;&nbsp;:</span>
                         <span>{{ formatRupiah(totalDiscount) }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Metode&nbsp;:</span>
+                        <span>Metode&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
                         <span>{{ lastOrderPaymentMethodName }}</span>
                     </div>
 
@@ -328,7 +353,7 @@ import { computed, nextTick, ref } from 'vue';
 import { useToast } from '@/composables/useToast';
 import type { User } from '@/types';
 import { type SharedData } from '@/types';
-import { PercentIcon, ScanQrCode, Trash2, UserPlusIcon } from 'lucide-vue-next';
+import { PercentIcon, ScanQrCode, Trash2, UserPlusIcon, ReplaceAll } from 'lucide-vue-next';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 // import jsQR from 'jsqr';
@@ -341,16 +366,18 @@ interface Product {
     product_id?: number;
     product_name: string;
     uom_id: string;
+    size_id: string;
     qty_stock: number;
     image_path: string;
     price: number;
     discount?: number;
     price_sell?: number;
     quantity: number;
+    isReturn?: boolean;
 }
 
 interface PaymentMethod {
-    id: number;
+    id: string;
     name: string;
 }
 
@@ -362,13 +389,14 @@ interface OrderItem {
     discount: number;
     price_sell: number;
     uom_id: string;
+    size_id: string; // Optional size ID
     qty_stock: number;
     image_path: string;
 }
 
 interface OrderPayload {
     items: OrderItem[];
-    payment_method_id: number;
+    payment_method_id: string;
     total_amount: number;
     paid_amount: number;
     customer_id?: number | null;
@@ -385,7 +413,7 @@ const toast = useToast();
 const products = ref<Product[]>([]);
 const selectedProducts = ref<Product[]>([]);
 const paymentMethods = ref<PaymentMethod[]>([]);
-const selectedPaymentMethod = ref<number | null>(null);
+const selectedPaymentMethod = ref<string | null>(null);
 const isLoading = ref({ placingOrder: false });
 
 const searchText = ref('');
@@ -407,15 +435,81 @@ const transactionNumber = ref('');
 const orderList = ref<HTMLElement | null>(null);
 const printArea = ref<HTMLElement | null>(null);
 
+const showReturnDialog = ref(false);
+const returnProductId = ref<number | ''>('');
+const returnQty = ref<number>(1);
+const returnPrice = ref<number>(0);
+const returnError = ref('');
+const returnSuccess = ref(false);
+
 const paidAmount = ref<number | null>(null);
 const changeAmount = computed(() => {
     if (paidAmount.value === null) return 0;
     return paidAmount.value - totalAmount.value > 0 ? paidAmount.value - totalAmount.value : 0;
 });
 
+function applyReturn() {
+    showReturnDialog.value = true;
+}
+
+function closeReturnDialog() {
+    showReturnDialog.value = false;
+    returnProductId.value = '';
+    returnQty.value = 1;
+    returnPrice.value = 0;
+    returnError.value = '';
+    returnSuccess.value = false;
+}
+
+function handleReturnAddToCart() {
+    returnError.value = '';
+    returnSuccess.value = false;
+    const product = products.value.find(p => p.id === returnProductId.value);
+    if (!product) {
+        returnError.value = 'Produk harus dipilih';
+        return;
+    }
+    if (!returnQty.value || returnQty.value < 1) {
+        returnError.value = 'Qty minimal 1';
+        return;
+    }
+    if (!returnPrice.value || returnPrice.value < 0) {
+        returnError.value = 'Harga retur harus diisi';
+        return;
+    }
+    selectedProducts.value.push({
+        ...product,
+        quantity: -Math.abs(returnQty.value), // negative qty for return
+        price: returnPrice.value,
+        price_sell: returnPrice.value,
+        isReturn: true,
+    });
+    returnSuccess.value = true;
+    setTimeout(() => {
+        closeReturnDialog();
+    }, 1000);
+}
+
+const locationName = ref('TOKO ANINKA');
+const locationAddress = ref('Blok A lantai SLG Los F No 91-92');
+
 const page = usePage<SharedData>();
 const userLogin = page.props.auth.user as User;
-const name = userLogin.name || 'Kasir'
+const locationId = (userLogin as any)?.location_id;
+
+async function fetchLocationInfo() {
+    if (!locationId) return;
+    try {
+        const res = await axios.get(`/api/locations/get`);
+        locationName.value = res.data.name || 'TOKO ANINKA';
+        locationAddress.value = res.data.address || 'Blok A lantai SLG Los F No 91-92';
+    } catch {
+        locationName.value = 'TOKO ANINKA';
+        locationAddress.value = 'Blok A lantai SLG Los F No 91-92';
+    }
+}
+
+fetchLocationInfo();
 
 // Hitung total diskon dari item
 const totalDiscount = computed(() => lastOrderItems.value.reduce((sum, item) => sum + (item.discount ?? 0) * item.quantity, 0));
@@ -482,6 +576,16 @@ function onSearchInput() {
 }
 
 const addToCart = (product: Product) => {
+    
+    if (product.qty_stock <= 0) {
+        toast.error('Stok tidak cukup');
+        return;
+    }
+    // check price = 0 or price_sell 0 toast.error('Harga produk tidak valid');
+    if (product.price <= 0 && (product.price_sell === undefined || product.price_sell === null || product.price_sell <= 0)) {
+        toast.error('Harga produk belum ditentukan');
+        return;
+    }
     const existing = selectedProducts.value.find((item) => item.id === product.product_id);
     if (existing) {
         existing.quantity++;
@@ -490,6 +594,7 @@ const addToCart = (product: Product) => {
             id: product.product_id || product.id,
             product_name: product.product_name,
             uom_id: product.uom_id,
+            size_id: product.size_id || '',
             qty_stock: product.qty_stock,
             image_path: product.image_path,
             price: product.price,
@@ -515,7 +620,11 @@ function removeFromCart(productId: number) {
 // }
 
 function updateQuantity(item: Product) {
-    if (item.quantity < 1) item.quantity = 1;
+    if (item.quantity < 1) {
+        item.quantity = 1;
+        toast.error('Minimal quantity 1');
+        return;
+    }
     const productStock = products.value.find((p) => p.id === item.id)?.qty_stock ?? 0;
     if (item.quantity > productStock) {
         toast.error('Stock limit reached');
@@ -562,10 +671,19 @@ function openPaymentDialog() {
 }
 
 async function confirmPayment() {
-    if (paidAmount.value === null || paidAmount.value < totalAmount.value) {
-        toast.error('Paid amount must be at least total amount');
+    if (paymentMethods.value.length === 0) {
+        toast.error('No payment methods available');
         return;
     }
+    const selectedMethod = paymentMethods.value.find(pm => pm.id === selectedPaymentMethod.value);
+    if (!selectedMethod || selectedMethod.name !== 'CREDIT') {
+        if (paidAmount.value === null || paidAmount.value < totalAmount.value) {
+            toast.error('Paid amount must be at least total amount');
+            return;
+        }
+    }
+
+    
     showPaymentDialog.value = false;
     await placeOrder();
 }
@@ -612,6 +730,7 @@ async function placeOrder() {
                 quantity: p.quantity,
                 price: p.price,
                 uom_id: p.uom_id,
+                size_id: p.size_id || 'PCS', 
                 qty_stock: 0,
                 image_path: '',
                 discount,
@@ -674,6 +793,7 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
                         product_id: item.product_id, // optional
                         product_name: item.product_name,
                         uom_id: item.uom_id,
+                        size_id: item.size_id || 'PCS', // optional size_id
                         qty_stock: item.qty_stock,
                         image_path: item.image_path,
                         price: item.price,
@@ -705,19 +825,20 @@ function doPrintKasir80mm() {
         const sisa = (lastOrderTotal.value || totalAmount.value) - (paidAmount.value || 0);
 
         const lines: string[] = [];
-        lines.push('         TOKO ANINKA');
-        lines.push(' Blok A lantai SLG Los F No 91-92');
-        lines.push('--------------------------------------');
+        lines.push(`     ${locationName.value}`);
+        lines.push(` ${locationAddress.value}`);
+        lines.push('----------------------------------------');
         lines.push(`Kasir   : ${kasirName}`);
         lines.push(`Tanggal : ${lastOrderDate.value}`);
         lines.push(`Nomor   : ${transactionNumber.value}`);
+        lines.push('------------------------------------');
         lines.push(`Customer: ${selectedCustomerName.value || '-'}`);
         lines.push('--------------------------------------');
         lastOrderItems.value.forEach(item => {
             lines.push(`${item.product_name}`);
             lines.push(`${item.quantity} x ${formatRupiah(item.price)}${' '.repeat(20 - (item.quantity + '').length - formatRupiah(item.price).length)}${formatRupiah(item.quantity * item.price)}`);
         });
-        lines.push('----------------------------------');
+        lines.push('--------------------------------');
         lines.push(`Total QTY        ${totalQty}`);
         lines.push(`Total Bayar      ${formatRupiah(lastOrderTotal.value || totalAmount.value)}`);
         lines.push(`Jenis Bayar      ${lastOrderPaymentMethodName.value || '-'}`);
@@ -748,9 +869,9 @@ function doPrintKasir80mm() {
 
     const printContent = `
     <div style="font-family: 'Courier New', Courier, monospace; font-size: 12px; width: 80mm; padding: 0; margin: 0;">
-      <div style="text-align:center; font-weight:bold;">TOKO ANINKA</div>
-      <div style="text-align:center;">Blok A lantai SLG Los F No 91-92</div>
-      <div style="text-align:center;">----------------------------------</div>
+      <div style="text-align:center; font-weight:bold;">${locationName.value}</div>
+      <div style="text-align:center;">${locationAddress.value}</div>
+      <div style="text-align:center;">----------------------------------------</div>
       <div style="display:flex; justify-content:space-between;">
         <span>Kasir   : ${cashierName.value}</span>
       </div>
@@ -760,7 +881,12 @@ function doPrintKasir80mm() {
       <div style="display:flex; justify-content:space-between;">
         <span>Nomor   : ${transactionNumber.value}</span>
       </div>
-      <div style="text-align:center;">----------------------------------</div>
+      <div style="text-align:center;">----------------------------------------</div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>Customer</span>
+        <span>${selectedCustomerName.value || '-'}</span>
+      </div>
+      <div style="text-align:center;">----------------------------------------</div>
       ${lastOrderItems.value
           .map(
               (item) => `
@@ -772,7 +898,7 @@ function doPrintKasir80mm() {
         `,
           )
           .join('')}
-      <div style="text-align:center;">----------------------------------</div>
+      <div style="text-align:center;">----------------------------------------</div>
       <div style="display:flex; justify-content:space-between;">
         <span>Total QTY</span>
         <span>${totalQty}</span>
@@ -793,12 +919,7 @@ function doPrintKasir80mm() {
         <span>Sisa</span>
         <span>${formatRupiah(sisa > 0 ? sisa : 0)}</span>
       </div>
-      <div style="text-align:center;">----------------------------------</div>
-      <div style="display:flex; justify-content:space-between;">
-        <span>Customer</span>
-        <span>${selectedCustomerName.value || '-'}</span>
-      </div>
-      <div style="text-align:center;">----------------------------------</div>
+      <div style="text-align:center;">----------------------------------------</div>
       <div style="text-align:center; margin-top:8px;">---TERIMA KASIH---</div>
       <div style="text-align:center;">aninkafashion.com</div>
     </div>

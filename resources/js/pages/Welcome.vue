@@ -5,7 +5,7 @@
     <!-- Navigation Bar -->
     <header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-lg">
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <h1 class="text-3xl font-extrabold tracking-tight text-gray-800 dark:text-white"><span class="text-pink-500">ICo-nic</span> Fashion</h1>
+        <h1 class="text-3xl font-extrabold tracking-tight text-gray-800 dark:text-white"><span class="text-pink-500">Aninka</span> Fashion</h1>
           <div class="md:hidden flex items-center">
             <button @click="toggleMobileMenu" class="text-gray-600 dark:text-gray-300 focus:outline-none">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -81,8 +81,15 @@
 </template>
 
 <script lang="ts" setup>
+import { ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import 'swiper/css';
+
+const showMobileMenu = ref(false);
+
+const toggleMobileMenu = () => {
+  showMobileMenu.value = !showMobileMenu.value;
+};
 
 </script>

@@ -1,11 +1,12 @@
 <script lang="ts">
-import { Bar } from 'vue-chartjs'
+import { Line as LineChart } from 'vue-chartjs'
 import {
   Chart as ChartJS,
   Title,
   Tooltip,
   Legend,
-  BarElement,
+  LineElement,
+  PointElement,
   CategoryScale,
   LinearScale
 } from 'chart.js'
@@ -14,25 +15,22 @@ import type { ChartOptions } from 'chart.js'
 import axios from 'axios'
 
 interface SalesDataItem {
-  sale_date: string;
-  product_id: number;
-  product_name: string;
-  total_sold: number;
+  sale_date: string
+  total_amount: number
 }
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale)
 
 export default {
-  name: 'SalesChart',
+  name: 'SalesChartByAmount',
   components: {
-    Bar
+    LineChart
   },
   setup() {
     const salesData: Ref<SalesDataItem[]> = ref([])
     const loading = ref(true)
     const error = ref<Error | null>(null)
 
-    // Auto-set startDate to 30 days ago, endDate to today
     const today = new Date()
     const thirtyDaysAgo = new Date(today)
     thirtyDaysAgo.setDate(today.getDate() - 30)
@@ -42,31 +40,24 @@ export default {
     const startDate = ref(formatDate(thirtyDaysAgo))
     const endDate = ref(formatDate(today))
 
-    const getRandomColor = () =>
-      '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0')
-
-    const productColors: Record<string, string> = {}
-
     const fetchSalesData = async () => {
       loading.value = true
       try {
-        const response = await axios.get('api/dashboard/sales', {
+        const response = await axios.get('api/dashboard/sales/amount', {
           params: {
             startDate: startDate.value,
             endDate: endDate.value
           }
         })
 
-        console.log('Sales data response:', response.data.data)
-
         if (Array.isArray(response.data?.data)) {
           salesData.value = response.data.data.map((item: any) => ({
-            ...item,
-            total_sold: Number(item.total_sold)
+            sale_date: item.sale_date,
+            total_amount: Number(item.total_amount)
           }))
         } else {
           salesData.value = []
-          console.warn('sales_data is not an array:', response.data?.sales_data)
+          console.warn('sales_data is not an array:', response.data?.data)
         }
       } catch (err: any) {
         console.error(err)
@@ -79,35 +70,26 @@ export default {
     onMounted(fetchSalesData)
 
     const chartData = computed(() => {
-      const dates = Array.from(new Set(salesData.value.map(item => item.sale_date))).sort()
-      const productNames = Array.from(new Set(salesData.value.map(item => item.product_name)))
-
-      const datasets = productNames.map(productName => {
-        if (!productColors[productName]) {
-          productColors[productName] = getRandomColor()
-        }
-
-        const data = dates.map(date => {
-          const match = salesData.value.find(
-            item => item.sale_date === date && item.product_name === productName
-          )
-          return match ? match.total_sold : 0
-        })
-
-        return {
-          label: productName,
-          backgroundColor: productColors[productName],
-          data
-        }
-      })
+      const labels = salesData.value.map(item => item.sale_date)
+      const data = salesData.value.map(item => item.total_amount)
 
       return {
-        labels: dates,
-        datasets
+        labels,
+        datasets: [
+          {
+            label: 'Total Penjualan',
+            data,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 3
+          }
+        ]
       }
     })
 
-    const chartOptions: ChartOptions<'bar'> = {
+    const chartOptions: ChartOptions<'line'> = {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -116,12 +98,29 @@ export default {
         },
         title: {
           display: true,
-          text: 'Sales Summary by Product'
+          text: 'Sales Summary by Total Amount'
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const value = context.raw as number
+              return 'Rp. ' + value.toLocaleString('id-ID')
+            }
+          }
         }
       },
       scales: {
-        x: { stacked: true },
-        y: { stacked: true }
+        x: {
+          stacked: false
+        },
+        y: {
+          stacked: false,
+          ticks: {
+            callback: function (value) {
+              return 'Rp. ' + Number(value).toLocaleString('id-ID')
+            }
+          }
+        }
       }
     }
 
@@ -143,7 +142,7 @@ export default {
     <div v-if="loading">Loading sales data...</div>
     <div v-else-if="error" class="text-red-500">{{ error.message }}</div>
     <div v-else>
-      <div class="flex gap-2 justify-end mb-4 p-4">
+      <div class="flex gap-2 justify-end mb-4">
         <input type="date" v-model="startDate" class="border rounded px-2 py-1" />
         <input type="date" v-model="endDate" class="border rounded px-2 py-1" />
         <button @click="fetchSalesData" class="bg-blue-500 text-white px-3 py-1 rounded">
@@ -152,14 +151,14 @@ export default {
       </div>
 
       <div style="height: 400px; width: 100%;">
-        <Bar id="sales-chart" :options="chartOptions" :data="chartData" />
+        <LineChart id="sales-amount-chart" :options="chartOptions" :data="chartData" />
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-#sales-chart {
+#sales-amount-chart {
   width: 100%;
   height: 100% !important;
 }

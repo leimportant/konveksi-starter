@@ -98,7 +98,14 @@ class InventoryController extends Controller
                 $item->price = null;
             }
 
-            $item->image_path = $item->image_path ? $item->image_path : "not_available.png";
+            $imageGallery = DB::table('tr_document_attachment')
+                                    ->where('doc_id', $item->product_id)
+                                    ->whereNull('deleted_at')
+                                    ->get();
+
+            $item->gallery_images = $imageGallery;
+
+            $item->image_path = $imageGallery->isNotEmpty() ? ($imageGallery->first()->path ? $imageGallery->first()->path : "not_available.png") : "not_available.png";
 
             return $item;
         });

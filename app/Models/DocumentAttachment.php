@@ -31,6 +31,32 @@ class DocumentAttachment extends Model
         'deleted_by'
     ];
 
+    protected $appends = ['image_path'];
+
+    public function getImagePathAttribute()
+    {
+        if ($this->url) {
+            return $this->url;
+        }
+
+        // If path already contains the filename, return path directly
+        if ($this->path && str_contains($this->path, $this->filename ?? '')) {
+            return $this->path;
+        }
+
+        // If filename is present, combine path and filename
+        if ($this->path && $this->filename) {
+            return $this->path . '/' . $this->filename;
+        }
+
+        // If only path is present (e.g., 'not_available.png'), return path
+        if ($this->path) {
+            return $this->path;
+        }
+
+        return null; // Or a default image path if desired
+    }
+
     public static function generateUniqueShortId()
     {
         do {

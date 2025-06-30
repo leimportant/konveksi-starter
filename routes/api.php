@@ -63,13 +63,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('api/push/send', [PushController::class, 'send']);
 });
 
-Route::get('auth/google', 'App\Http\Controllers\Auth\GoogleController@redirectToGoogle');
-Route::get('auth/google/callback', 'App\Http\Controllers\Auth\GoogleController@handleGoogleCallback');
 
 Route::middleware('auth')->group(function () {
 
     Route::get('api/dashboard', [DashboardController::class, 'index']);
     Route::get('api/dashboard/sales', [DashboardController::class, 'getSalesData']);
+    Route::get('api/dashboard/sales/amount', [DashboardController::class, 'getSalesByOmsetData']);
     // User management
     
     Route::apiResource('api/users', controller: UserController::class);
@@ -115,6 +114,7 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/price-types', PriceTypeController::class);
     Route::apiResource('api/product-prices', ProductPriceController::class);
     Route::apiResource('api/locations', LocationController::class);
+    Route::get('api/locations/get', [LocationController::class, 'getLocations']);
     Route::get('api/stock', [InventoryController::class, 'getStock']);
     Route::apiResource('api/inventories', InventoryController::class);
 
@@ -124,6 +124,7 @@ Route::middleware('auth')->group(function () {
     Route::post('api/document-attachments/upload', [DocumentAttachmentController::class, 'upload']);
     Route::get('api/document-attachments', [DocumentAttachmentController::class, 'index']);
     Route::delete('api/document-attachments/{id}', [DocumentAttachmentController::class, 'destroy']);
+    Route::get('api/document-attachments/{id}/view', [DocumentAttachmentController::class, 'viewAttachment']);
 
     Route::get('api/cart-items', [CartItemController::class, 'index']);
     Route::post('api/cart-items/add', [CartItemController::class, 'addToCart']); // Add to cart

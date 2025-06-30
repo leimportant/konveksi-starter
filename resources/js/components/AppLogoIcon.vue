@@ -1,35 +1,25 @@
 <template>
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 400 150"
+    viewBox="0 0 400 450"
     width="100%"
     height="auto"
     :class="className"
     v-bind="$attrs"
   >
     <text
-      x="0"
-      y="80"
-      font-family="Georgia, serif"
-      font-size="64"
-      font-weight="bold"
-      fill="#111827"
-      letter-spacing="2"
-    >
-      Aninka
-    </text>
-    <text
-      x="5"
-      y="115"
+      x="50%"
+      y="50%"
+      dominant-baseline="middle"
+      text-anchor="middle"
+      font-size="200"
       font-family="Arial, sans-serif"
-      font-size="20"
-      fill="#6B7280"
-      letter-spacing="1"
     >
-      FASHION
+      A&amp;F
     </text>
   </svg>
 </template>
+
 
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue'

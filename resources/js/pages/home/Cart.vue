@@ -3,24 +3,24 @@
   <AppLayout>
 
      <!-- Product Catalog -->
-       <section class="space-y-4 w-full">
-        <div class="p-2 mx-auto">
+       <section class="flex flex-col md:col-span-4 lg:col-span-4">
+                    <div class="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <!-- Product Catalog -->
-       <section class="space-y-4 w-full">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <h2 class="text-xl font-bold text-gray-800">Available Products</h2>
+       <section class="space-y-4 w-full p-4 bg-white">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-2 mb-4">
+          <h2 class="text-xl font-bold text-gray-800">Katalog Produk</h2>
           <input
             type="text"
             v-model="searchText"
             @input="onSearchInput"
-            placeholder="Search products..."
+            placeholder="Cari produk..."
             class="border rounded px-3 py-1 text-sm w-full sm:w-52 sm:ml-auto"
           />
         </div>
 
 
         <!-- Product Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-8 gap-1">
+        <div class="grid grid-cols-2 sm:grid-cols-5 xl:grid-cols-4 gap-1">
           <div
             v-for="product in products"
             :key="product.product_id"
@@ -40,15 +40,26 @@
                 class="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-400 rounded-lg"
               >No Image</div>
             </div>
-            <p class="text-sm font-semibold text-gray-900 truncate">{{ product.product_name }}</p>
+            <p class="text-sm font-semibold text-gray-900 truncate justify-between">{{ product.product_name }}
+              <template v-if="product.discount && product.price">
+                  <span
+                      v-if="product.discount > 0"
+                      class="ml-1 rounded bg-orange-500 px-2 py-0.5 text-[14px] font-bold text-white md:text-xs"
+                  >
+                     - {{ Math.round((product.discount / product.price) * 100) }}%
+                  </span>
+              </template>
+            </p>
+            
             <p class="text-xs text-gray-500">Stock: {{ product.qty_stock }} {{ product.uom_id }}</p>
             <div class="mt-1 text-sm">
               <template v-if="product.discount && product.discount > 0">
                 <p class="line-through text-xs text-gray-400">{{ formatRupiah(product.price) }}</p>
                 <p>
                   {{ formatRupiah(product.price_sell || product.price) }}
-                  <span class="text-green-500 text-xs">(Diskon {{ formatRupiah(product.discount) }})</span>
+                  <br /><span class="text-green-500 text-xs">(Diskon {{ formatRupiah(product.discount) }})</span>
                 </p>
+                
               </template>
               <p v-else class="font-semibold text-gray-700">{{ formatRupiah(product.price) }}</p>
             </div>
@@ -177,12 +188,34 @@
           >&times;</button>
 
           <div>
-            <img
-              v-if="selectedProduct?.image_path"
-              :src="getImageUrl(selectedProduct.image_path)"
-              alt="product"
-              class="mb-4 w-full h-48 object-cover rounded-lg"
-            />
+            <div v-if="selectedProduct?.gallery_images && selectedProduct.gallery_images.length > 0">
+              <Swiper
+                :slides-per-view="1"
+                :space-between="10"
+                :modules="modules"
+                :pagination="{ clickable: true }"
+                :navigation="true"
+                class="mb-4 w-full h-48 rounded-lg"
+              >
+                <SwiperSlide v-for="(image, index) in selectedProduct.gallery_images" :key="index">
+                  <img
+                    :src="getImageUrl(image.path)"
+                    alt="product gallery image"
+                    class="w-full h-full object-cover rounded-lg"
+                  />
+                </SwiperSlide>
+              </Swiper>
+            </div>
+            <div
+              v-else-if="selectedProduct?.image_path"
+              class="mb-4 w-full h-48 rounded-lg"
+            >
+              <img
+                :src="getImageUrl(selectedProduct.image_path)"
+                alt="product"
+                class="w-full h-full object-cover rounded-lg"
+              />
+            </div>
             <div
               v-else
               class="mb-4 w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-xs"
@@ -251,6 +284,13 @@ import { useCartStore } from '@/stores/useCartStore';
 import { useToast } from '@/composables/useToast';
 import axios from 'axios';
 import { debounce } from '@/lib/debounce';
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+import { Pagination, Navigation } from 'swiper/modules';
+
+const modules = [Pagination, Navigation];
 
 const isLoading = ref(false);
 
@@ -266,6 +306,7 @@ interface Product {
   price_sell?: number;
   quantity: number; // This is quantity in cart, not stock
   cartItemId?: number; // Add this to store the cart item's ID
+  gallery_images?: { filename: string; path: string }[]; // Add this for multiple images
 }
 
 const toast = useToast();
@@ -310,7 +351,10 @@ function formatRupiah(value: number | string): string {
 async function fetchProducts() {
   try {
     const response = await axios.get(`/api/stock?page=${currentPage.value}&search=${searchText.value}`);
-    products.value = response.data.data;
+    products.value = response.data.data.map((product: Product) => ({
+      ...product,
+      gallery_images: product.gallery_images || [], // Ensure gallery_images is an array
+    }));
     lastPage.value = response.data.last_page;
     await cartStore.fetchCartItems();
   } catch (error) {
@@ -325,7 +369,7 @@ function onSearchInput() {
 }
 
 function viewProductDetail(product: Product) {
-  selectedProduct.value = { ...product };
+  selectedProduct.value = { ...product, gallery_images: product.gallery_images || [] };
   detailQty.value = 1;
   showDetailModal.value = true;
 }

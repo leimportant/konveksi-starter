@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\InventoryService;
 use Carbon\Carbon;
 
 class PosOrderController extends Controller
@@ -15,7 +16,7 @@ class PosOrderController extends Controller
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:mst_product,id',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.quantity' => 'required|integer',
             'items.*.price' => 'required|numeric|min:0',
             'payment_method_id' => 'required|exists:mst_payment_method,id',
             'paid_amount' => 'nullable|numeric|min:0',
@@ -23,6 +24,8 @@ class PosOrderController extends Controller
         ]);
 
         $userId = Auth::id();
+        $user = Auth::user();
+        $locationId = $user ? $user->location_id : null;
         $products = $request->input('items');
         $paymentMethodId = $request->input('payment_method_id');
         $customerId = $request->input('customer_id', null);
@@ -55,9 +58,10 @@ class PosOrderController extends Controller
             $counter = str_pad($countToday + 1, 3, '0', STR_PAD_LEFT);
             $transactionNumber = $today . $counter;
 
+            $id =  strtoupper(substr(bin2hex(random_bytes(2)), 0, 4)) . $transactionNumber;
             // Insert pos_transaction
             $transactionId = DB::table('pos_transaction')->insertGetId([
-                'id' => strtoupper(substr(bin2hex(random_bytes(2)), 0, 4)) . $transactionNumber, // 4 CHAR + transactionNumber
+                'id' => $id,
                 'transaction_number' => $transactionNumber,
                 'transaction_date' => Carbon::now(),
                 'total_amount' => $totalAmount,
@@ -75,14 +79,43 @@ class PosOrderController extends Controller
             // Insert detail
             foreach ($products as $p) {
                 DB::table('pos_transaction_detail')->insert([
-                    'transaction_id' => $transactionId,
+                    'transaction_id' => $id,
                     'product_id' => $p['product_id'],
                     'quantity' => $p['quantity'],
                     'price' => $p['price'],
+                    'uom_id' => $p['uom_id'] ?? null, // Optional UOM
+                    'size_id' => $p['size_id'] ?? null, // Optional Size
                     'subtotal' => $p['price'] * $p['quantity'],
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
+
+                // jika return, update stock accordingly
+                if ($p['quantity'] < 0) {
+                    // Update stock
+                    app(InventoryService::class)->updateOrCreateInventory([
+                        'product_id' => $p['product_id'],
+                        'location_id' => $locationId,
+                        'uom_id' => $p['uom_id'],
+                        'sloc_id' => 'GS00', // Assuming GS01 is the source location
+                    ], [
+                        'size_id' => $p['size_id'],
+                        'qty' => abs($p['quantity']), // Reduce stock from source location
+                    ], 'IN');
+                } else {
+                     // Update stock
+                    app(InventoryService::class)->updateOrCreateInventory([
+                        'product_id' => $p['product_id'],
+                        'location_id' => $locationId,
+                        'uom_id' => $p['uom_id'],
+                        'sloc_id' => 'GS00', // Assuming GS01 is the source location
+                    ], [
+                        'size_id' => $p['size_id'],
+                        'qty' => $p['quantity'], // Reduce stock from source location
+                    ], 'OUT');
+                }
+
+               
             }
 
             DB::commit();

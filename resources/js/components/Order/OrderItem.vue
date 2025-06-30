@@ -18,7 +18,7 @@ const formatCurrency = (value: number) => {
 </script>
 
 <template>
-  <div class="flex justify-between items-center text-sm text-gray-700">
+  <div class="flex justify-between items-center text-sm text-gray-800">
     <span>{{ item.qty }} x {{ item.product.name }}</span>
     <span>{{ formatCurrency(item.price_final * item.qty) }}</span>
   </div>

@@ -22,6 +22,9 @@ interface CartItem {
   price: number;
   discount?: number;
   price_sell?: number;
+  price_sell_grosir?: number;
+  price_grosir?: number;
+  discount_grosir?: number;
   size_id?: string;
   uom_id?: string;
   created_by: number;

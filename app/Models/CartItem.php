@@ -16,6 +16,9 @@ class CartItem extends Model
         'price',
         'discount',
         'price_sell',
+        'price_sell_grosir',
+        'price_grosir',
+        'discount_grosir',
         'created_by',
         'updated_by',
     ];

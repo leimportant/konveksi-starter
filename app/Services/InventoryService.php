@@ -34,17 +34,20 @@ class InventoryService
             ->where('uom_id', $data['uom_id'])
             ->where('sloc_id', $data['sloc_id'])
             ->where('size_id', $data['size_id'])
+            ->where('status', $status)
             ->first();
 
             if ($inventory) {
+                $qty_reserved = $item['qty_reserved'] ?? 0;
                 Inventory::where('product_id', $data['product_id'])
                 ->where('location_id', $data['location_id'])
                 ->where('uom_id', $data['uom_id'])
                 ->where('sloc_id', $data['sloc_id'])
                 ->where('size_id', $data['size_id'])
+                ->where('status', $status)
                 ->update([
-                    'qty' => $data['qty'],
-                    'qty_reserved' => $item['qty_reserved'] ?? 0,
+                    'qty' => $inventory['qty'] + $data['qty'],
+                    'qty_reserved' => $inventory['qty_reserved'] + $qty_reserved,
                     'status' => $status,
                     'updated_by' => Auth::id()
                 ]);
