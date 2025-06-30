@@ -28,9 +28,9 @@ const form = useForm({
   remark: '', // <-- tambahkan properti remark di sini
 });
 
-const fetchActivityTasks = async () => {
+const fetchActivityTasks = async (status = 'SEWING') => {
   try {
-    const res = await axios.get('/api/activity-roles', { params: { group_menu: 'FINISHING' } });
+    const res = await axios.get('/api/activity-roles', { params: { group_menu: status } });
     activityTasks.value = res.data.data;
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Gagal mengambil data tugas finishing');
@@ -39,9 +39,11 @@ const fetchActivityTasks = async () => {
 
 onMounted(async () => {
   await modelStore.fetchModels();
-  if (props.activity_role === 'FINISHING' || props.activity_role === 'SEWING') {
-    await fetchActivityTasks();
-    await fetchActivityTasks();
+  if (props.activity_role === 'FINISHING') {
+    await fetchActivityTasks('FINISHING');
+  }
+  if (props.activity_role === 'SEWING') {
+    await fetchActivityTasks('SEWING');
   }
 });
 
@@ -69,12 +71,25 @@ const productionStore = useProductionStore();
 
 const submit = async () => {
   try {
+
+    let taskIds: number | number[] = 1; // <-- allow both number and number[]
+    if (props.activity_role == 'CUTTING') {
+      taskIds = 1; // Assuming 'CUTTING' maps to activity role ID 1
+    }
+    if (props.activity_role == 'FINISHING' || props.activity_role == 'SEWING') {
+      taskIds = selectedTasks.value
+        .map((taskId) => activityTasks.value.find((t) => t.id === taskId)?.id)
+        .filter((id): id is number => id !== null);
+    }
+
     await productionStore.createProduction({
       model_id: form.model_id!,
-      activity_role_id: form.activity_role_id,
-      remark: '',
+      activity_role_id: taskIds, // now can be number or number[]
+      remark: form.remark || '',
       items: form.items.filter((item) => item.qty > 0),
     });
+
+
     toast.success('Produksi berhasil dibuat');
     router.visit(`/production/${props.activity_role}`);
   } catch (error: any) {

@@ -250,14 +250,31 @@ class OrderController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Tidak terautentikasi.'], 401);
         }
-        // $query = Order::where('customer_id', $user->id);
-        $user->id = 10001;
-        $query = Order::where('customer_id', $user->id);
 
+        $query = Order::with('orderItems.product')->where('customer_id', $user->id);
+        $status = [1,2,3,4,5];
+        if ($request->has('status') == 'done') {
+            $status = [6];
+        }
+        if ($request->has('status') == 'cancel') {
+            $status = [7];
+        }
+        if ($request->has('status')) {
+            $query->whereIn('status', $status);
+        }
 
-        $orders = $query->with('orderItems.product')->orderBy('created_at', 'desc')->get();
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhereHas('orderItems.product', function ($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
 
-        return response()->json(['data' => $orders]);
+        $orders = $query->orderBy('created_at', 'desc')->paginate(10);
+        return response()->json($orders, 201);
     }
 
     public function scan($orderId)

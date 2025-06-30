@@ -39,7 +39,7 @@ function redirectToGoogle() {
     <!-- Navigation Bar -->
     <header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-lg">
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <h1 class="text-xl font-extrabold tracking-tight text-gray-800 dark:text-white"><span class="text-pink-500">ICo-nic</span> Fashion</h1>
+        <h1 class="text-xl font-extrabold tracking-tight text-gray-800 dark:text-white"><span class="text-pink-500">Aninka</span> Fashion</h1>
 
       </div>
     </header>

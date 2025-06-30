@@ -91,7 +91,7 @@ export const useProductionStore = defineStore('production', {
 
     async createProduction(productionData: {
       model_id: number;
-      activity_role_id: number;
+      activity_role_id: number | number[]; // allow multiple
       remark?: string;
       items: ProductionItem[];
     }) {

@@ -9,26 +9,42 @@ import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 
 interface Props {
-    breadcrumbs?: BreadcrumbItemType[];
+  breadcrumbs?: BreadcrumbItemType[];
 }
 
+// role_id is stored in a pivot table (user_role), and role 7 represents "customer"
+const page = usePage();
+
 const showBottomNavigation = computed(() => {
-  const currentUrl = usePage().url;
-  return ['/home', '/order-history', '/order'].includes(currentUrl);
+  const currentUrl = page.url;
+  const user = page.props?.auth?.user;
+  const isCustomer = user?.role_id === 7;
+
+console.log(user.roles); // -> array of roles
+
+
+  console.log('Current URL:', currentUrl);
+  console.log('User Role ID:', user);
+
+  return isCustomer && ['/home', '/order-history', '/order'].includes(currentUrl);
 });
 
 withDefaults(defineProps<Props>(), {
-    breadcrumbs: () => [],
+  breadcrumbs: () => [],
 });
 </script>
 
 <template>
-    <AppShell variant="sidebar">
-        <AppSidebar />
-        <AppContent variant="sidebar">
-            <AppSidebarHeader :breadcrumbs="breadcrumbs" />
-            <slot />
-        </AppContent>
-    </AppShell>
-    <AppBottomNavigation v-show="showBottomNavigation" />
+  <AppShell variant="sidebar">
+    <AppSidebar />
+    <AppContent variant="sidebar">
+      <AppSidebarHeader :breadcrumbs="breadcrumbs" />
+      <slot /> 
+    </AppContent>
+  </AppShell>
+
+  <!-- Show bottom navigation only on mobile and for customer role -->
+  <div class="block md:hidden">
+    <AppBottomNavigation v-if="showBottomNavigation" />
+  </div>
 </template>
