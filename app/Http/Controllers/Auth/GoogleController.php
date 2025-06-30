@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 class GoogleController extends Controller
@@ -37,7 +38,12 @@ class GoogleController extends Controller
                 ]);
 
                 // Assign the default role to the new user
-                $newUser->roles()->attach(7); // Assuming 2 is the ID for as customer
+                // insert into user_roles (user_id, role_id) values ($newUser->id, 1);
+                DB::table('user_role')->insert([
+                    'user_id' => $newUser->id,
+                    'role_id' => 7 // Assuming 1 is the ID for the default role
+                ]);
+
                 // the default role, adjust as necessary
 
 

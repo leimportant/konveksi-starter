@@ -1,7 +1,9 @@
 import { createInertiaApp } from '@inertiajs/vue3';
-import createServer, { PageProps } from '@inertiajs/vue3/server';
+import createServer from '@inertiajs/vue3/server';
+import { PageProps } from '@inertiajs/vue3';
 import { renderToString } from '@vue/server-renderer';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+
 import { createSSRApp, h, DefineComponent } from 'vue';
 import { route as ziggyRoute } from 'ziggy-js';
 
@@ -13,10 +15,6 @@ interface ZiggyConfig {
     defaults: Record<string, any>;
     routes: Record<string, any>;
     location: URL;
-}
-
-declare global {
-    var route: typeof ziggyRoute;
 }
 
 createServer((page: PageProps & { props: { ziggy: ZiggyConfig } }) =>
@@ -38,7 +36,7 @@ createServer((page: PageProps & { props: { ziggy: ZiggyConfig } }) =>
             };
 
             // Create route function...
-            const route = (name: string, params?: any, absolute?: boolean) => ziggyRoute(name, params, absolute, ziggyConfig);
+            const route: typeof ziggyRoute = ((name: string, params?: any, absolute?: boolean) => ziggyRoute(name, params, absolute, ziggyConfig)) as typeof ziggyRoute;
 
             // Make route function available globally...
             app.config.globalProperties.route = route;
