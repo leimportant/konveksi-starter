@@ -9,7 +9,7 @@
         <!-- Product Catalog -->
         <section class="space-y-4 w-full p-4 bg-white">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-2 mb-4">
-            <h2 class="text-xl font-bold text-gray-800">Katalog Produk</h2>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">Katalog Produk</h2>
             <input type="text" v-model="searchText" @input="onSearchInput" placeholder="Cari produk..."
               class="border rounded px-3 py-1 text-sm w-full sm:w-52 sm:ml-auto" />
           </div>
@@ -21,9 +21,11 @@
               class="bg-green-50 hover:bg-green-100 rounded-xl p-3 border border-gray-200 shadow-sm hover:shadow-md transition cursor-pointer"
               :title="`Stock: ${product.qty_stock}`">
               <div class="w-full h-24 mb-2">
+                <!-- <img v-if="product.image_path" :src="getImageUrl(product.image_path)" alt="product"
+                  class="w-full h-full object-cover rounded-lg cursor-pointer" @click.stop="openFullscreenImage(getImageUrl(product.image_path))" /> -->
                 <img v-if="product.image_path" :src="getImageUrl(product.image_path)" alt="product"
-                  class="w-full h-full object-cover rounded-lg" />
-                <div v-else
+                  class="w-full h-full object-cover rounded-lg cursor-pointer" />
+                  <div v-else
                   class="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-400 rounded-lg">No
                   Image</div>
               </div>
@@ -119,7 +121,7 @@
           <div class="flex items-center space-x-1">
             <button @click="decreaseQty(item)" :disabled="item.quantity <= 1"
               class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">-</button>
-            <span class="w-8 text-center text-sm">{{ item.quantity }}</span>
+            <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-200">{{ item.quantity }}</span>
             <button @click="increaseQty(item)" class="px-2 py-1 bg-gray-200 rounded">+</button>
           </div>
           <button @click="removeFromCart(item.cartItemId)"
@@ -151,7 +153,7 @@
               :navigation="true" class="mb-4 w-full h-40 sm:h-48 md:h-60 rounded-lg">
               <SwiperSlide v-for="(image, index) in selectedProduct.gallery_images" :key="index">
                 <img :src="getImageUrl(image.path)" alt="product gallery image"
-                  class="w-full h-full object-cover rounded-lg" />
+                  class="w-full h-full object-cover rounded-lg cursor-pointer" @click="openFullscreenImage(getImageUrl(image.path))" />
               </SwiperSlide>
             </Swiper>
           </div>
@@ -159,7 +161,7 @@
           <!-- Single Image -->
           <div v-else-if="selectedProduct?.image_path" class="mb-4 w-full h-40 sm:h-48 md:h-60 rounded-lg">
             <img :src="getImageUrl(selectedProduct.image_path)" alt="product"
-              class="w-full h-full object-cover rounded-lg" />
+              class="w-full h-full object-cover rounded-lg cursor-pointer" @click="openFullscreenImage(getImageUrl(selectedProduct.image_path))" />
           </div>
 
           <!-- No Image -->
@@ -220,6 +222,17 @@
 
 
   </AppLayout>
+
+  <!-- Fullscreen Image Modal -->
+  <div v-if="showFullscreenImageModal"
+    class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]"
+    @click.self="closeFullscreenImage">
+    <div class="relative">
+      <img :src="fullscreenImageUrl" alt="Fullscreen Product Image" class="max-w-full max-h-screen object-contain" />
+      <button @click="closeFullscreenImage"
+        class="absolute top-4 right-4 text-white text-4xl font-bold bg-black bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center">&times;</button>
+    </div>
+  </div>
 </template>
 
 
@@ -269,6 +282,8 @@ const orderList = ref<HTMLElement | null>(null);
 const showDetailModal = ref(false);
 const selectedProduct = ref<Product | null>(null);
 const detailQty = ref(1);
+const showFullscreenImageModal = ref(false);
+const fullscreenImageUrl = ref('');
 
 const showCart = ref(false);
 const toggleCart = () => (showCart.value = !showCart.value);
@@ -325,6 +340,16 @@ function closeDetailModal() {
   showDetailModal.value = false;
   selectedProduct.value = null;
   detailQty.value = 1;
+}
+
+function openFullscreenImage(imageUrl: string) {
+  fullscreenImageUrl.value = imageUrl;
+  showFullscreenImageModal.value = true;
+}
+
+function closeFullscreenImage() {
+  showFullscreenImageModal.value = false;
+  fullscreenImageUrl.value = '';
 }
 
 

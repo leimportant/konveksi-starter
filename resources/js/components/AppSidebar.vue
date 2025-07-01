@@ -32,6 +32,7 @@ const footerNavItems: NavItem[] = [];
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
+        
         </SidebarHeader>
 
         <SidebarContent>

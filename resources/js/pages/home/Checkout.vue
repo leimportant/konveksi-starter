@@ -217,7 +217,7 @@ const confirmCheckout = async () => {
                 showUploadProofModal.value = true; // Show the new modal for bank transfer proof
                 bankAccountInfo.value = response.data.bank_account_info; // Assuming API returns bank info
             } else {
-                router.visit('/');
+                router.visit('/order-history');
             }
         } catch (error) {
             toast.error('Gagal memproses checkout.');
@@ -243,7 +243,7 @@ const uploadPaymentProof = async () => {
         });
         toast.success('Bukti transfer berhasil diunggah!');
         showUploadProofModal.value = false;
-        router.visit('/');
+        router.visit('/order-history');
     } catch (error) {
         toast.error('Gagal mengunggah bukti transfer.');
         console.error('Upload payment proof error:', error);
@@ -283,7 +283,7 @@ const goBackToCart = () => {
                         <div class="mb-6 flex justify-center">
                             <qrcode-vue :value="orderIdForQr" :size="200" level="H" />
                         </div>
-                        <Button @click="router.visit('/')">Kembali ke Beranda</Button>
+                        <Button @click="router.visit('/home')">Kembali ke Beranda</Button>
                     </div>
                 </div>
             </div>
@@ -313,7 +313,7 @@ const goBackToCart = () => {
                         <Button @click="uploadPaymentProof"
                             class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Kirim
                             Bukti Pembayaran</Button>
-                        <Button @click="router.visit('/')" type="button" variant="outline">Nanti Saja</Button>
+                        <Button @click="router.visit('/home')" type="button" variant="outline">Nanti Saja</Button>
                     </div>
                 </div>
             </div>

@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
+use App\Models\Inventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\InventoryService;
+
 
 class CartItemController extends Controller
 {
@@ -34,6 +37,9 @@ class CartItemController extends Controller
                 'quantity' => 'required|numeric',
             ]);
 
+            $location_id = Auth::user()->location_id;
+            $validated['location_id'] = $location_id;
+            $validated['sloc_id'] = 'GS00';
             // Check if the product already exists in the cart
             $cartItem = CartItem::where('product_id', $validated['product_id'])
                 ->where('created_by', Auth::id())
@@ -58,7 +64,6 @@ class CartItemController extends Controller
 
 
             if ($cartItem) {
-
                 // If the product exists, update the quantity
                 $cartItem->update([
                     'quantity' => $cartItem->quantity + $validated['quantity'],
@@ -88,6 +93,27 @@ class CartItemController extends Controller
                     'created_by' => Auth::id(),
                 ]);
             }
+
+            // langsung update inventory
+             $inventory = Inventory::where('product_id', $validated['product_id'])
+                        ->where('location_id', $validated['location_id'])
+                        ->where('uom_id', $validated['uom_id'])
+                        ->where('sloc_id', $validated['sloc_id'])
+                        ->where('size_id', $validated['size_id'])
+                        ->first();
+            $qty = $inventory ? $inventory->qty : 0;
+            $qty_reserved = $inventory ? $inventory->qty_reserved : 0;
+            // update inventory for the transfer
+            app(InventoryService::class)->updateOrCreateInventory([
+                'product_id' => $validated['product_id'],
+                'location_id' => $validated['location_id'],
+                'uom_id' => $validated['uom_id'],
+                'sloc_id' => $validated['sloc_id'],
+            ], [
+                'size_id' => $validated['size_id'],
+                'qty' => $qty, // Reduce stock from source location
+                'qty_reserved' => $validated['quantity'] +  $qty_reserved, // Reduce stock from source location
+            ], 'IN');
 
             return response()->json([
                 'success' => true,

@@ -41,7 +41,8 @@ class InventoryController extends Controller
                 'a.uom_id',
                 'a.size_id',
                 'a.sloc_id',
-                'a.qty as qty_stock',
+                'a.qty',
+                'a.qty_reserved',
                 'a.status',
                 'b.image_path',
                 'c.name as category_name',
@@ -107,6 +108,7 @@ class InventoryController extends Controller
 
             $item->image_path = $imageGallery->isNotEmpty() ? ($imageGallery->first()->path ? $imageGallery->first()->path : "not_available.png") : "not_available.png";
 
+            $item->qty_stock = $item->qty - $item->qty_reserved;
             return $item;
         });
 

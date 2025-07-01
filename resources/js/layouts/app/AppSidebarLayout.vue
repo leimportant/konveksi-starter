@@ -37,15 +37,22 @@ withDefaults(defineProps<Props>(), {
 <template>
   <AppShell variant="sidebar">
     <AppSidebar />
+
     <AppContent variant="sidebar">
-      <AppSidebarHeader :breadcrumbs="breadcrumbs" />
-      <slot /> 
-      <div class="pb-16 md:pb-0"></div> 
+      <!-- Fixed Header -->
+      <div class="fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-200">
+        <AppSidebarHeader :breadcrumbs="breadcrumbs" />
+      </div>
+
+      <!-- Padding top to prevent header overlap -->
+      <div class="pt-[60px] pb-[60px]"> <!-- adjust these values to match your header/footer height -->
+        <slot />
+      </div>
     </AppContent>
   </AppShell>
 
-  <!-- Show bottom navigation only on mobile and for customer role -->
-  <div class="block md:hidden">
+  <!-- Fixed Bottom Navigation for Mobile -->
+  <div class="fixed bottom-0 left-0 right-0 z-30 block md:hidden bg-white border-t border-gray-200">
     <AppBottomNavigation v-if="showBottomNavigation" />
   </div>
 </template>

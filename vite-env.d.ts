@@ -1,5 +1,14 @@
 /// <reference types="vite/client" />
 
+import Echo from 'laravel-echo';
+
+declare global {
+  interface Window {
+    Echo: Echo;
+    Pusher: any;
+  }
+}
+
 declare module 'vite/client' {
     interface ImportMetaEnv {
       readonly VITE_APP_NAME: string;

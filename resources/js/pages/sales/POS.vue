@@ -775,44 +775,69 @@ function closePrintPreview() {
 }
 
 const onDetect = async (detectedCodes: { rawValue: string }[]) => {
-    if (detectedCodes.length > 0) {
-        const qrCodeData = detectedCodes[0].rawValue;
-        console.log('QR Code detected:', qrCodeData);
-        showQrScanner.value = false; // Sembunyikan scanner setelah deteksi
+    if (detectedCodes.length === 0) return;
 
-        try {
-            const response = await axios.get(`/api/orders/scan/${qrCodeData}`);
-            const order = response.data;
+    const qrCodeData = detectedCodes[0].rawValue;
+    console.log('QR Code detected:', qrCodeData);
+    showQrScanner.value = false;
 
-            if (order && order.order_items) {
-                const products: Product[] = [];
+    try {
+        const orderIds = qrCodeData.split(',').map(id => id.trim());
 
-                order.order_items.forEach((item: OrderItem) => {
-                    const product: Product = {
-                        id: item.product_id, // mapped
-                        product_id: item.product_id, // optional
-                        product_name: item.product_name,
-                        uom_id: item.uom_id,
-                        size_id: item.size_id || 'PCS', // optional size_id
-                        qty_stock: item.qty_stock,
-                        image_path: item.image_path,
-                        price: item.price,
-                        discount: item.discount,
-                        price_sell: item.price_sell,
-                        quantity: 1, // default to 1 or from `item.quantity` if available
-                    };
-                    products.push(product);
-                });
+        const response = await axios.get('/api/orders/scan-multi', {
+            params: { ids: orderIds.join(',') },
+        });
 
-                console.log('Produk dalam pesanan:', products);
-                // Lanjutkan dengan memproses produk jika perlu (misalnya: tampilkan di UI)
+        const orders = response.data;
+
+        const combinedOrderItems: OrderItem[] = [];
+
+        orders.forEach((order: any) => {
+            if (order?.order_items?.length) {
+                combinedOrderItems.push(...order.order_items);
             }
-        } catch (error) {
-            console.error('Error scanning QR code:', error);
-            toast.error('Failed to scan QR code');
+        });
+
+        if (combinedOrderItems.length === 0) {
+            toast.error('No order items found for the scanned QR code(s).');
+            return;
         }
+
+        const products: Product[] = combinedOrderItems.map((item) => ({
+            id: item.product_id,
+            product_id: item.product_id,
+            product_name: item.product_name,
+            uom_id: item.uom_id,
+            size_id: item.size_id || 'PCS',
+            qty_stock: item.qty_stock,
+            image_path: item.image_path,
+            price: item.price,
+            price_sell: item.price_sell,
+            discount: item.discount,
+            quantity: item.quantity ?? 1,
+        }));
+
+        console.log('Produk dalam pesanan:', products);
+
+        products.forEach((product) => {
+            const existingIndex = selectedProducts.value.findIndex(
+                (p) => (p.product_id ?? p.id) === (product.product_id ?? product.id)
+            );
+
+            if (existingIndex > -1) {
+                selectedProducts.value[existingIndex].quantity += product.quantity;
+            } else {
+                selectedProducts.value.push({ ...product });
+            }
+        });
+
+        toast.success('Order items added to cart!');
+    } catch (error) {
+        console.error('Error scanning QR code:', error);
+        toast.error('Failed to scan QR code or retrieve order details.');
     }
 };
+
 
 function doPrintKasir80mm() {
     // QZ Tray integration for direct thermal printing
