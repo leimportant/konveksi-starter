@@ -3,18 +3,21 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Customer;
 
 
 Route::get('/', function () {
-    if (Auth::check()) {
-        return Inertia::render('Home/Cart', [
-            'customers' => App\Models\Customer::all(['id', 'name']),
-        ])->middleware(['auth', 'verified'])->name('home.cart');
-    } else {
-        return Inertia::render('Welcome');
-    }
-});
+    return Inertia::render('Welcome');
+})->middleware('guest')->name('welcome');
 
+/**
+ * Untuk user yang sudah login
+ */
+Route::get('/home', function () {
+    return Inertia::render('Home/Cart', [
+        'customers' => Customer::all(['id', 'name']),
+    ]);
+})->middleware(['auth', 'verified'])->name('home.cart');
 
 Route::get('/welcome', function () {
         return Inertia::render('Welcome');
