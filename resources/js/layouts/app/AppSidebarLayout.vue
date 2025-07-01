@@ -26,7 +26,7 @@ console.log(user.roles); // -> array of roles
   console.log('Current URL:', currentUrl);
   console.log('User Role ID:', user);
 
-  return isCustomer && ['/home', '/order-history', '/order'].includes(currentUrl);
+  return isCustomer && ['/home', '/order-history', '/order', '/settings/profile'].includes(currentUrl);
 });
 
 withDefaults(defineProps<Props>(), {
