@@ -24,13 +24,13 @@ const footerNavItems: NavItem[] = [];
     <Sidebar collapsible="icon" variant="inset">
         <SidebarHeader>
             <SidebarMenu>
-                <!-- <SidebarMenuItem> -->
+                <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
                         <Link :href="route('dashboard')">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
-                <!-- </SidebarMenuItem> -->
+                </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
 
