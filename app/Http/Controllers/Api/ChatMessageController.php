@@ -22,11 +22,14 @@ class ChatMessageController extends Controller
      */
     public function index(Request $request)
     {
-        $request->validate([
-            'order_id' => 'required|string',
-        ]);
+        $userId = Auth::id();
+        $order_id = $request->order_id ?? "";
 
-        $messages = ChatMessage::where('order_id', $request->order_id)
+        $messages = ChatMessage::with('sender')->where(function ($query) use ($userId) {
+            $query->where('sender_id', $userId)
+                ->orwhere('receiver_id', $userId);
+        })
+            ->where('order_id', $order_id)
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -40,13 +43,15 @@ class ChatMessageController extends Controller
     {
         $validated = $request->validate([
             'sender_type' => 'required|in:admin,customer',
-            'sender_id' => 'sometimes|integer',
-            'receiver_id' => 'required|integer',
             'message' => 'required|string',
+            'receiver_id' => 'nullable|integer|exists:users,id',
+            'content_data' => 'nullable|array',
             'order_id' => 'nullable|string',
         ]);
 
-        $validated['sender_id'] = Auth::id(); // ambil dari token/login
+        $validated['sender_id'] = Auth::id();
+
+        $receiver = null;
 
         // Jika customer dan receiver_id kosong → cari admin dari setting
         if ($validated['sender_type'] === 'customer' && empty($validated['receiver_id'])) {
@@ -60,7 +65,7 @@ class ChatMessageController extends Controller
                     $validated['receiver_id'] = $receiver->id;
                 }
             }
-        } else {
+        } elseif (!empty($validated['receiver_id'])) {
             // Jika receiver_id tersedia, cari user
             $receiver = User::find($validated['receiver_id']);
         }
@@ -69,33 +74,36 @@ class ChatMessageController extends Controller
             'id' => (string) Str::uuid(),
             'sender_type' => $validated['sender_type'],
             'sender_id' => $validated['sender_id'],
-            'receiver_id' => $validated['receiver_id'] ?? "*",
+            'receiver_id' => $validated['receiver_id'] ?? 0,
+            'content_data' => json_encode($validated['content_data'] ?? []),
             'message' => $validated['message'],
             'order_id' => $validated['order_id'] ?? null,
             'is_read' => false,
         ]);
 
         event(new ChatMessageSent($chat));
-        // Kirim email ke penerima
+
+        // Kirim email ke penerima jika ada
         if ($receiver && $receiver->email) {
             Mail::to($receiver->email)->send(new ChatMessageNotification($chat));
         }
 
-        return response()->json(['message' => 'Message sent', 'data' => $chat], 201);
+        return response()->json([
+            'message' => $validated['message'] ?? 'Message sent',
+            'data' => $chat,
+        ], 201);
     }
+
 
     /**
      * Mark messages as read
      */
-    public function markAsRead(Request $request)
+    public function markAsRead($ordeId)
     {
-        $request->validate([
-            'id' => 'required',
-        ]);
 
-        ChatMessage::where('id', $request->id)
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+        ChatMessage::where('order_id', $ordeId)
+            ->where('is_read', '0')
+            ->update(['is_read' => 1]);
 
         return response()->json(['message' => 'Messages marked as read']);
     }
@@ -104,8 +112,10 @@ class ChatMessageController extends Controller
     {
         $user = Auth::user();
         $userId = $user->id;
+
+        Log::info($userId);
         $userRoleIds = $user->roles->pluck('id');
- Log::info($userId);
+
         $query = ChatMessage::query();
 
         // Jika bukan owner (role_id 2), filter berdasarkan user ID
@@ -129,13 +139,13 @@ class ChatMessageController extends Controller
                     'last_sent_at' => $last->created_at,
                     'unread_count' => $messages
                         ->where('receiver_id', $userId)
-                        ->where('is_read', false)
+                        ->where('is_read', '0')
                         ->count(),
                 ];
             })
             ->values();
 
-            Log::info($conversations);
+        Log::info($conversations);
 
         return response()->json($conversations);
     }

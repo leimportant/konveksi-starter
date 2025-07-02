@@ -5,7 +5,7 @@ import { useMasterActivityRoleStore } from '@/stores/useMasterActivityRoleStore'
 
 const props = defineProps<{
   modelMaterials: {
-    product_id: number;
+    product_id: number | { id: number };
     qty: number;
     uom_id: number;
     remark: string;
@@ -31,19 +31,25 @@ const products = computed(() => productStore.items);
 // const activityRoles = computed(() => activityRoleStore.items);
 
 // Fungsi untuk mendapatkan nama material
-const getMaterialName = (productId: number) => {
-  const product = products.value.find(p => p.id === productId);
-  return product?.name || `Material ${productId}`;
+const getMaterialName = (productId: number | { id: number }) => {
+  const id = typeof productId === 'object' && productId !== null ? productId.id : productId;
+  const product = products.value.find(p => p.id === id);
+  return product?.name || `Material ${id}`;
 };
+
+
 
 // Map model materials to the format we need for calculations
 const mappedMaterials = computed(() => {
   return props.modelMaterials.map(material => ({
-    material_id: material.product_id,
+    material_id: typeof material.product_id === 'object'
+      ? material.product_id.id
+      : material.product_id,
     qty: material.qty,
     price: material.price || 0
   }));
 });
+
 
 // Use mappedMaterials instead of direct modelMaterials
 const totalMaterialCost = computed(() => {
@@ -121,6 +127,8 @@ onMounted(async () => {
   }
 });
 
+
+
 // Fungsi untuk memformat tanggal
 const formatDate = (date: string | null | undefined) => {
   if (!date) return '-';
@@ -160,7 +168,7 @@ const formatDate = (date: string | null | undefined) => {
       <div class="space-y-2">
         <span class="text-[14px]">Biaya Material</span>
         <div class="grid gap-1 sm:gap-2 text-sm">
-          <div v-for="material in modelMaterials" :key="material.product_id" class="flex justify-between">
+          <div v-for="material in modelMaterials" :key="typeof material.product_id === 'object' ? material.product_id.id : material.product_id" class="flex justify-between">
             <span class="text-[12px]">{{ getMaterialName(material.product_id) }}</span>
             <span class="text-[12px]">{{ formatCurrency(material.qty * (material.price || 0)) }}</span>
           </div>

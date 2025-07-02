@@ -226,6 +226,17 @@ watch(activeTab, (tab) => {
   }
 });
 
+
+const cleanModelMaterials = (materials: any[]) => {
+  return materials.map(m => ({
+    ...m,
+    product_id: typeof m.product_id === 'object' && m.product_id?.id
+      ? m.product_id.id
+      : m.product_id
+  }));
+};
+
+
 // Submit handler
 const handleSubmit = async () => {
   if (!form.start_date) {
@@ -241,7 +252,7 @@ const handleSubmit = async () => {
         sizes: sizeItems.value,
         activity: activityItems.value,
         documents: uploadedDocuments.value,
-        modelMaterials: modelMaterials.value,  // Changed from modelMaterial to modelMaterials
+        modelMaterials: cleanModelMaterials(modelMaterials.value),
       });
       toast.success('Model berhasil diperbarui');
     } else {
@@ -251,7 +262,7 @@ const handleSubmit = async () => {
         activity: activityItems.value,
         uniqId: uniqId.value, // Ensure unique ID is sent
         documents: uploadedDocuments.value,
-        modelMaterials: modelMaterials.value,  // Changed from modelMaterial to modelMaterials
+        modelMaterials: cleanModelMaterials(modelMaterials.value), // Changed from modelMaterial to modelMaterials
       });
       toast.success('Model berhasil dibuat');
     }

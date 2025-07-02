@@ -225,6 +225,12 @@ Route::get('/order/approve', function () {
     return Inertia::render('Order/Approve');
 })->name('order.approve');
 
+// list order untuk admin
+Route::get('/order-request', function () {
+    return Inertia::render('Order/Index');
+})->name('order.index');
+
+// list order untuk customer
 Route::get('/order-history', function () {
     return Inertia::render('home/OrderHistory');
 })->middleware(['auth'])->name('order.history');

@@ -13,6 +13,7 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\BankAccount;
 use Carbon\Carbon;
 use App\Http\Requests\Order\StoreOrderRequest;
 use Illuminate\Http\Request;
@@ -25,18 +26,61 @@ use Illuminate\Support\Facades\Validator;
 use App\Enums\OrderStatusEnum;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use App\Services\InventoryService;
+use App\Models\Inventory;
 
 class OrderController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Tidak terautentikasi.'], 401);
+        }
+
+        $query = Order::with('orderItems.product', 'customer');
+        $status = [1, 2, 3, 4, 5];
+        if ($request->has('status') == 'done') {
+            $status = [6];
+        }
+        if ($request->has('status') == 'cancel') {
+            $status = [7];
+        }
+        if ($request->has('status')) {
+            $query->whereIn('status', $status);
+        }
+
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                    ->orWhereHas('orderItems.product', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->paginate(10);
+        return response()->json($orders, 201);
+    }
+
     public function store(StoreOrderRequest $request)
     {
 
         DB::beginTransaction();
         try {
+            $user = Auth::user();
+
+            if (!$user->active) {
+                throw new \Exception('Maaf customer status tidak aktif!');
+            }
+
             $order = new Order();
             $id = Order::generateUniqueShortId();
             $order->id = $id;
-            $order->customer_id = Auth::id(); // Use authenticated user's ID
+            $locationId = $user->location_id ?? 1;
+            $order->customer_id = $user->id; // Use authenticated user's ID
             $order->status = OrderStatusEnum::PENDING; // Initial status is PENDING (1)
 
             $paymentProofPath = null;
@@ -44,12 +88,13 @@ class OrderController extends Controller
                 $paymentProofPath = $this->handlePaymentProof($request);
             }
 
+            $order->location_id = $locationId;
             $order->payment_method = $request->payment_method;
             $order->payment_proof = $paymentProofPath;
             $order->created_by = Auth::id();
             $order->save(); // Save to get the auto-incremented ID for order_id
 
-            $calculatedTotalAmount = $this->processOrderItems($request->items, $order->id);
+            $calculatedTotalAmount = $this->processOrderItems($request->items, $order->id, $locationId, $request->payment_method);
             $order->total_amount = $calculatedTotalAmount;
             if (!$order->save()) {
                 throw new \Exception('Gagal menyimpan order!');
@@ -63,23 +108,25 @@ class OrderController extends Controller
                     return response()->json(['message' => 'Saldo Kredit tidak mencukupi'], 404);
                 }
             }
-             DB::commit();
+            DB::commit();
 
             if ($request->payment_method === 'bank_transfer') {
 
-                 Mail::to(Auth::user()->email)->send(new OrderWaitingPayment($order->load('orderItems.product')));
+                Mail::to(Auth::user()->email)->send(new OrderWaitingPayment($order->load('orderItems.product')));
 
-                $bankAccountInfo = Setting::where('key', 'bank_transfer_info')->first(); // Assuming a setting for bank info
-                          
+                $bankAccountInfo = BankAccount::whereNull('deleted_at')->get(); // Assuming a setting for bank info
+
                 return response()->json([
                     'message' => 'Order created successfully',
                     'order' => $order,
-                    'bank_account_info' => $bankAccountInfo ? $bankAccountInfo->value : 'Please contact admin for bank account details.'
+                    'bank_account_info' => $bankAccountInfo->isNotEmpty()
+                        ? $bankAccountInfo
+                        : 'Silahkan hubungi admin untuk informasi lebih jelas'
                 ], 201);
             }
 
 
-           
+
             return response()->json(['message' => 'Pesanan berhasil dibuat', 'order' => $order], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -87,7 +134,7 @@ class OrderController extends Controller
         }
     }
 
-     private function processOrderItems(array $itemsData, string $orderId): float
+    private function processOrderItems(array $itemsData, string $orderId, string $locationId, string $paymentMethod): float
     {
         $calculatedTotalAmount = 0;
         foreach ($itemsData as $itemData) {
@@ -118,6 +165,36 @@ class OrderController extends Controller
             $orderItem->save();
 
             $calculatedTotalAmount += ($priceAfterDiscountPerItem * $quantity);
+
+            // langsung update inventory
+            $inventory = Inventory::where('product_id', $itemData['product_id'])
+                        ->where('location_id', $locationId)
+                        ->where('uom_id', $itemData['uom_id'])
+                        ->where('sloc_id', $itemData['sloc_id'])
+                        ->where('size_id', $itemData['size_id'])
+                        ->first();
+            $qty = $inventory ? $inventory->qty : 0;
+            $qty_rese = $inventory ? $inventory->qty_reserved : 0;
+
+            $status = "IN";
+            $qty_reserved = intval($qty_rese + $quantity);
+            if ($paymentMethod == "bank_transfer") {
+                $status = "OUT";
+                $qty = $quantity;
+                $qty_reserved = 0;
+            }
+
+            // update stock
+            app(InventoryService::class)->updateOrCreateInventory([
+                'product_id' => $itemData['product_id'],
+                'location_id' => $locationId,
+                'uom_id' => $itemData['uom_id'],
+                'sloc_id' => $itemData['sloc_id'],
+            ], [
+                'size_id' => $itemData['size_id'],
+                'qty' => $qty, // Reduce stock from source location
+                'qty_reserved' => $qty_reserved, // Reduce stock from source location
+            ], $status);
         }
         return $calculatedTotalAmount;
     }
@@ -147,7 +224,7 @@ class OrderController extends Controller
         if (!$order) {
             return Inertia::render('Order/Approve', [
                 'message' => 'Order Tidak di temukan atau sudah di proses',
-                'order' => (object)[],
+                'order' => (object) [],
             ]);
         }
         if ($order->status != "1") {
@@ -167,7 +244,8 @@ class OrderController extends Controller
             Mail::to($customerEmail)->send(new OrderStatusUpdated($order));
         }
 
-        return response()->json(['message' => 'Pesanan berhasil disetujui',
+        return response()->json([
+            'message' => 'Pesanan berhasil disetujui',
             'order' => $order,
         ]);
     }
@@ -182,28 +260,71 @@ class OrderController extends Controller
         return null;
     }
 
-   
 
     public function reject(Request $request)
     {
-        $order = Order::find($request->order_id);
-        if (!$order) {
-            return Inertia::render('Order/Reject', [
-                'message' => 'Order Tidak di temukan atau sudah di proses',
-                'order' => [],
-            ]);
-        }
-        if ($order->status != "1") {
-            return Inertia::render('Order/Reject', [
-                'message' => 'Order Tidak di temukan atau sudah di proses',
-                'order' => [],
-            ]);
-        }
+        DB::beginTransaction();
 
-        $order->status = "5";
-        $order->updated_by = Auth::id();
-        $order->save();
+        try {
+            $order = Order::with('orderItems')->find($request->order_id);
+            $locationId = $order->location_id;
+
+            if (!$order || $order->status != "1") {
+                return Inertia::render('Order/Reject', [
+                    'message' => 'Order tidak ditemukan atau sudah diproses',
+                    'order' => [],
+                ]);
+            }
+
+            // Update status order
+            $order->status = "5"; // Ditolak
+            $order->updated_by = Auth::id();
+            $order->save();
+
+            // Kembalikan stok dari setiap item dalam pesanan
+            foreach ($order->orderItems as $item) {
+                // langsung update inventory
+            $inventory = Inventory::where('product_id', $item->product_id)
+                        ->where('location_id', $locationId)
+                        ->where('uom_id', $item->uom_id)
+                        ->where('sloc_id', $item->sloc_id)
+                        ->where('size_id', $item->size_id)
+                        ->first();
+            $qty = $inventory ? $inventory->qty : 0;
+            $qty_rese = $inventory ? $inventory->qty_reserved : 0;
+            $quantity = $item['qty'] ?? 0;
+
+            $status = "IN";
+            $qty_reserved = intval($qty_rese + $quantity);
+            if ($paymentMethod == "bank_transfer") {
+                $status = "OUT";
+                $qty = $quantity;
+                $qty_reserved = 0;
+            }
+
+            // update stock
+            app(InventoryService::class)->updateOrCreateInventory([
+                'product_id' => $item->product_id,
+                'location_id' => $locationId,
+                'uom_id' => $item->uom_id,
+                'sloc_id' => $item->sloc_id,
+            ], [
+                'size_id' => $item->size_id,
+                'qty' => $qty, // Reduce stock from source location
+                'qty_reserved' => $qty_reserved, // Reduce stock from source location
+            ], $status);
+            }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Order berhasil ditolak dan stok telah dikembalikan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Gagal menolak order: ' . $e->getMessage());
+        }
     }
+
 
     public function uploadPaymentProof(Request $request, Order $order)
     {
@@ -252,7 +373,7 @@ class OrderController extends Controller
         }
 
         $query = Order::with('orderItems.product')->where('customer_id', $user->id);
-        $status = [1,2,3,4,5];
+        $status = [1, 2, 3, 4, 5];
         if ($request->has('status') == 'done') {
             $status = [6];
         }
@@ -267,9 +388,9 @@ class OrderController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
-                  ->orWhereHas('orderItems.product', function ($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('orderItems.product', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -294,5 +415,52 @@ class OrderController extends Controller
         }
 
         return response()->json($orders);
+    }
+
+    public function cancelOrder(Request $request, $id)
+    {
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        if ($order->status == OrderStatusEnum::CANCEL) {
+            return response()->json(['message' => 'Order is already cancelled.'], 400);
+        }
+
+        $status = OrderStatusEnum::CANCEL;
+        if ($order->payment_method == "bank_transfer") {
+            $status = OrderStatusEnum::CONFIRM_CANCEL;
+        }
+
+        $order->status = $status;
+        $order->updated_by = Auth::id();
+        $order->save();
+
+        // kirim email ke customer jika OrderStatusEnum::CANCEL
+        // kirim email ke admin jika OrderStatusEnum::CONFIRM_CANCEL
+        if ($status == OrderStatusEnum::CANCEL) {
+            // update stock
+
+            $order->load('createdBy');
+            Mail::to($order->createdBy->email)->send(new OrderStatusUpdated($order));
+        }
+        if ($status == OrderStatusEnum::CONFIRM_CANCEL) {
+            $order->load('customer');
+            $adminEmail = Setting::where('key', 'notif_mail_order')->first();
+            if ($adminEmail && $adminEmail->value) {
+                $emailAddresses = explode(',', $adminEmail->value);
+                $emailAddresses = array_map('trim', $emailAddresses);
+                Mail::to($emailAddresses)->send(new OrderStatusUpdated($order));
+            }
+        }
+
+        return response()->json(['message' => 'Order cancelled successfully.', 'order' => $order]);
+    }
+
+    public function checkShipping(Request $request)
+    {
+        $data = Order::where('id', $request->id)->first();
+        return response()->json($data);
     }
 }

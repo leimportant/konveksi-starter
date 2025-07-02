@@ -19,6 +19,7 @@ class Order extends Model
         'customer_id',
         'total_amount',
         'payment_method',
+        'location_id',
         'payment_proof',
         'total_amount',
         'is_paid',

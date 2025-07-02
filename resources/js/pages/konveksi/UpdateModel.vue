@@ -149,6 +149,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 const modelStore = useModelStore();
 const toast = useToast();
 
+const cleanMaterialData = (materials: any[]) => {
+  return materials.map(m => ({
+    ...m,
+    product_id: typeof m.product_id === 'object' ? m.product_id.id : m.product_id,
+  }));
+};
+
 // Form setup
 const form = useForm({
   description: '',
@@ -191,7 +198,7 @@ const handleSubmit = async () => {
       sizes: sizeItems.value,
       activity: activityItems.value,  // Changed from 'activities' to 'activity'
       documents: uploadedDocuments.value,
-      modelMaterials: modelMaterials.value,  
+      modelMaterials: cleanMaterialData(modelMaterials.value),
     });
 
     toast.success('Model berhasil diperbarui');
