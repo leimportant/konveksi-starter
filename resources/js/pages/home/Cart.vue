@@ -67,7 +67,7 @@
     <div class="min-h-screen bg-white p-2 overflow-x-hidden grid gap-8 md:grid-cols-[1fr_400px]">
 
       <!-- Floating Cart Icon -->
-      <div class="hidden md:block absolute top-4 right-4 z-50">
+      <div class="hidden md:block absolute top-5 right-12 z-50">
         <button @click="toggleCart" class="relative bg-white p-2 rounded-full shadow hover:shadow-md">
           🛒
           <span v-if="cartQty > 0"
@@ -77,7 +77,7 @@
         </button>
       </div>
 
-      <div class="block fixed top-4 right-4 z-50 md:hidden">
+      <div class="block fixed top-5 right-13 z-50 md:hidden">
         <button @click="toggleCart" class="relative bg-white p-2 rounded-full shadow hover:shadow-md">
           🛒
           <span v-if="cartQty > 0"
