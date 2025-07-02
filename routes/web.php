@@ -39,7 +39,7 @@ Route::get('/checkout', function () {
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified', 'forbid.customer.dashboard'])->name('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/shopping', function () {
     return Inertia::render('sales/Shopping');
