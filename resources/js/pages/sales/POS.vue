@@ -141,9 +141,9 @@
                                             type="number"
                                             min="1"
                                             v-model.number="item.quantity"
-                                            @change="updateQuantity(item)"
                                             class="w-12 rounded border px-1 py-0.5 text-center text-xs"
                                         />
+                                        <!-- @change="updateQuantity(item)" -->
                                     </TableCell>
                                     <TableCell class="text-right text-xs font-semibold text-gray-900">
                                         {{ formatRupiah(item.quantity * (item.price_sell || item.price)) }}
@@ -619,18 +619,27 @@ function removeFromCart(productId: number) {
 //   }
 // }
 
-function updateQuantity(item: Product) {
-    if (item.quantity < 1) {
-        item.quantity = 1;
-        toast.error('Minimal quantity 1');
-        return;
-    }
-    const productStock = products.value.find((p) => p.id === item.id)?.qty_stock ?? 0;
-    if (item.quantity > productStock) {
-        toast.error('Stock limit reached');
-        item.quantity = productStock;
-    }
-}
+// function updateQuantity(item: Product) {
+//     if (item.quantity < 1) {
+//         item.quantity = 1;
+//         toast.error('Minimal quantity 1');
+//         return; // Stop here to avoid checking against stock
+//     }
+
+//     const productStock = products.value.find((p) => p.id === item.id)?.qty_stock ?? 0;
+
+//     if (productStock === 0) {
+//         item.quantity = 1;
+//         toast.error('Stock kosong');
+//         return;
+//     }
+
+//     if (item.quantity > productStock) {
+//         item.quantity = productStock;
+//         toast.error('Stock limit reached');
+//     }
+// }
+
 
 function openDiscountDialog() {
     if (selectedProducts.value.length === 0) return;
