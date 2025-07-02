@@ -6,56 +6,14 @@ use App\Models\Inventory;
 use App\Models\InventoryBooking;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 
 class InventoryService
 {
-
-public function updateOrCreateInventory(array $validated, array $item, $status = "IN")
-{
-    $data = [
-        'product_id' => $validated['product_id'],
-        'location_id' => $validated['location_id'],
-        'uom_id' => $validated['uom_id'],
-        'sloc_id' => $validated['sloc_id'],
-        'size_id' => $item['size_id'],
-        'qty' => $item['qty'],
-        'qty_reserved' => $item['qty_reserved'] ?? 0,
-        'status' => $status,
-        'created_by' => Auth::id(),
-        'updated_by' => Auth::id()
-    ];
-
-    Log::info('Data Inventory yang akan diupdate atau dibuat:', $data);
-
-    $inventory = Inventory::lockForUpdate()
-        ->where('product_id', $data['product_id'])
-        ->where('location_id', $data['location_id'])
-        ->where('uom_id', $data['uom_id'])
-        ->where('sloc_id', $data['sloc_id'])
-        ->where('size_id', $data['size_id'])
-        ->where('status', $data['status'])
-        ->first();
-
-    if ($inventory) {
-        $inventory->update([
-            'qty' => $inventory->qty + $data['qty'],
-            'qty_reserved' => $inventory->qty_reserved + $data['qty_reserved'],
-            'updated_by' => Auth::id()
-        ]);
-    } else {
-        Inventory::create($data); // tidak perlu update() lagi setelah ini
-    }
-}
-
-
-
-
-    public function updateOrCreateInventoryBooking(array $validated, array $item, $status = "IN")
+    public function updateOrCreateInventory(array $validated, array $item, $status = "IN")
     {
         // Contoh akses size_id dari $item
         $sizeId = $item['size_id'];
-
+    
         // Buat array data lengkap untuk updateOrCreate:
         $data = [
             'product_id' => $validated['product_id'],
@@ -70,7 +28,55 @@ public function updateOrCreateInventory(array $validated, array $item, $status =
             'updated_by' => Auth::id()
         ];
 
+        Log::info('Data Inventory yang akan diupdate atau dibuat:', $data);
+    
+        $inventory = Inventory::where('product_id', $data['product_id'])
+            ->where('location_id', $data['location_id'])
+            ->where('uom_id', $data['uom_id'])
+            ->where('sloc_id', $data['sloc_id'])
+            ->where('size_id', $sizeId)
+            ->where('status', $status)
+            ->first();
 
+            if ($inventory) {
+                $qty_reserved = $item['qty_reserved'] ?? 0;
+                Inventory::where('product_id', $data['product_id'])
+                ->where('location_id', $data['location_id'])
+                ->where('uom_id', $data['uom_id'])
+                ->where('sloc_id', $data['sloc_id'])
+                ->where('size_id', $sizeId)
+                ->where('status', $status)
+                ->update([
+                    'qty' => $inventory['qty'] + $data['qty'],
+                    'qty_reserved' => $inventory['qty_reserved'] + $qty_reserved,
+                    'status' => $status,
+                    'updated_by' => Auth::id()
+                ]);
+            } else {
+                Inventory::create($data);
+            }
+    }
+    
+     public function updateOrCreateInventoryBooking(array $validated, array $item, $status = "IN")
+    {
+        // Contoh akses size_id dari $item
+        $sizeId = $item['size_id'];
+    
+        // Buat array data lengkap untuk updateOrCreate:
+        $data = [
+            'product_id' => $validated['product_id'],
+            'location_id' => $validated['location_id'],
+            'uom_id' => $validated['uom_id'],
+            'sloc_id' => $validated['sloc_id'],
+            'size_id' => $sizeId,
+            'qty' => $item['qty'],
+            'qty_reserved' => $item['qty_reserved'] ?? 0,
+            'status' => $status,
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id()
+        ];
+
+       
         $inventory = InventoryBooking::where('product_id', $data['product_id'])
             ->where('location_id', $data['location_id'])
             ->where('uom_id', $data['uom_id'])
@@ -79,9 +85,9 @@ public function updateOrCreateInventory(array $validated, array $item, $status =
             ->where('status', $status)
             ->first();
 
-        if ($inventory) {
-            $qty_reserved = $item['qty_reserved'] ?? 0;
-            Inventory::where('product_id', $data['product_id'])
+            if ($inventory) {
+                $qty_reserved = $item['qty_reserved'] ?? 0;
+                Inventory::where('product_id', $data['product_id'])
                 ->where('location_id', $data['location_id'])
                 ->where('uom_id', $data['uom_id'])
                 ->where('sloc_id', $data['sloc_id'])
@@ -92,8 +98,8 @@ public function updateOrCreateInventory(array $validated, array $item, $status =
                     'status' => $status,
                     'updated_by' => Auth::id()
                 ]);
-        } else {
-            InventoryBooking::create($data);
-        }
+            } else {
+                InventoryBooking::create($data);
+            }
     }
 }
