@@ -166,20 +166,23 @@ class OrderController extends Controller
 
             $calculatedTotalAmount += ($priceAfterDiscountPerItem * $quantity);
 
+            $status = "IN";
+            if ($paymentMethod == "bank_transfer") {
+                $status = "OUT";
+            }
             // langsung update inventory
             $inventory = Inventory::where('product_id', $itemData['product_id'])
                         ->where('location_id', $locationId)
                         ->where('uom_id', $itemData['uom_id'])
-                        ->where('sloc_id', $itemData['sloc_id'])
+                        ->where('sloc_id', 'GS00')
                         ->where('size_id', $itemData['size_id'])
+                        ->where('status', $status)
                         ->first();
             $qty = $inventory ? $inventory->qty : 0;
             $qty_rese = $inventory ? $inventory->qty_reserved : 0;
 
-            $status = "IN";
             $qty_reserved = intval($qty_rese + $quantity);
             if ($paymentMethod == "bank_transfer") {
-                $status = "OUT";
                 $qty = $quantity;
                 $qty_reserved = 0;
             }
@@ -189,7 +192,7 @@ class OrderController extends Controller
                 'product_id' => $itemData['product_id'],
                 'location_id' => $locationId,
                 'uom_id' => $itemData['uom_id'],
-                'sloc_id' => $itemData['sloc_id'],
+                'sloc_id' => 'GS00',
             ], [
                 'size_id' => $itemData['size_id'],
                 'qty' => $qty, // Reduce stock from source location
@@ -287,7 +290,7 @@ class OrderController extends Controller
             $inventory = Inventory::where('product_id', $item->product_id)
                         ->where('location_id', $locationId)
                         ->where('uom_id', $item->uom_id)
-                        ->where('sloc_id', $item->sloc_id)
+                        ->where('sloc_id', 'GS00')
                         ->where('size_id', $item->size_id)
                         ->first();
             $qty = $inventory ? $inventory->qty : 0;
@@ -296,7 +299,7 @@ class OrderController extends Controller
 
             $status = "IN";
             $qty_reserved = intval($qty_rese + $quantity);
-            if ($paymentMethod == "bank_transfer") {
+            if ($order['payment_method'] == "bank_transfer") {
                 $status = "OUT";
                 $qty = $quantity;
                 $qty_reserved = 0;
@@ -307,7 +310,7 @@ class OrderController extends Controller
                 'product_id' => $item->product_id,
                 'location_id' => $locationId,
                 'uom_id' => $item->uom_id,
-                'sloc_id' => $item->sloc_id,
+                'sloc_id' => 'GS00',
             ], [
                 'size_id' => $item->size_id,
                 'qty' => $qty, // Reduce stock from source location
