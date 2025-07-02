@@ -296,7 +296,7 @@ class OrderController extends Controller
 
             $status = "IN";
             $qty_reserved = intval($qty_rese + $quantity);
-            if ($paymentMethod == "bank_transfer") {
+            if ($order['payment_method'] == "bank_transfer") {
                 $status = "OUT";
                 $qty = $quantity;
                 $qty_reserved = 0;
