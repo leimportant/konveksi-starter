@@ -1026,7 +1026,7 @@ function printToRawBT() {
         .replace(/"/g, '%22');
 
     // Build RawBT intent URI
-    const rawbtUrl = `intent:rawbtprint?text=${encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+    const rawbtUrl = `intent://print/${encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
 
     // Redirect
     window.location.href = rawbtUrl;
