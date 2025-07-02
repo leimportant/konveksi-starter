@@ -331,7 +331,7 @@
                     <div class="no-print mt-2 flex justify-end gap-2">
                         <Button variant="outline" @click="closePrintPreview">TUTUP</Button>
                         <Button
-                            @click="doPrintKasir80mm"
+                            @click="autoPrint"
                             class="rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
                             >CETAK</Button
                         >
@@ -989,6 +989,52 @@ function doPrintKasir80mm() {
     </html>
   `);
     printWindow.document.close();
+}
+
+function printToRawBT() {
+    const lines = [
+        `     ${locationName.value}`,
+        ` ${locationAddress.value}`,
+        '----------------------------------------',
+        `Kasir   : ${cashierName.value}`,
+        `Tanggal : ${lastOrderDate.value}`,
+        `Nomor   : ${transactionNumber.value}`,
+        '----------------------------------------',
+        `Customer: ${selectedCustomerName.value || '-'}`,
+        '----------------------------------------',
+        ...lastOrderItems.value.flatMap(item => [
+            `${item.product_name}`,
+            `${item.quantity} x ${formatRupiah(item.price)}${' '.repeat(20 - (item.quantity + '').length - formatRupiah(item.price).length)}${formatRupiah(item.quantity * item.price)}`
+        ]),
+        '----------------------------------------',
+        `Total QTY        ${lastOrderItems.value.reduce((sum, item) => sum + item.quantity, 0)}`,
+        `Total Bayar      ${formatRupiah(lastOrderTotal.value || totalAmount.value)}`,
+        `Jenis Bayar      ${lastOrderPaymentMethodName.value || '-'}`,
+        `Bayar Cash       ${formatRupiah(paidAmount.value || 0)}`,
+        `Sisa             ${formatRupiah(((lastOrderTotal.value || totalAmount.value) - (paidAmount.value || 0)))}`,
+        '----------------------------------------',
+        '      ---TERIMA KASIH---',
+        '     aninkafashion.com',
+        '\n\n\n'
+    ];
+
+    const rawText = lines.join('\n');
+    const encodedText = encodeURIComponent(rawText);
+    const rawbtUrl = `intent://print/#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.text=${encodedText};end;`;
+
+    window.location.href = rawbtUrl;
+}
+
+function autoPrint() {
+    if (isMobileDevice()) {
+        printToRawBT();
+    } else {
+        doPrintKasir80mm(); // Menggunakan QZ Tray
+    }
+}
+
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 fetchProducts();
