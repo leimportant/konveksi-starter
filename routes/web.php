@@ -270,6 +270,12 @@ Route::get('/reports/omset-per-payment', function () {
     return Inertia::render('reports/OmsetReport');
 })->middleware(['auth'])->name('reports.omset-per-payment');
 
+
+Route::get('/reports/omset-per-customer', function () {
+    return Inertia::render('reports/OmsetPerCustomerReport');
+})->middleware(['auth'])->name('reports.omset-per-customer');
+
+
 Route::get('/reports/sales-summary', function () {
         return Inertia::render('reports/SalesSummary');
     })->middleware(['auth'])->name('reports.sales-summary');

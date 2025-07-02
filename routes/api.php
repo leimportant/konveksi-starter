@@ -50,7 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::put('api/orders/{order}', action: [OrderController::class, 'updateStatus']);
     Route::get('api/orders/customer', [OrderController::class, 'customerOrders']);
     Route::post('api/orders/{id}/cancel', [OrderController::class, 'cancelOrder']);
-    Route::get('api/orders/scan/{orderId}', [OrderController::class, 'scan']);
+    Route::get('api/orders/scan', [OrderController::class, 'scan']);
     Route::get('api/orders/{orderId}/shipping', [OrderController::class, 'checkShipping']);
 });
 

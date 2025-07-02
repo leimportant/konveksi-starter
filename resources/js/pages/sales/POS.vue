@@ -784,7 +784,7 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
     try {
         const orderIds = qrCodeData.split(',').map(id => id.trim());
 
-        const response = await axios.get('/api/orders/scan-multi', {
+        const response = await axios.get('/api/orders/scan', {
             params: { ids: orderIds.join(',') },
         });
 
