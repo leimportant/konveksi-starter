@@ -151,7 +151,7 @@ const submitTransfer = async () => {
                     @click="activeTab = 'pending'"
                     :class="[
                         'rounded-t px-4 py-2 text-sm md:text-base',
-                        activeTab === 'pending' ? 'border-b-2 border-indigo-600 font-semibold' : 'text-gray-500',
+                        activeTab === 'pending' ? 'border-b-2  text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
                     Pesanan Konsumen
@@ -160,7 +160,7 @@ const submitTransfer = async () => {
                     @click="activeTab = 'done'"
                     :class="[
                         'rounded-t px-4 py-2 text-sm md:text-base',
-                        activeTab === 'done' ? 'border-b-2 border-indigo-600 font-semibold' : 'text-gray-500',
+                        activeTab === 'done' ? 'border-b-2 text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
                     Selesai
@@ -169,7 +169,7 @@ const submitTransfer = async () => {
                     @click="activeTab = 'cancel'"
                     :class="[
                         'rounded-t px-4 py-2 text-sm md:text-base',
-                        activeTab === 'cancel' ? 'border-b-2 border-indigo-600 font-semibold' : 'text-gray-500',
+                        activeTab === 'cancel' ? 'border-b-2 text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
                     Dibatalkan

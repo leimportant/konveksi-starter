@@ -214,7 +214,7 @@ const submitTransfer = async () => {
                     @click="activeTab = 'pending'"
                     :class="[
                         'rounded-t px-4 py-2 text-sm md:text-base',
-                        activeTab === 'pending' ? 'border-b-2 border-indigo-600 font-semibold' : 'text-gray-500',
+                        activeTab === 'pending' ? 'border-b-2 text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
                     Pesanan Saya
@@ -223,7 +223,7 @@ const submitTransfer = async () => {
                     @click="activeTab = 'done'"
                     :class="[
                         'rounded-t px-4 py-2 text-sm md:text-base',
-                        activeTab === 'done' ? 'border-b-2 border-indigo-600 font-semibold' : 'text-gray-500',
+                        activeTab === 'done' ? 'border-b-2  text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
                     Selesai
@@ -232,7 +232,7 @@ const submitTransfer = async () => {
                     @click="activeTab = 'cancel'"
                     :class="[
                         'rounded-t px-4 py-2 text-sm md:text-base',
-                        activeTab === 'cancel' ? 'border-b-2 border-indigo-600 font-semibold' : 'text-gray-500',
+                        activeTab === 'cancel' ? 'border-b-2  text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
                     Dibatalkan
@@ -295,7 +295,7 @@ const submitTransfer = async () => {
                                         />
 
                                         <!-- Dropdown Menu -->
-                                        <div class="relative inline-block border border-blue-200 bg-blue-100 text-left">
+                                        <div class="relative inline-block border border-blue-200 text-gray-400 bg-blue-100 text-left">
                                             <button @click="toggleDropdown(order.id)" class="rounded bg-gray-100 px-2 py-1 text-sm hover:bg-gray-200">
                                                 ⋮
                                             </button>
