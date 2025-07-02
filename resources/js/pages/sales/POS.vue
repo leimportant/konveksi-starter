@@ -1019,11 +1019,19 @@ function printToRawBT() {
     ];
 
     const rawText = lines.join('\n');
-    const encodedText = encodeURIComponent(rawText);
-    const rawbtUrl = `intent://print/#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.text=${encodedText};end;`;
 
+    // Encode entire string
+    const encoded = encodeURIComponent(rawText)
+        .replace(/'/g, '%27')
+        .replace(/"/g, '%22');
+
+    // Build RawBT intent URI
+    const rawbtUrl = `intent:rawbtprint?text=${encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+
+    // Redirect
     window.location.href = rawbtUrl;
 }
+
 
 function autoPrint() {
     if (isMobileDevice()) {
