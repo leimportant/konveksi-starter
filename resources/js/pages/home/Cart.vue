@@ -109,7 +109,8 @@
           <img v-if="item.image_path" :src="getImageUrl(item.image_path)" alt="product"
             class="w-12 h-12 object-cover rounded" />
           <div class="flex-1 min-w-0">
-            <p class="font-semibold text-sm truncate">{{ item.product_name }}</p>
+            <p class="font-semibold text-gray-800 text-sm truncate">{{ item.product_name }}</p>
+
             <p class="text-xs text-gray-400">Stock: {{ item.qty_stock }}</p>
             <p class="text-xs text-gray-800">
               {{ formatRupiah((item.price_sell ?? 0) > 0 ? item.price_sell ?? 0 : item.price ?? 0) }}
@@ -171,7 +172,7 @@
           </div>
 
           <!-- Product Name -->
-          <h3 class="text-lg sm:text-xl font-semibold mb-2">
+          <h3 class="text-lg text-gray-500 sm:text-xl font-semibold mb-2">
             {{ selectedProduct?.product_name }}
           </h3>
 
@@ -182,7 +183,7 @@
           </p>
 
           <!-- Price -->
-          <p class="mb-3 text-base sm:text-lg font-semibold text-gray-800">
+          <p class="mb-3 text-gray-500 sm:text-lg font-semibold text-gray-800">
             <span v-if="selectedProduct?.discount && selectedProduct.discount > 0"
               class="line-through text-gray-400 mr-2">
               {{ formatRupiah(selectedProduct.price) }}
@@ -202,13 +203,14 @@
           <!-- Quantity Control -->
           <div class="flex items-center space-x-3 mb-4">
             <button @click="decreaseDetailQty" :disabled="detailQty <= 1"
-              class="px-3 py-1 text-sm sm:text-base bg-gray-200 rounded disabled:opacity-50">-</button>
+              class="px-3 py-1 text-gray-800 text-sm bg-gray-200 rounded disabled:opacity-50">-</button>
 
             <input type="number" min="1" :max="selectedProduct?.qty_stock ?? 1" v-model.number="detailQty"
-              class="w-12 sm:w-16 text-center border rounded py-1 text-sm sm:text-base" />
+              class="w-12 sm:w-16 text-center border rounded py-1 text-sm text-gray-800" />
+
 
             <button @click="increaseDetailQty" :disabled="detailQty >= (selectedProduct?.qty_stock ?? 1)"
-              class="px-3 py-1 text-sm sm:text-base bg-gray-200 rounded disabled:opacity-50">+</button>
+              class="px-3 py-1 text-sm bg-gray-700 rounded disabled:opacity-50">+</button>
           </div>
 
           <!-- Add to Cart -->
