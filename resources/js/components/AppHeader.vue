@@ -75,7 +75,7 @@ const resolveIcon = async (iconName: string | LucideIcon | undefined): Promise<C
                 </Link>
 
                 <!-- Desktop Menu -->
-                <div class="fixed hidden h-full lg:flex lg:flex-1">
+                <div class="flex flex-col hidden h-full lg:flex lg:flex-1">
                     
                     <NavigationMenu class="ml-10 flex h-full items-stretch">
                         <NavigationMenuList class="flex h-full items-stretch space-x-2"> </NavigationMenuList>

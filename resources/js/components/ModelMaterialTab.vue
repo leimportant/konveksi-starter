@@ -17,16 +17,19 @@
         <!-- Material Selection -->
         <div>
           <label class="text-sm font-medium block mb-1">Material</label>
-          <select
-            v-model="material.product_id"
-            class="block w-full rounded-md border bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring py-2 px-3 shadow-sm sm:text-sm"
-          >
-            <option value="">Pilih Material</option>
-            <option v-if="products.length === 0" disabled>Loading materials...</option>
-            <option v-for="product in products" :key="product.id" :value="product.id">
-              {{ product.name }}
-            </option>
-          </select>
+
+        <Vue3Select
+          v-model="material.product_id"
+          :options="productOption"
+          label="name"
+          value="id"
+          :onSearch="searchProducts"
+          placeholder="Pilih Material"
+          class="w-full text-sm"
+          @update:modelValue="(val: Product) => handleProductChange(val, index)"
+        />
+
+
         </div>
 
         <!-- Quantity, UOM, dan Price dalam satu baris -->
@@ -92,18 +95,21 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue';  // Add watch to imports
+import { onMounted, computed, watch, ref } from 'vue';  // Add watch to imports
 import { Button } from '@/components/ui/button';
 import { useUomStore } from '@/stores/useUomStore';
 import { useProductStore } from '@/stores/useProductStore';
 import { Trash } from 'lucide-vue-next';
+import axios from 'axios'
+import Vue3Select from 'vue3-select'
+import 'vue3-select/dist/vue3-select.css'
 
 interface Material {
   product_id: number | null;
   qty: number | null;
   uom_id: number | null;
   remark: string | "";
-  price: number | null; // Add this line
+  price: number | null;
 }
 
 interface Props {
@@ -123,6 +129,13 @@ const uomStore = useUomStore();
 const products = computed(() => productStore.items);
 const uoms = computed(() => uomStore.items);
 
+interface Product {
+  id: number;
+  name: string;
+}
+
+const productOption = ref<Product[]>([]);
+
 const addMaterial = () => {
   const materials = [...props.modelValue];
   materials.push({
@@ -134,6 +147,19 @@ const addMaterial = () => {
   });
   emit('update:modelValue', materials);
 };
+
+const searchProducts = async (search: string) => {
+  if (search.length < 2) {
+    productOption.value = []
+    return
+  }
+  try {
+    const res = await axios.get('/api/products', { params: { search } })
+    productOption.value = res.data.data
+  } catch (error) {
+    console.error('Search error:', error);
+  }
+}
 
 const removeMaterial = (index: number) => {
   const materials = [...props.modelValue];
@@ -168,4 +194,31 @@ watch(() => props.modelValue, (newValue: Material[]) => {
     }
   });
 }, { deep: true });
+
+// Handle product selection to ensure product_id is stored as number
+const handleProductChange = (selectedProduct: any, index: number) => {
+  // Get the current materials array
+  const materials = [...props.modelValue];
+  
+  // Ensure index is valid
+  if (index >= 0 && index < materials.length) {
+    // If selectedProduct is an object, extract the id
+    if (selectedProduct && typeof selectedProduct === 'object') {
+      materials[index].product_id = selectedProduct.id;
+    } else if (typeof selectedProduct === 'number') {
+      // If it's already a number, use it directly
+      materials[index].product_id = selectedProduct;
+    }
+    
+    // Set default UOM if not already set
+    if (!materials[index].uom_id) {
+      materials[index].uom_id = getDefaultUom(materials[index].product_id);
+    }
+    
+    // Emit the updated array
+    emit('update:modelValue', materials);
+  }
+};
+
+
 </script>

@@ -8,7 +8,6 @@ import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useOrdersCustomer } from '@/stores/useOrderCustomer';
 import { Head } from '@inertiajs/vue3';
-import { MessageCircle, QrCode } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 const showQr = ref(false);
@@ -17,16 +16,16 @@ const showMessageModal = ref(false);
 const message = ref('');
 const currentQrId = ref('');
 const selectedOrders = ref<string[]>([]);
-const { orders, isLoading, error, fetchOrders } = useOrdersCustomer();
+const receiverId = ref<number | null>(null);
+const { orders, isLoading, error, fetchOrderRequest } = useOrdersCustomer();
 const activeTab = ref<'pending' | 'done' | 'cancel'>('pending');
-
 
 const { cancelOrder, checkShipping } = useOrdersCustomer();
 const shippingInfo = ref<any>(null);
 
 const toast = useToast();
 onMounted(() => {
-    fetchOrders();
+    fetchOrderRequest();
 });
 
 const filteredOrders = computed(() => {
@@ -35,47 +34,11 @@ const filteredOrders = computed(() => {
     return orders.value.filter((order) => order.status === 1);
 });
 
-const totalProduk = computed(() => orders.value.reduce((sum, order) => sum + (order.order_items?.length || 0), 0));
-
-const totalOrder = computed(() => orders.value.length);
-
-const totalPembelian = computed(() => orders.value.reduce((sum, order) => sum + parseFloat(order.total_amount || '0'), 0));
-
-const formattedTotalPembelian = computed(() =>
-    new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-    }).format(totalPembelian.value),
-);
-
-const openQrModal = (ids: string[]) => {
-    currentQrId.value = ids.join(','); // Concatenate IDs for single QR code
-    showQr.value = true;
-};
-
-const toggleSelectAll = (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    if (target.checked) {
-        selectedOrders.value = filteredOrders.value.filter((order) => order.payment_method === 'cod_store').map((order) => order.id);
-    } else {
-        selectedOrders.value = [];
-    }
-};
-
-const openMessageModal = (ids: string[]) => {
+const openMessageModal = (ids: string[], targetReceiverId: number) => {
+    receiverId.value = targetReceiverId;
     selectedOrders.value = ids;
     showMessageModal.value = true;
 };
-
-const toggleSelectOrder = (orderId: string) => {
-    if (selectedOrders.value.includes(orderId)) {
-        selectedOrders.value = selectedOrders.value.filter((id) => id !== orderId);
-    } else {
-        selectedOrders.value.push(orderId);
-    }
-};
-
 const openDropdown = ref();
 
 function toggleDropdown(orderId: string) {
@@ -105,20 +68,13 @@ async function handleCancel(orderId: string) {
 
         // Tunggu sedikit sebelum refresh agar toast terlihat
         setTimeout(() => {
-            fetchOrders();
+            fetchOrderRequest();
         }, 500); // 0.5 detik
     } catch (err) {
         console.log(err);
         toast.error('Gagal membatalkan pesanan.');
     }
 }
-
-const selectedCodStoreOrders = computed(() => {
-    return selectedOrders.value.filter((orderId) => {
-        const order = orders.value.find((o) => o.id === orderId);
-        return order && order.payment_method === 'cod_store';
-    });
-});
 
 import axios from 'axios';
 
@@ -127,8 +83,9 @@ const sendMessage = async () => {
         const payload = {
             message: message.value,
             content_data: selectedOrders.value.length > 0 ? selectedOrders.value : null,
-            sender_type: 'customer',
-            order_id: selectedOrders.value.length > 0 ? selectedOrders.value[0] : null
+            sender_type: 'admin',
+            receiver_id: receiverId.value,
+            order_id: selectedOrders.value.length > 0 ? selectedOrders.value[0] : null,
         };
         console.log('Sending message payload:', payload);
         await axios.post('/api/chat/send', payload);
@@ -159,11 +116,6 @@ const { loading: loadingSetting, uploadPaymentProof } = useOrderCustomer();
 
 const orderIdForUpload = ref<string | null>(null);
 
-const handleUploadTransfer = (orderId: string) => {
-    orderIdForUpload.value = orderId;
-    showUploadTransfer.value = true;
-};
-
 const submitTransfer = async () => {
     if (!paymentProofFile.value) {
         toast.error('Silahkan pilih file bukti transfer terlebih dahulu.');
@@ -180,7 +132,7 @@ const submitTransfer = async () => {
         await uploadPaymentProof(Number(orderId), paymentProofFile.value);
         toast.success('Bukti transfer berhasil diunggah!');
         showUploadTransfer.value = false;
-        fetchOrders();
+        fetchOrderRequest();
     } catch (error) {
         console.error(error);
         toast.error('Gagal mengunggah bukti transfer.');
@@ -191,25 +143,10 @@ const submitTransfer = async () => {
 <template>
     <Head title="Riwayat Order" />
     <AppLayout>
-        <section class="absolute max-h-screen w-full bg-gray-50 p-4 md:p-2">
-            <!-- Summary Cards -->
-            <div class="mb-6 flex flex-wrap justify-between gap-2">
-                <div class="w-full flex-1 flex-col flex-wrap rounded-lg bg-indigo-100 p-4 text-center shadow sm:w-[32%] sm:w-[32.999%]">
-                    <p class="text-xs font-medium text-indigo-800">Total Produk</p>
-                    <p class="text-medium font-bold text-indigo-900">{{ totalProduk }}</p>
-                </div>
-                <div class="w-full flex-1 flex-col flex-wrap rounded-lg bg-green-100 p-4 text-center shadow sm:w-[32%] sm:w-[32.999%]">
-                    <p class="text-xs font-medium text-green-800">Total Order</p>
-                    <p class="text-medium font-bold text-green-900">{{ totalOrder }}</p>
-                </div>
-                <div class="w-full flex-1 flex-col flex-wrap rounded-lg bg-yellow-100 p-4 text-center shadow sm:w-[32%] sm:w-[32.999%]">
-                    <p class="text-xs font-medium text-yellow-800">Total Pembelian</p>
-                    <p class="text-small font-bold text-yellow-900">{{ formattedTotalPembelian }}</p>
-                </div>
-            </div>
-
+        <section class="absolute max-h-screen w-full bg-gray-50 px-4 py-4 p-4 md:p-2">
             <!-- Tabs -->
-            <div class="mb-4 flex flex-wrap gap-2 border-b">
+            <div class="mb-4 flex flex-wrap px-4 py-4 border-b">
+
                 <button
                     @click="activeTab = 'pending'"
                     :class="[
@@ -217,7 +154,7 @@ const submitTransfer = async () => {
                         activeTab === 'pending' ? 'border-b-2 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
-                    Pesanan Saya
+                    Pesanan Konsumen
                 </button>
                 <button
                     @click="activeTab = 'done'"
@@ -243,36 +180,12 @@ const submitTransfer = async () => {
             <div v-if="isLoading" class="text-center text-gray-500">Memuat pesanan...</div>
             <div v-else-if="error" class="text-center text-red-500">{{ error }}</div>
             <div v-else-if="filteredOrders.length === 0" class="text-center text-gray-500">Tidak ada pesanan ditemukan.</div>
-            <div v-else class="overflow-x-auto">
-                <!-- Tombol-tombol dalam satu baris -->
-                <div v-if="activeTab === 'pending' && selectedCodStoreOrders.length > 0" class="mb-4 flex items-center gap-3">
-                    <Button
-                        @click="openQrModal(selectedCodStoreOrders)"
-                        class="flex items-center gap-1 rounded-md border border-indigo-600 px-3 py-1 text-indigo-600 hover:underline"
-                    >
-                        <QrCode class="h-4 w-4" /> Generate QR
-                    </Button>
-
-                    <Button
-                        @click="openMessageModal(selectedCodStoreOrders)"
-                        class="flex items-center gap-1 rounded-md border border-indigo-600 px-3 py-1 text-indigo-600 hover:underline"
-                    >
-                        <MessageCircle class="h-4 w-4" /> Kirim Pesan
-                    </Button>
-                </div>
-
+            <div v-else class="rounded-md border overflow-x-auto">
                 <Table class="max-h-screen w-full">
                     <TableHeader>
                         <TableRow class="bg-gray-100">
-                            <TableHead class="w-[20%]">
-                                <div class="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        :checked="selectedOrders.length === filteredOrders.length && filteredOrders.length > 0"
-                                        @change="toggleSelectAll"
-                                    />
-                                </div>
-                            </TableHead>
+                            <TableHead class="w-[5%]">#</TableHead>
+                            <TableHead class="w-[10%]">Customer</TableHead>
                             <TableHead class="w-[10%]">Tanggal</TableHead>
                             <TableHead class="w-[10%]">Total</TableHead>
                             <TableHead class="w-[10%]">Status</TableHead>
@@ -286,14 +199,6 @@ const submitTransfer = async () => {
                             <TableRow>
                                 <TableCell>
                                     <div class="flex items-center justify-between gap-2">
-                                        <!-- Checkbox -->
-                                        <input
-                                            type="checkbox"
-                                            :checked="selectedOrders.includes(order.id)"
-                                            @change="toggleSelectOrder(order.id)"
-                                            :disabled="order.payment_method !== 'cod_store'"
-                                        />
-
                                         <!-- Dropdown Menu -->
                                         <div class="relative inline-block border border-blue-200 bg-blue-100 text-left">
                                             <button @click="toggleDropdown(order.id)" class="rounded bg-gray-100 px-2 py-1 text-sm hover:bg-gray-200">
@@ -303,38 +208,34 @@ const submitTransfer = async () => {
                                                 v-if="openDropdown === order.id"
                                                 class="absolute z-10 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
                                             >
-                                                <div class="py-1 text-sm text-gray-700">
-                                                    <Button @click="openMessageModal([order.id])" class="block w-full px-4 py-2 hover:bg-gray-100">
+                                                <div class="py-1 text-left text-sm text-gray-700">
+                                                    <Button
+                                                        @click="openMessageModal([order.id], order.customer_id)"
+                                                        class="block w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                                    >
                                                         Kirim Pesan
                                                     </Button>
                                                     <Button
                                                         @click="handleCancel(order.id)"
+                                                        v-if="order.is_paid == 'Y'"
                                                         class="block w-full px-4 py-2 text-red-500 hover:bg-gray-100"
                                                     >
-                                                        Ajukan Pembatalan
+                                                        Batalkan Pesanan
                                                     </Button>
 
                                                     <Button
                                                         @click="handleCheckShipping(order.id)"
-                                                        v-if="order.is_paid == 'Y'"
+                                                        v-if="order.is_paid == 'Y' && order.payment_method == 'bank_transfer'"
                                                         class="block w-full px-4 py-2 hover:bg-gray-100"
                                                     >
-                                                        Status Pengiriman
-                                                    </Button>
-
-                                                    <Button
-                                                        @click="handleUploadTransfer(order.id)"
-                                                        v-if="order.is_paid == 'N' && order.payment_method == 'bank_transfer'"
-                                                        class="block w-full px-4 py-2 hover:bg-gray-100"
-                                                    >
-                                                        Upload Bukti Transfer
+                                                        Update Resi
                                                     </Button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </TableCell>
-
+                                <TableCell>{{ order.customer?.name || order.customer_id + '- N/A' }}</TableCell>
                                 <TableCell>{{ new Date(order.created_at).toLocaleDateString('id-ID') }}</TableCell>
                                 <TableCell>
                                     {{
@@ -380,7 +281,7 @@ const submitTransfer = async () => {
 
                             <!-- Row 2: detail -->
                             <TableRow>
-                                <TableCell colspan="5" class="rounded-md border border-blue-200 bg-blue-50 p-4">
+                                <TableCell colspan="6" class="rounded-md border border-blue-200 bg-blue-50 p-4">
                                     <h4 class="mb-1 text-sm font-semibold">Detail Pesanan:</h4>
                                     <div class="space-y-1">
                                         <OrderItem v-for="item in order.order_items" :key="item.id" :item="item" />

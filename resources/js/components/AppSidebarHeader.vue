@@ -23,18 +23,18 @@ const unreadMessageCount = unreadCount;
 
 <template>
   <header
-    class="bg-gray-100 dark:bg-gray-50 flex h-16 shrink-0 items-center justify-between border-b border-sidebar-border/70 px-4 md:px-6"
+    class="bg-gray-100 fixed-top dark:bg-gray-50 flex h-16 shrink-0 items-center justify-between border-b border-sidebar-border/70 px-4 md:px-6"
   >
     <!-- Left: Sidebar & Breadcrumbs -->
     <div class="flex items-center gap-3">
-      <SidebarTrigger class="-ml-1" />
+      <SidebarTrigger class="-ml-1 bg-black-100" />
       <template v-if="breadcrumbs.length > 0">
         <Breadcrumbs :breadcrumbs="breadcrumbs" />
       </template>
     </div>
 
     <!-- Right: Message Icon -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-6">
       <Button
         variant="ghost"
         size="icon"

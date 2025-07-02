@@ -12,4 +12,6 @@ enum OrderStatusEnum: int
     case PACKED = 5;
     case DONE = 6;
     case CANCEL = 7;
+
+    case CONFIRM_CANCEL = 8;
 }

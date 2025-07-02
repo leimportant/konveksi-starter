@@ -42,13 +42,16 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::get('api/orders/{order}/status/approved', [OrderController::class, 'approve']);
 Route::get('api/orders/{order}/status/rejected', [OrderController::class, 'reject']);
 Route::post('/order/reject', [OrderController::class, 'reject']);
-    Route::post('/order/{order}/upload-payment-proof', [OrderController::class, 'uploadPaymentProof']);
+Route::post('/order/{order}/upload-payment-proof', [OrderController::class, 'uploadPaymentProof']);
 
 Route::middleware('auth')->group(function () {
+    Route::get('api/orders/request', [OrderController::class, 'index']);
     Route::post('api/orders', [OrderController::class, 'store']);
-        Route::put('api/orders/{order}', action: [OrderController::class, 'updateStatus']);
+    Route::put('api/orders/{order}', action: [OrderController::class, 'updateStatus']);
     Route::get('api/orders/customer', [OrderController::class, 'customerOrders']);
+    Route::post('api/orders/{id}/cancel', [OrderController::class, 'cancelOrder']);
     Route::get('api/orders/scan/{orderId}', [OrderController::class, 'scan']);
+    Route::get('api/orders/{orderId}/shipping', [OrderController::class, 'checkShipping']);
 });
 
 // // Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
@@ -90,7 +93,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('api/chat/messages', [ChatMessageController::class, 'index']);
     Route::post('api/chat/send', [ChatMessageController::class, 'send']);
-    Route::post('api/chat/messages/read', [ChatMessageController::class, 'markAsRead']);
+    Route::post('api/chat/messages/{id}/read', [ChatMessageController::class, 'markAsRead']);
     Route::get('api/chat/conversations', [ChatMessageController::class, 'conversations']);
 
     Route::apiResource('api/stock-opnames', StockOpnameController::class);

@@ -61,9 +61,13 @@ const prevPage = () => goToPage(currentPage.value - 1);
 const formatDate = (dateStr: string) => {
   if (!dateStr) return 'N/A';
   const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return 'Invalid Date';
+  if (isNaN(date.getTime())) {
+    const now = new Date();
+    return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  }
   return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
 };
+
 
 const formatNumber = (value: number | string) => {
   const num = typeof value === 'string' ? parseFloat(value) : value;

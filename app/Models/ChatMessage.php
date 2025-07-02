@@ -21,6 +21,7 @@ class ChatMessage extends Model
         'order_id',
         'sender_type',
         'sender_id',
+        'content_data',
         'receiver_id',
         'message',
         'is_read',
@@ -48,13 +49,13 @@ class ChatMessage extends Model
     //     return $this->belongsTo(Order::class, 'order_id');
     // }
 
-    // public function sender()
-    // {
-    //     return $this->belongsTo(User::class, 'sender_id');
-    // }
+    public function sender()
+    {
+        return $this->belongsTo(User::class, 'sender_id');
+    }
 
-    // public function receiver()
-    // {
-    //     return $this->belongsTo(User::class, 'receiver_id');
-    // }
+    public function receiver()
+    {
+        return $this->belongsTo(User::class, 'receiver_id');
+    }
 }

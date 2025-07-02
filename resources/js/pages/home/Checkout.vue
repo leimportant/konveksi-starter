@@ -55,11 +55,19 @@ const props = defineProps({
 const cartStore = useCartStore();
 const toast = useToast();
 
+interface BankAccount {
+  id: number;
+  name: string;
+  account_number: string;
+}
+
+const bankAccountInfo = ref<BankAccount[] | null>(null);
+
+
 const showPostCheckoutModal = ref(false);
 const orderIdForQr = ref<string | null>(null);
 const orderIdForUpload = ref<string | null>(null);
 const showUploadProofModal = ref(false);
-const bankAccountInfo = ref<string | null>(null);
 const selectedPaymentMethod = ref<string | null>(null);
 const settingMessage = ref<string | null>(null);
 const settingMessage2 = ref<string | null>(null);
@@ -142,14 +150,6 @@ const confirmCheckout = async () => {
         toast.error('Silahkan pilih metode pembayaran.');
         return;
     }
-
-    // Removed initial payment proof check for bank_transfer as per new requirement
-    // Payment proof will be uploaded in a separate step for bank_transfer
-
-    // if (selectedPaymentMethod.value === 'bank_transfer' && !paymentProofFile.value) {
-    //     toast.error('Silahkan unggah bukti transfer.');
-    //     return;
-    // }
 
     if (confirm('Apakah anda yakin ingin proses?')) {
         try {
@@ -295,10 +295,14 @@ const goBackToCart = () => {
                     <h2 class="text-2xl font-bold mb-4 text-center">Pesanan Berhasil!</h2>
                     <p class="text-center mb-4">Pesanan Anda berhasil dibuat. Silakan transfer total pembayaran ke
                         rekening berikut:</p>
-                    <div v-if="bankAccountInfo" class="bg-gray-100 p-4 rounded-md mb-6">
-                        <p class="font-semibold">Informasi Rekening Bank:</p>
-                        <div v-html="bankAccountInfo"></div>
+                    <div v-if="bankAccountInfo">
+                        <div v-for="account in bankAccountInfo" :key="account.id">
+                            <p>Bank: {{ account.id }}</p>
+                            <p>Atas Name: {{ account.name }}</p>
+                            <p>No. Rekening: {{ account.account_number }}</p>
+                        </div>
                     </div>
+
                     <p class="text-center mb-4">ID Pesanan: {{ orderIdForUpload }}</p>
                     <label for="paymentProofUpload" class="block text-sm font-medium text-gray-700 mb-2">Unggah Bukti
                         Transfer</label>

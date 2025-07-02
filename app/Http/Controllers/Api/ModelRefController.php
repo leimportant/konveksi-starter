@@ -32,10 +32,6 @@ class ModelRefController extends Controller
             'modelMaterials.*.qty' => 'required|numeric|min:0',
             'modelMaterials.*.uom_id' => 'required|exists:mst_uom,id',
             'modelMaterials.*.remark' => 'nullable|string|max:255',
-            // 'documents' => 'nullable|array',
-            // 'documents.*.id' => 'required|string|max:50',
-            // 'documents.*.url' => 'required|string|url',
-            // 'documents.*.filename' => 'required|string|max:255'
         ]);
 
         try {
@@ -74,8 +70,13 @@ class ModelRefController extends Controller
 
             if (!empty($validated['modelMaterials'])) {
                 foreach ($validated['modelMaterials'] as $index => $modelMaterial) {
+                    $productId = is_array($modelMaterial['product_id'])
+                        ? $modelMaterial['product_id']['id'] ?? null
+                        : $modelMaterial['product_id'];
+
+
                     $model->modelMaterial()->create([
-                        'product_id' => $modelMaterial['product_id'],
+                        'product_id' => $productId,
                         'item' => $index + 1,
                         'remark' => $modelMaterial['remark'] ?? null,
                         'qty' => $modelMaterial['qty'],
@@ -219,8 +220,13 @@ class ModelRefController extends Controller
             if (!empty($request->modelMaterials)) {
                 $model->modelMaterial()->forceDelete(); // Perubahan di sini: modelMaterials -> modelMaterial
                 foreach ($request->modelMaterials as $index => $modelMaterial) {
+                     $productId = is_array($modelMaterial['product_id'])
+                        ? $modelMaterial['product_id']['id'] ?? null
+                        : $modelMaterial['product_id'];
+
+
                     $model->modelMaterial()->create([
-                        'product_id' => $modelMaterial['product_id'],
+                        'product_id' => $productId,
                         'item' => $index + 1, // Increment the number for each model material
                         'remark' => $modelMaterial['remark'],
                         'qty' => $modelMaterial['qty'],
