@@ -301,7 +301,7 @@ const submitTransfer = async () => {
                                             </button>
                                             <div
                                                 v-if="openDropdown === order.id"
-                                                class="absolute z-10 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                                                class="absolute z-10 mt-2 w-48 rounded-md bg-white text-gray-800 shadow-lg ring-1 ring-black ring-opacity-5"
                                             >
                                                 <div class="py-1 text-sm text-gray-700">
                                                     <Button @click="openMessageModal([order.id])" class="block w-full px-4 py-2 hover:bg-gray-100">
@@ -335,8 +335,8 @@ const submitTransfer = async () => {
                                     </div>
                                 </TableCell>
 
-                                <TableCell>{{ new Date(order.created_at).toLocaleDateString('id-ID') }}</TableCell>
-                                <TableCell>
+                                <TableCell class="text-gray-800">{{ new Date(order.created_at).toLocaleDateString('id-ID') }}</TableCell>
+                                <TableCell class="text-gray-800">
                                     {{
                                         new Intl.NumberFormat('id-ID', {
                                             style: 'currency',
@@ -344,7 +344,7 @@ const submitTransfer = async () => {
                                         }).format(Number(order.total_amount))
                                     }}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell  class="text-gray-800">
                                     <span
                                         :class="{
                                             'text-yellow-600': order.status === 1,
@@ -356,7 +356,7 @@ const submitTransfer = async () => {
                                     </span>
                                 </TableCell>
 
-                                <TableCell class="text-center">
+                                <TableCell class="text-gray-800 text-center">
                                     <span
                                         :class="[
                                             'text-xxs font-small inline-block rounded-full border px-1 py-1',
