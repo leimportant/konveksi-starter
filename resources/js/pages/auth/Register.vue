@@ -44,7 +44,7 @@ function redirectToGoogle() {
        
         <section class="relative flex h-[600px] w-full items-center justify-center overflow-hidden md:h-[700px]">
             <div class="absolute inset-0 flex w-full flex-col items-center justify-center bg-black/50 p-6 text-center text-white md:p-12">
-                <p class="mb-8 max-w-xl text-base opacity-90 drop-shadow-md md:text-xl">
+                <p class="mb-8 max-w-xl  opacity-90 drop-shadow-md md:text-xl">
                     Buat akun Anda untuk memulai pengalaman berbelanja yang luar biasa.
                 </p>
                 <div class="w-full max-w-md rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">

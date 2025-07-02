@@ -119,11 +119,11 @@ const formatDate = (date: string | null | undefined) => {
 <template>
   <div class="space-y-4 sm:space-y-6">
     <div class="rounded-lg border p-3 sm:p-4 space-y-3 sm:space-y-4">
-      <h3 class="text-base sm:text-lg font-semibold border-b pb-2">Ringkasan HPP</h3>
+      <h3 class=" sm:text-lg font-semibold border-b pb-2">Ringkasan HPP</h3>
       
       <!-- Durasi Proyek -->
       <div class="space-y-2">
-        <h4 class="text-sm sm:text-base font-medium border-b pb-2">Durasi Proyek</h4>
+        <h4 class="text-sm sm: font-medium border-b pb-2">Durasi Proyek</h4>
         <div class="grid gap-1 sm:gap-2 text-sm">
           <div class="flex justify-between">
             <span>Tanggal Mulai</span>
@@ -142,14 +142,14 @@ const formatDate = (date: string | null | undefined) => {
 
       <!-- Material Cost -->
       <div class="space-y-2">
-        <h4 class="text-sm sm:text-base font-medium border-b pb-2">Biaya Material</h4>
+        <h4 class="text-sm sm: font-medium border-b pb-2">Biaya Material</h4>
         <div class="grid gap-1 sm:gap-2 text-sm">
           <div v-for="material in modelMaterials" :key="material.product_id" class="flex justify-between">
             <span>{{ getMaterialName(material.product_id) }}</span>
             <span>{{ formatCurrency(material.qty * (material.price || 0)) }}</span>
           </div>
         </div>
-        <div class="flex justify-between font-medium pt-2 border-t text-sm sm:text-base">
+        <div class="flex justify-between font-medium pt-2 border-t text-sm sm:">
           <span>Total Biaya Material</span>
           <span>{{ formatCurrency(totalMaterialCost) }}</span>
         </div>
@@ -157,7 +157,7 @@ const formatDate = (date: string | null | undefined) => {
 
       <!-- Activity Cost -->
       <div class="space-y-2">
-        <h4 class="text-sm sm:text-base font-medium border-b pb-2">Biaya Aktivitas</h4>
+        <h4 class="text-sm sm: font-medium border-b pb-2">Biaya Aktivitas</h4>
         <div class="grid gap-1 sm:gap-2">
           <div v-for="activity in activityItems" :key="activity.activity_role_id" class="flex justify-between">
             <div class="flex flex-col">
@@ -174,14 +174,14 @@ const formatDate = (date: string | null | undefined) => {
             </div>
           </div>
         </div>
-        <div class="flex justify-between font-medium pt-2 border-t text-sm sm:text-base">
+        <div class="flex justify-between font-medium pt-2 border-t text-sm sm:">
           <span>Total Biaya Aktivitas</span>
           <span>{{ formatCurrency(totalActivityCost) }}</span>
         </div>
       </div>
 
       <!-- Total HPP -->
-      <div class="flex justify-between font-bold pt-4 border-t text-base sm:text-lg">
+      <div class="flex justify-between font-bold pt-4 border-t  sm:text-lg">
         <span>Total HPP</span>
         <span>{{ formatCurrency(totalHPP) }}</span>
       </div>
