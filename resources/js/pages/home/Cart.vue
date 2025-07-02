@@ -215,7 +215,7 @@
 
           <!-- Add to Cart -->
           <button @click="addToCart" :disabled="(selectedProduct?.qty_stock ?? 0) === 0"
-            class="w-full bg-blue-600 text-white py-2 sm:py-3 rounded hover:bg-blue-700 disabled:opacity-50 text-sm sm:text-base">
+            class="w-full bg-blue-600 text-white py-2 sm:py-3 rounded hover:bg-blue-700 disabled:opacity-50 text-sm sm:">
             Tambah Keranjang
           </button>
         </div>

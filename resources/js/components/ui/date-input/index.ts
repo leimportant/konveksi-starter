@@ -14,7 +14,7 @@ export const dateInputVariants = cva(
             size: {
                 default: 'h-10',
                 sm: 'h-8 text-xs px-2',
-                lg: 'h-12 text-base px-4',
+                lg: 'h-12  px-4',
             },
         },
         defaultVariants: {

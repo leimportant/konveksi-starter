@@ -213,7 +213,7 @@ const submitTransfer = async () => {
                 <button
                     @click="activeTab = 'pending'"
                     :class="[
-                        'rounded-t px-4 py-2 text-sm md:text-base',
+                        'rounded-t px-4 py-2 text-sm md:',
                         activeTab === 'pending' ? 'border-b-2 text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
@@ -222,7 +222,7 @@ const submitTransfer = async () => {
                 <button
                     @click="activeTab = 'done'"
                     :class="[
-                        'rounded-t px-4 py-2 text-sm md:text-base',
+                        'rounded-t px-4 py-2 text-sm md:',
                         activeTab === 'done' ? 'border-b-2  text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
@@ -231,7 +231,7 @@ const submitTransfer = async () => {
                 <button
                     @click="activeTab = 'cancel'"
                     :class="[
-                        'rounded-t px-4 py-2 text-sm md:text-base',
+                        'rounded-t px-4 py-2 text-sm md:',
                         activeTab === 'cancel' ? 'border-b-2  text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
                     ]"
                 >
@@ -264,7 +264,7 @@ const submitTransfer = async () => {
                 <Table class="max-h-screen w-full">
                     <TableHeader>
                         <TableRow class="bg-gray-100">
-                            <TableHead class="w-[20%]">
+                            <TableHead class="w-[5%]">
                                 <div class="flex items-center gap-2">
                                     <input
                                         type="checkbox"
@@ -405,11 +405,11 @@ const submitTransfer = async () => {
         <!-- Modal Kirim Pesan -->
         <Modal :show="showMessageModal" @close="showMessageModal = false">
             <div class="space-y-4 p-4 sm:p-6">
-                <h2 class="text-center text-base font-semibold text-gray-800 sm:text-lg">Kirim Pesan</h2>
+                <h2 class="text-center font-semibold text-gray-800 sm:text-lg">Kirim Pesan</h2>
 
                 <Textarea
                     v-model="message"
-                    class="h-32 w-full resize-none rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:h-40"
+                    class="h-32 w-full bg-white resize-none rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:h-40"
                     placeholder="Tulis pesan..."
                 />
 

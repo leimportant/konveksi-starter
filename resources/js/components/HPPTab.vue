@@ -143,7 +143,7 @@ const formatDate = (date: string | null | undefined) => {
 <template>
   <div class="space-y-4 sm:space-y-6">
     <div class="rounded-lg border p-3 sm:p-4 space-y-3 sm:space-y-4">
-      <h3 class="text-base sm:text-lg font-semibold border-b pb-2">Ringkasan HPP</h3>
+      <h3 class=" sm:text-lg font-semibold border-b pb-2">Ringkasan HPP</h3>
       
       <!-- Durasi Proyek -->
       <div class="space-y-2">
@@ -173,11 +173,11 @@ const formatDate = (date: string | null | undefined) => {
             <span class="text-[12px]">{{ formatCurrency(material.qty * (material.price || 0)) }}</span>
           </div>
         </div>
-        <div class="flex justify-between font-medium pt-2 border-t text-sm sm:text-base">
+        <div class="flex justify-between font-medium pt-2 border-t text-sm sm:">
           <span class="text-[12px]">Total Biaya Material</span>
           <span class="text-[12px]">{{ formatCurrency(totalMaterialCost) }}</span>
         </div>
-         <div class="flex justify-between font-medium pt-2 border-t text-sm sm:text-base">
+         <div class="flex justify-between font-medium pt-2 border-t text-sm sm:">
           <span class="text-[12px]">Total Produksi</span>
           <span class="text-[12px]">{{ totalProduction }}</span>
         </div>
@@ -213,20 +213,20 @@ const formatDate = (date: string | null | undefined) => {
             </div>
           </div>
         </div>
-        <div class="flex justify-between font-medium pt-2 border-t text-sm sm:text-base">
+        <div class="flex justify-between font-medium pt-2 border-t text-sm sm:">
           <span class="text-[12px]">Total Biaya Aktivitas</span>
           <span class="text-[12px]">{{ formatCurrency(totalActivityCost) }}</span>
         </div>
       </div>
 
       <!-- Total HPP -->
-      <div class="flex justify-between font-bold pt-4 border-t text-base sm:text-lg">
+      <div class="flex justify-between font-bold pt-4 border-t  sm:text-lg">
         <span class="text-[12px]">Total HPP</span>
         <span class="text-[12px]">{{ formatCurrency(totalHPP) }}</span>
       </div>
 
       <!-- HPP per PCS -->
-      <div class="flex justify-between font-medium text-sm sm:text-base">
+      <div class="flex justify-between font-medium text-sm sm:">
         <span class="text-[12px]">HPP per PCS</span>
         <span class="text-[12px]">{{ formatCurrency(hppPerPcs) }}</span>
       </div>

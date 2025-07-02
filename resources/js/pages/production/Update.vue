@@ -161,7 +161,7 @@ const submit = async () => {
       <!-- Model Selection -->
       <div class="w-full">
         <label class="block font-medium mb-1">Select Model</label>
-        <select v-model="selectedModelId" class="border p-2 rounded w-full text-sm md:text-base">
+        <select v-model="selectedModelId" class="border p-2 rounded w-full text-sm md:">
           <option disabled value="">-- Choose a model --</option>
           <option v-for="model in models" :key="model.id" :value="model.id">
             {{ model.description }}
@@ -172,7 +172,7 @@ const submit = async () => {
       <!-- Model Sizes Table -->
       <div v-if="modelSizes.length > 0" class="overflow-x-auto">
         <h2 class="font-semibold mb-2">Model Sizes</h2>
-        <table class="w-full table-auto border text-sm md:text-base">
+        <table class="w-full table-auto border text-sm md:">
           <thead>
             <tr class="bg-gray-100">
               <th class="border px-2 md:px-3 py-1 md:py-2 text-left">Size</th>

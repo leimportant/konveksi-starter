@@ -18,7 +18,7 @@
 
       <!-- Mobile Menu -->
       <nav v-if="showMobileMenu" class="md:hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-md px-6 py-4">
-        <div class="flex flex-col space-y-3 text-base font-medium">
+        <div class="flex flex-col space-y-3  font-medium">
           <Link :href="route('home')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Home</Link>
           <Link :href="route('login')" class="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg transition duration-300 hover:from-blue-600 hover:to-blue-800">Login</Link>
           <Link :href="route('register')" class="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg transition duration-300 hover:from-blue-600 hover:to-blue-800">Register</Link>
@@ -32,7 +32,7 @@
           <div class="h-full w-full bg-cover bg-center" :style="`background-image: url(${img})`">
             <div class="absolute inset-0 bg-black/50 flex flex-col justify-center items-end text-right p-6 md:p-12 text-white w-full">
               <h2 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4 drop-shadow-lg">Temukan Gaya Terbaik Anda</h2>
-              <p class="text-base md:text-xl max-w-3xl mb-8 opacity-90 drop-shadow-md">Platform fashion modern untuk pengguna yang ingin belanja dengan mudah, cepat, dan stylish.</p>
+              <p class=" md:text-xl max-w-3xl mb-8 opacity-90 drop-shadow-md">Platform fashion modern untuk pengguna yang ingin belanja dengan mudah, cepat, dan stylish.</p>
               <div class="flex space-x-4 justify-end">
                 <Link :href="route('login')" class="bg-pink-600 hover:bg-pink-700 text-white px-8 py-3 rounded-full shadow-lg transition duration-300 transform hover:scale-105">Mulai Sekarang</Link>
                 <Link :href="route('register')" class="border border-white text-white px-8 py-3 rounded-full shadow-lg transition duration-300 transform hover:scale-105 hover:bg-white hover:text-pink-600">Daftar Gratis</Link>

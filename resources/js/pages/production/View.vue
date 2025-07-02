@@ -70,7 +70,7 @@ onMounted(fetchData);
       </div>
 
       <!-- Production Info -->
-      <div class="space-y-2 text-sm md:text-base">
+      <div class="space-y-2 text-sm md:">
         <div><strong>Model :</strong> {{ production?.model?.description || '-' }}</div>
         <div><strong>Activity :</strong> {{ activityRole?.name || '-' }}</div>
         <div><strong>Tanggal :</strong> {{ production?.created_at ? new Date(production.created_at).toLocaleDateString('en-GB') : '-' }}</div>
@@ -79,7 +79,7 @@ onMounted(fetchData);
       <!-- Size Table -->
       <div v-if="production?.items?.length" class="overflow-x-auto">
         <h2 class="font-semibold mb-2">Production Sizes</h2>
-        <table class="w-full table-auto border text-sm md:text-base">
+        <table class="w-full table-auto border text-sm md:">
           <thead>
             <tr class="bg-gray-100">
               <th class="border px-2 md:px-3 py-1 md:py-2 text-left">Size</th>

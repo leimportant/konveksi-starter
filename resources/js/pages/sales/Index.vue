@@ -41,7 +41,7 @@ const handleOpname = () => {
           @click="handlePOS"
         >
           <ShoppingBag class="h-12 w-12 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
-          <div class="absolute bottom-0 w-full bg-sky-100 dark:bg-sky-800 py-2 text-center font-semibold text-sky-700 dark:text-sky-300 text-sm sm:text-base md:text-sm">
+          <div class="absolute bottom-0 w-full bg-sky-100 dark:bg-sky-800 py-2 text-center font-semibold text-sky-700 dark:text-sky-300 text-sm sm: md:text-sm">
             POS (Point Of Sales) / Kasir
           </div>
         </div>
@@ -52,7 +52,7 @@ const handleOpname = () => {
           @click="handleStockMonitoring"
         >
           <MonitorCog class="h-12 w-12 text-indigo-600 dark:text-indigo-400 transition-transform group-hover:scale-110" />
-          <div class="absolute bottom-0 w-full bg-indigo-100 dark:bg-indigo-800 py-2 text-center font-semibold text-indigo-700 dark:text-indigo-300 text-sm sm:text-base md:text-sm">
+          <div class="absolute bottom-0 w-full bg-indigo-100 dark:bg-indigo-800 py-2 text-center font-semibold text-indigo-700 dark:text-indigo-300 text-sm sm: md:text-sm">
             STOCK MONITORING
           </div>
         </div>
@@ -63,7 +63,7 @@ const handleOpname = () => {
           @click="handleClosing()"
         >
           <FileArchive class="h-12 w-12 text-green-600 dark:text-green-400 transition-transform group-hover:scale-110" />
-          <div class="absolute bottom-0 w-full bg-green-100 dark:bg-green-800 py-2 text-center font-semibold text-green-700 dark:text-green-300 text-sm sm:text-base md:text-sm">
+          <div class="absolute bottom-0 w-full bg-green-100 dark:bg-green-800 py-2 text-center font-semibold text-green-700 dark:text-green-300 text-sm sm: md:text-sm">
             CLOSING
           </div>
         </div>
@@ -74,7 +74,7 @@ const handleOpname = () => {
           @click="handleOpname()"
         >
           <Warehouse class="h-12 w-12 text-blue-600 dark:text-blue-400 transition-transform group-hover:scale-110" />
-          <div class="absolute bottom-0 w-full bg-blue-100 dark:bg-blue-800 py-2 text-center font-semibold text-blue-700 dark:text-blue-300 text-sm sm:text-base md:text-sm">
+          <div class="absolute bottom-0 w-full bg-blue-100 dark:bg-blue-800 py-2 text-center font-semibold text-blue-700 dark:text-blue-300 text-sm sm: md:text-sm">
             OPNAME
           </div>
         </div>
