@@ -108,7 +108,7 @@ function toggleMenu(title: string) {
           <Link
             v-else
             :href="item.href"
-            class="flex w-full items-center space-x-3 rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+            class="flex w-full items-center space-x-3 rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-800"
           >
             <component
               v-if="item.icon && loadedIcons[item.icon]"
@@ -148,7 +148,7 @@ function toggleMenu(title: string) {
                 <Link
                   v-else
                   :href="child.href"
-                  class="flex w-full items-center space-x-3 rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                  class="flex w-full items-center space-x-3 rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-800"
                 >
                   <component
                     v-if="child.icon && loadedIcons[child.icon]"
@@ -171,7 +171,7 @@ function toggleMenu(title: string) {
                   >
                     <Link
                       :href="grandChild.href"
-                      class="flex w-full items-center space-x-3 rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                      class="flex w-full items-center space-x-3 rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-800"
                     >
                       <component
                         v-if="grandChild.icon && loadedIcons[grandChild.icon]"

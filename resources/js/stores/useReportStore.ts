@@ -8,6 +8,13 @@ interface OmsetPerPayment {
   total_omset: string | number;
 }
 
+interface OmsetPerCustomer {
+  tanggal: string;
+  customer_id: number;
+  customer_name: string;
+  payment_method: string;
+  total_omset: string | number;
+}
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -38,6 +45,7 @@ interface ProductionSummaryItem {
 interface ReportStoreState {
   salesSummary: Ref<any[]>;
   omsetSummary: Ref<OmsetPerPayment[]>;
+  omsetSummaryPerCustomer: Ref<OmsetPerCustomer[]>;
   productionSummary: Ref<ProductionSummaryItem[]>;
   loading: Ref<boolean>;
   error: Ref<any>;
@@ -51,6 +59,7 @@ interface ReportStoreActions {
   fetchSalesSummary: (startDate: string, endDate: string, searchKey?: string) => Promise<void>;
   fetchProductionSummary: (startDate: string, endDate: string, searchKey?: string) => Promise<void>;
   fetchOmsetPerPayment: (startDate: string, endDate: string, page?: number, perPage?: number) => Promise<void>;
+  fetchOmsetPerCustomer: (customerId: number, startDate: string, endDate: string, page?: number, perPage?: number) => Promise<void>;
 }
 
 type ReportStore = ReportStoreState & ReportStoreActions;
@@ -58,6 +67,7 @@ type ReportStore = ReportStoreState & ReportStoreActions;
 export const useReportStore = defineStore('report', (): ReportStore => {
   const salesSummary = ref<any[]>([]);
   const omsetSummary = ref<OmsetPerPayment[]>([]);
+  const omsetSummaryPerCustomer = ref<OmsetPerCustomer[]>([]);
   const productionSummary = ref<ProductionSummaryItem[]>([]);
   const loading = ref(false);
   const error = ref<any>(null);
@@ -119,10 +129,31 @@ export const useReportStore = defineStore('report', (): ReportStore => {
       loading.value = false;
     }
   }
+  
+  async function fetchOmsetPerCustomer(customerId: number, startDate: string, endDate: string, page: number = 1, perPage: number = 10) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await axios.get<PaginatedResponse<OmsetPerPayment>>('/api/reports/omset-per-customer', {
+        params: { customer_id: customerId, start_date: startDate, end_date: endDate, page, per_page: perPage },
+      });
+      console.log('Omset Summary Response:', response.data);
+      omsetSummary.value = response.data.data;
+      currentPage.value = response.data.current_page;
+      lastPage.value = response.data.last_page;
+      totalOmsetRecords.value = response.data.total;
+       } catch (err: any) {
+      error.value = err;
+      console.error('Error fetching omzet per payment:', err);
+    } finally {
+      loading.value = false;
+    }
+  }
 
   return {
     salesSummary,
     omsetSummary,
+    omsetSummaryPerCustomer,
     productionSummary,
     loading,
     error,
@@ -132,6 +163,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
     perPage,
     fetchSalesSummary,
     fetchProductionSummary,
-    fetchOmsetPerPayment
+    fetchOmsetPerPayment,
+    fetchOmsetPerCustomer,
   };
 });

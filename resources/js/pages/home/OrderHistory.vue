@@ -295,7 +295,7 @@ const submitTransfer = async () => {
                                         />
 
                                         <!-- Dropdown Menu -->
-                                        <div class="relative inline-block border border-blue-200 text-gray-400 bg-blue-100 text-left">
+                                        <div v-if="activeTab === 'cancel'" class="relative inline-block border border-blue-200 text-gray-400 bg-blue-100 text-left">
                                             <button @click="toggleDropdown(order.id)" class="rounded bg-gray-100 px-2 py-1 text-sm hover:bg-gray-200">
                                                 ⋮
                                             </button>
@@ -344,7 +344,7 @@ const submitTransfer = async () => {
                                         }).format(Number(order.total_amount))
                                     }}
                                 </TableCell>
-                                <TableCell  class="text-gray-800">
+                                <TableCell  class="text-gray-800 items-center">
                                     <span
                                         :class="{
                                             'text-yellow-600': order.status === 1,
@@ -356,7 +356,7 @@ const submitTransfer = async () => {
                                     </span>
                                 </TableCell>
 
-                                <TableCell class="text-gray-800 text-center">
+                                <TableCell class="text-gray-800 items-center">
                                     <span
                                         :class="[
                                             'text-xxs font-small inline-block rounded-full border px-1 py-1',

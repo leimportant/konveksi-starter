@@ -16,10 +16,11 @@ const endDate = ref('');
 const currentPage = computed(() => reportStore.currentPage);
 const lastPage = computed(() => reportStore.lastPage);
 // const totalOmsetRecords = computed(() => reportStore.totalOmsetRecords);
+const customerId = ref<number>(0);
 const perPage = computed(() => reportStore.perPage);
 
 const fetchReport = async (page: number = 1, perPage: number = 10) => {
-    await reportStore.fetchOmsetPerPayment(startDate.value, endDate.value, page, perPage);
+    await reportStore.fetchOmsetPerCustomer(customerId.value, startDate.value, endDate.value, page, perPage);
     console.log('Current Page:', reportStore.currentPage);
     console.log('Last Page:', reportStore.lastPage);
     console.log('Total Omset Records:', reportStore.totalOmsetRecords);
@@ -52,12 +53,6 @@ const formatRupiah = (value: string): string => {
     }).format(number);
 };
 
-const getBarWidth = (amount: string | number, max = 500000): number => {
-    const value = typeof amount === 'string' ? parseFloat(amount) : amount;
-    const percentage = Math.min((value / max) * 100, 100); // Batas 100%
-    return Math.round(percentage);
-};
-
 // const omsetSummary = computed(() => reportStore.omsetSummary);
 
 // const totalOmset = computed(() => {
@@ -73,6 +68,7 @@ onMounted(() => {
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     startDate.value = firstDayOfMonth.toISOString().split('T')[0];
     endDate.value = today.toISOString().split('T')[0];
+    customerId.value = 0;
     fetchReport(currentPage.value, perPage.value);
 });
 </script>
@@ -84,6 +80,7 @@ onMounted(() => {
             <div class="mx-auto max-w-7xl sm:px-2 lg:px-2">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="mb-4 flex space-x-4">
+                        <!-- <Vue3Select v-model="customerId" :options="[{ value: 0, label: 'Semua Customer' }, ...reportStore.customers]" label="Customer" option-label="customer_name" option-value="id" /> -->
                         <Input type="date" v-model="startDate" />
                         <Input type="date" v-model="endDate" />
                         <Button @click="fetchReport(1, perPage)" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Tampilkan</Button>
@@ -96,33 +93,20 @@ onMounted(() => {
                             <TableHeader>
                                 <TableRow class="bg-gray-100">
                                     <TableHead>Tanggal</TableHead>
+                                    <TableHead>Customer</TableHead>
                                     <TableHead>Payment Method</TableHead>
                                     <TableHead>Omset</TableHead>
-                                    <TableHead>Bars</TableHead>
+                                    
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="item in reportStore.omsetSummary" :key="item.tanggal"
+                                <TableRow v-for="item in reportStore.omsetSummaryPerCustomer" :key="item.tanggal"
                                     :class="item.payment_method === 'SUBTOTAL' ? 'bg-green-100 font-semibold' : ''">
                                     <TableCell>{{ item.tanggal }}</TableCell>
+                                    <TableCell>{{ item.customer_name }}</TableCell>
                                     <TableCell>{{ item.payment_method }}</TableCell>
                                     <TableCell>{{ formatRupiah(item.total_omset.toString()) }}</TableCell>
-                                    <TableCell>
-                                        <div class="flex gap-1 items-end h-4">
-                                            <div class="bg-green-500 h-full"
-                                                :style="{ width: `${getBarWidth(item.total_omset)}%` }"
-                                                v-if="item.payment_method === 'CASH'">
-                                            </div>
-                                            <div class="bg-indigo-500 h-full"
-                                                :style="{ width: `${getBarWidth(item.total_omset)}%` }"
-                                                v-if="item.payment_method === 'QRIS' || item.payment_method === 'TRANSFER'">
-                                            </div>
-                                            <div class="bg-blue-500 h-full"
-                                                :style="{ width: `${getBarWidth(item.total_omset)}%` }"
-                                                v-else-if="item.payment_method === 'CREDIT'"></div>
-                                        </div>
-                                    </TableCell>
-
+                                    
                                 </TableRow>
                                 <!-- <TableFooter>
                                     <TableRow class="bg-blue-100 font-bold">

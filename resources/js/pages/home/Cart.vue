@@ -9,7 +9,7 @@
         <!-- Product Catalog -->
         <section class="space-y-4 w-full p-4 bg-white">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-2 mb-4">
-            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">Katalog Produk</h2>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-500">Katalog Produk</h2>
             <input type="text" v-model="searchText" @input="onSearchInput" placeholder="Cari produk..."
               class="border rounded px-3 py-1 text-sm w-full sm:w-52 sm:ml-auto" />
           </div>
@@ -121,9 +121,9 @@
           </div>
           <div class="flex items-center space-x-1">
             <button @click="decreaseQty(item)" :disabled="item.quantity <= 1"
-              class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">-</button>
-            <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-200">{{ item.quantity }}</span>
-            <button @click="increaseQty(item)" class="px-2 py-1 bg-gray-200 rounded">+</button>
+              class="px-2 py-1 bg-gray-500 rounded disabled:opacity-50">-</button>
+            <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-500">{{ item.quantity }}</span>
+            <button @click="increaseQty(item)" class="px-2 py-1 bg-gray-500 rounded">+</button>
           </div>
           <button @click="removeFromCart(item.cartItemId)"
             class="text-red-500 text-lg hover:text-red-700">&times;</button>
