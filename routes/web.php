@@ -28,13 +28,18 @@ Route::get('/home', function () {
     return Inertia::render('Home/Cart');
 })->middleware(['auth', 'verified'])->name('home.cart');
 
+// message route
+Route::get('/messages', function () {
+    return Inertia::render('Messages/ChatMessage');
+})->middleware(['auth', 'verified'])->name('message.chat');
+
 Route::get('/checkout', function () {
     return Inertia::render('Home/Checkout');
 })->middleware(['auth', 'verified'])->name('checkout');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'forbid.customer.dashboard'])->name('dashboard');
 
 Route::get('/shopping', function () {
     return Inertia::render('sales/Shopping');

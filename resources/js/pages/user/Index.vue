@@ -1,21 +1,18 @@
 <template>
+
   <Head title="User Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
       <!-- Add User Button -->
       <div class="flex justify-between items-center mb-6">
-        <Button @click="showCreateModal = true"  class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+        <Button @click="showCreateModal = true"
+          class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4 mr-2" />
-           Tambah User
+          Tambah User
         </Button>
 
-         <Input
-          v-model="filterName"
-          placeholder="Search"
-         @input="setFilter('name', $event)"
-          class="w-64"
-          aria-label="Search"
-        />
+        <Input v-model="filterName" placeholder="Search" @input="setFilter('name', $event)" class="w-64"
+          aria-label="Search" />
       </div>
 
       <!-- Users Table -->
@@ -33,55 +30,52 @@
             </TableRow>
           </TableHeader>
           <TableBody>
+
+            <!-- jika user.active false mka cell lin-throught red -->
             <TableRow v-for="user in users" :key="user.id">
-              <TableCell>{{ user.name }}</TableCell>
-              <TableCell>{{ user.phone_number }}</TableCell>
-              <TableCell>{{ user.location?.name || '-' }}</TableCell>
-              <TableCell>{{ user.email }}</TableCell>
-              <TableCell>{{ user.role || 'User' }}</TableCell>
+              <TableCell :class="!user.active ? 'line-through text-red-500' : ''">{{ user.name }}</TableCell>
+              <TableCell :class="!user.active ? 'line-through text-red-500' : ''">{{ user.phone_number }}</TableCell>
+              <TableCell :class="!user.active ? 'line-through text-red-500' : ''">{{ user.location?.name || '-' }}
+              </TableCell>
+              <TableCell :class="!user.active ? 'line-through text-red-500' : ''">{{ user.email }}</TableCell>
+              <TableCell :class="!user.active ? 'line-through text-red-500' : ''">{{ user.role || 'User' }}</TableCell>
               <TableCell>
                 <span :class="user.active ? 'text-green-600' : 'text-red-600'">
                   {{ user.active ? 'Active' : 'Inactive' }}
                 </span>
               </TableCell>
               <TableCell class="flex gap-2">
+                <Button variant="ghost" size="icon" @click="handleEdit(user.id)">
+                  <Edit2 class="h-4 w-4" />
+                </Button>
                 <Button variant="ghost" size="icon" @click="handleDelete(user.id)">
                   <Trash2 class="h-4 w-4" />
                 </Button>
               </TableCell>
             </TableRow>
+
           </TableBody>
         </Table>
       </div>
 
-         <!-- Pagination -->
+      <!-- Pagination -->
       <div class="flex justify-end mt-4 space-x-2">
-        <button
-          @click="prevPage"
-          :disabled="currentPage === 1 || loading"
-          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <button @click="prevPage" :disabled="currentPage === 1 || loading"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
           Previous
         </button>
 
         <template v-for="page in totalPages" :key="page">
-          <button
-            @click="goToPage(page)"
-            :class="[
-              'px-3 py-1 rounded border text-sm',
-              page === currentPage ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
-            ]"
-            :disabled="loading"
-          >
+          <button @click="goToPage(page)" :class="[
+            'px-3 py-1 rounded border text-sm',
+            page === currentPage ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+          ]" :disabled="loading">
             {{ page }}
           </button>
         </template>
 
-        <button
-          @click="nextPage"
-          :disabled="currentPage === totalPages || loading"
-          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <button @click="nextPage" :disabled="currentPage === totalPages || loading"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
           Next
         </button>
       </div>
@@ -94,38 +88,24 @@
           <!-- Name -->
           <div class="mb-3">
             <label class="block text-sm mb-1">Name</label>
-            <input
-              v-model="form.name"
-              type="text"
-              class="w-full border rounded px-3 py-2 text-sm"
-              placeholder="Enter name"
-            />
+            <input v-model="form.name" type="text" class="w-full border rounded px-3 py-2 text-sm"
+              placeholder="Enter name" />
             <p v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</p>
           </div>
 
           <!-- Email -->
           <div class="mb-3">
             <label class="block text-sm mb-1">Email</label>
-            <input
-              v-model="form.email"
-              autocomplete="false"
-              type="email"
-              class="w-full border rounded px-3 py-2 text-sm"
-              placeholder="Enter email"
-            />
+            <input v-model="form.email" autocomplete="false" type="email"
+              class="w-full border rounded px-3 py-2 text-sm" placeholder="Enter email" />
             <p v-if="form.errors.email" class="text-red-500 text-xs mt-1">{{ form.errors.email }}</p>
           </div>
 
           <!-- Password -->
           <div class="mb-3">
             <label class="block text-sm mb-1">Phone Number</label>
-            <input
-              v-model="form.phone_number"
-              autocomplete="false"
-              type="text"
-              class="w-full border rounded px-3 py-2 text-sm"
-              placeholder="Enter phone number"
-            />
+            <input v-model="form.phone_number" autocomplete="false" type="text"
+              class="w-full border rounded px-3 py-2 text-sm" placeholder="Enter phone number" />
             <p v-if="form.errors.phone_number" class="text-red-500 text-xs mt-1">{{ form.errors.phone_number }}</p>
           </div>
 
@@ -153,11 +133,7 @@
           <!-- Active -->
           <div class="mb-4">
             <label class="inline-flex items-center text-sm">
-              <input
-                type="checkbox"
-                v-model="form.active"
-                class="form-checkbox mr-2"
-              />
+              <input type="checkbox" v-model="form.active" class="form-checkbox mr-2" />
               Active
             </label>
           </div>
@@ -200,7 +176,8 @@ const form = useForm({
   phone_number: '',
   location_id: '',
   role: '',
-  active: true
+  active: true,
+  id: 0
 });
 
 // Breadcrumbs
@@ -284,6 +261,23 @@ const handleCreate = async () => {
     }
   }
 };
+
+// handle edit
+const handleEdit = async (id: number) => {
+  const user = users.value.find((user) => user.id === id);
+  if (!user) return;
+
+  form.reset();
+
+  form.name = user.name;
+  form.email = user.email;
+  form.phone_number = user.phone_number;
+  form.location_id = user.location_id ?? '';
+  form.role = user.role ?? '';
+  form.active = user.active;
+  form.id = user.id;
+};
+
 
 // Delete user
 const handleDelete = async (id: number) => {

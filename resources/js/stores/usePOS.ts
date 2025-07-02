@@ -5,12 +5,16 @@ import { useToast } from '@/composables/useToast';
 
 interface Product {
   id: number;
+  product_id?: number; // Added
   product_name: string;
   uom_id: string;
+  size_id?: string; // Added
   qty_stock: number;
   image_path: string;
   price: number;
+  price_sell?: number; // Added
   quantity: number;
+  discount?: number; // Added
 }
 
 interface PaymentMethod {

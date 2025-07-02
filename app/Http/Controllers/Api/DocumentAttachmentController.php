@@ -15,13 +15,20 @@ class DocumentAttachmentController extends Controller
     public function upload(Request $request)
     {
         // Validasi input
-        $request->validate([
-            'file' => 'required|file|max:10240', // maksimal 10MB
+       $request->validate([
+            'file' => 'required|file|mimetypes:video/mp4,image/jpeg,image/png|max:20480',
             'doc_id' => 'string',
             'reference_id' => 'required',
             'reference_type' => 'required|string',
             'remark' => 'nullable|string',
         ]);
+
+        // Validasi tambahan khusus ukuran untuk selain mp4
+        if ($request->file('file')->getMimeType() !== 'video/mp4') {
+            if ($request->file('file')->getSize() > 10240 * 1024) {
+                return back()->withErrors(['file' => 'File maksimal 10MB untuk jenis non-video.']);
+            }
+        }
 
         try {
             // Ambil file dari request

@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\ChatMessageController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -86,6 +87,11 @@ Route::middleware('auth')->group(function () {
      Route::get('api/cash-balance', action: [CashBalanceController::class, 'index']); // Get list of cash balances
     Route::post('api/cash-balance/open', [CashBalanceController::class, 'openShift']); // Open a shift
     Route::put('api/cash-balance/{id}/close', [CashBalanceController::class, 'closeShift']); // Close a shift
+
+    Route::get('api/chat/messages', [ChatMessageController::class, 'index']);
+    Route::post('api/chat/send', [ChatMessageController::class, 'send']);
+    Route::post('api/chat/messages/read', [ChatMessageController::class, 'markAsRead']);
+    Route::get('api/chat/conversations', [ChatMessageController::class, 'conversations']);
 
     Route::apiResource('api/stock-opnames', StockOpnameController::class);
     Route::apiResource('api/roles', RoleController::class);

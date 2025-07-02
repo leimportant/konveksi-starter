@@ -31,4 +31,5 @@ const { toggleSidebar } = useSidebar();
     >
         <slot />
     </button>
+    
 </template>

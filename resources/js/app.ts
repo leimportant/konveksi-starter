@@ -1,5 +1,6 @@
 import '../css/app.css';
 import 'vue-toastification/dist/index.css';
+import './bootstrap';
 
 import axios from 'axios'
 import { createInertiaApp } from '@inertiajs/vue3';

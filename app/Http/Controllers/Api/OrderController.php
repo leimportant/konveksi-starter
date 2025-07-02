@@ -277,20 +277,22 @@ class OrderController extends Controller
         return response()->json($orders, 201);
     }
 
-    public function scan($orderId)
+    public function scan(Request $request)
     {
-        $order = Order::with('orderItems.product')->find($orderId);
+        $ids = explode(',', $request->query('ids', ''));
 
-        if (!$order) {
-            return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+        if (empty($ids)) {
+            return response()->json(['message' => 'No Qr tidak terdetect'], 400);
         }
 
-        return response()->json($order);
+        $orders = Order::with('orderItems.product')
+            ->whereIn('id', $ids)
+            ->get();
 
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+        if ($orders->isEmpty()) {
+            return response()->json(['message' => 'No orders found.'], 404);
         }
-     }
 
-     
+        return response()->json($orders);
+    }
 }

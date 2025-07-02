@@ -152,7 +152,9 @@ class UserController extends Controller
         
         // Detach all roles before deleting
         $user->roles()->detach();
-        $user->delete();
+        $user->update([
+            'active' => false
+        ]);
 
         return response()->json([
             'status' => 'success',

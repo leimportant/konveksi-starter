@@ -20,7 +20,7 @@ export default defineConfig({
     },
     build: {
         manifest: true,
-        outDir: 'build',
+        outDir: 'public/build',
         rollupOptions: {
             input: ['resources/js/app.ts'],
         },
