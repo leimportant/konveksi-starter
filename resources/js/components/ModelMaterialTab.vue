@@ -255,7 +255,7 @@ watch(() => props.modelValue, async (newValue: Material[]) => {
       }
     }
   }
-}, { deep: true, immediate: true });
+}, { deep: true });
 
 // Handle product selection to ensure product_id is stored as number
 const handleProductChange = (selectedProduct: any, index: number) => {
