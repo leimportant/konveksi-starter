@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
@@ -15,48 +16,54 @@ class GoogleController extends Controller
 {
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->with(['prompt' => 'select_account'])->redirect();
+        return Socialite::driver('google')->with([
+                'prompt' => 'select_account',
+                'access_type' => 'offline',
+            ])->redirect();
     }
 
     public function handleGoogleCallback()
     {
         try {
-            // $googleUser  = Socialite::driver('google')->user();
             $googleUser = Socialite::driver('google')->stateless()->user();
 
-            $finduser = User::where('google_id', $googleUser->id)->first();
+            $existingUser = User::where('google_id', $googleUser->id)->first();
 
-            if($finduser){
-                Auth::login($finduser);
+            if ($existingUser) {
+                Auth::login($existingUser);
                 return redirect()->intended('/home');
-            }else{
+            } else {
                 $newUser = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
-                    'google_id'=> $googleUser->id,
-                    "location_id" => 1, // Set to null or a default value if not applicable
-                    'employee_status' => 'customer', // Set to null or a default value if not applicable
+                    'google_id' => $googleUser->id,
+                    'location_id' => 1,
+                    'employee_status' => 'customer',
                     'password' => Hash::make('123456dummy')
                 ]);
 
-                // Assign the default role to the new user
-                // insert into user_roles (user_id, role_id) values ($newUser->id, 1);
                 DB::table('user_role')->insert([
                     'user_id' => $newUser->id,
-                    'role_id' => 7 // Assuming 1 is the ID for the default role
+                    'role_id' => 7
                 ]);
 
-                // the default role, adjust as necessary
-
+                Customer::create([
+                    'id' => $newUser->id,
+                    'name' => $googleUser->name,
+                    'address' => "",
+                    'phone_number' => "",
+                    'saldo_kredit' => 0,
+                    'is_active' => 'Y',
+                ]);
 
                 Auth::login($newUser);
                 return redirect()->intended('/home');
             }
-
         } catch (Exception $e) {
-            Log::info($e->getMessage());
-            echo($e->getMessage());
+            Log::error('Google Login Error: ' . $e->getMessage());
+            return redirect('/login')->withErrors(['msg' => 'Google login failed.']);
         }
     }
+
 
 }
