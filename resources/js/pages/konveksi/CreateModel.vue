@@ -268,13 +268,20 @@ const handleSubmit = async () => {
     }
     router.visit('/konveksi/model/list');
   } catch (error: any) {
-    if (error.response?.data?.errors) {
+    if (error.response?.status === 422 && error.response?.data?.errors) {
       errors.value = error.response.data.errors;
-      toast.error('Validasi gagal, silakan periksa form');
-    } else {
-      toast.error('Terjadi kesalahan saat menyimpan model');
+
+      // Ambil dan tampilkan pesan error pertama saja
+      const firstError = Object.values(errors.value)[0]?.[0];
+      if (firstError) toast.error(firstError);
+    } 
+     // Jika ada message dari backend (misal error 400, 500, dll)
+      else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+          toast.error('Terjadi kesalahan saat menyimpan model');
+        }
     }
-  }
 };
 
 // Add this function before using it in the template

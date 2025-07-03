@@ -27,6 +27,7 @@ class BankAccountController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'id' => 'required|string|max:10|unique:mst_bank_account',
             'name' => 'required|string|max:100|unique:mst_bank_account',
             'account_number' => 'required|string|max:100|unique:mst_bank_account',
         ]);
@@ -42,16 +43,24 @@ class BankAccountController extends Controller
         return response()->json($account);
     }
 
-    public function update(Request $request, BankAccount $account)
+    public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:mst_bank_account',
-            'account_number' => 'required|string|max:100|unique:mst_bank_account',
+            'name' => 'required|string|max:100',
+            'account_number' => 'required|string|max:100',
         ]);
 
+        $account = BankAccount::findOrFail($id);
+
+        \Log::info('Before update:', $account->toArray());
+
         $account->update($validated);
-        return response()->json($account);
+
+        \Log::info('After update:', $account->fresh()->toArray());
+
+        return response()->json($account->fresh());
     }
+
 
     public function destroy(BankAccount $account)
     {

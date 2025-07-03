@@ -185,7 +185,7 @@ const handleDelete = async (id: string) => {
             </div>
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
-              <Button type="submit">Create</Button>
+              <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Create</Button>
             </div>
           </form>
         </div>
@@ -201,7 +201,7 @@ const handleDelete = async (id: string) => {
             </div>
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="showEditModal = false">Cancel</Button>
-              <Button type="submit">Update</Button>
+              <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Update</Button>
             </div>
           </form>
         </div>

@@ -25,8 +25,8 @@ class DocumentAttachmentController extends Controller
 
         // Validasi tambahan khusus ukuran untuk selain mp4
         if ($request->file('file')->getMimeType() !== 'video/mp4') {
-            if ($request->file('file')->getSize() > 10240 * 1024) {
-                return back()->withErrors(['file' => 'File maksimal 10MB untuk jenis non-video.']);
+            if ($request->file('file')->getSize() > 50 * 1024 * 1024) {
+                return back()->withErrors(['file' => 'File maksimal 50MB untuk jenis non-video.']);
             }
         }
 
