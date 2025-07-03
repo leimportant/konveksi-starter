@@ -150,34 +150,29 @@ const addMaterial = () => {
 };
 
 const searchProducts = async (search: string) => {
-  if (search.length < 2) {
-    // When search query is too short, ensure productOption only contains currently selected products
-    // This prevents showing irrelevant products from previous searches
-    productOption.value = productOption.value.filter(p => props.modelValue.some(m => m.product_id === p.id));
-    return;
+  // Always start with products that are currently selected in the modelValue
+  const selectedProductsInOptions = productOption.value.filter(p => 
+    props.modelValue.some(m => m.product_id === p.id)
+  );
+
+  let newProducts: Product[] = [];
+  if (search.length >= 2) {
+    try {
+      const res = await axios.get('/api/products', { params: { search } });
+      newProducts = res.data.data;
+    } catch (error) {
+      console.error('Search error:', error);
+    }
   }
+
+  // Combine selected products with new search results
+  const combinedProducts = [...selectedProductsInOptions, ...newProducts];
   
-  try {
-    const res = await axios.get('/api/products', { params: { search } });
-    const newProducts = res.data.data;
-
-    // Get currently selected products from modelValue that are already in productOption
-    const selectedProductsInOptions = productOption.value.filter(p => 
-      props.modelValue.some(m => m.product_id === p.id)
-    );
-
-    // Combine new search results with existing selected products
-    const combinedProducts = [...selectedProductsInOptions, ...newProducts];
-    
-    // Remove duplicates based on product id
-    const uniqueProducts = Array.from(new Set(combinedProducts.map(p => p.id)))
-      .map(id => combinedProducts.find(p => p.id === id));
-    
-    productOption.value = uniqueProducts as Product[];
-
-  } catch (error) {
-    console.error('Search error:', error);
-  }
+  // Remove duplicates based on product id
+  const uniqueProducts = Array.from(new Set(combinedProducts.map(p => p.id)))
+    .map(id => combinedProducts.find(p => p.id === id));
+  
+  productOption.value = uniqueProducts as Product[];
 };
 
 const removeMaterial = (index: number) => {
@@ -267,9 +262,25 @@ const handleProductChange = (selectedProduct: any, index: number) => {
     // If selectedProduct is an object, extract the id
     if (selectedProduct && typeof selectedProduct === 'object') {
       materials[index].product_id = selectedProduct.id;
+      // Ensure the selected product is in productOption for display purposes
+      if (!productOption.value.some(p => p.id === selectedProduct.id)) {
+        productOption.value.push(selectedProduct);
+      }
     } else if (typeof selectedProduct === 'number') {
       // If it's already a number, use it directly
       materials[index].product_id = selectedProduct;
+      // If product_id is a number, try to find the full product object and add it to productOption
+      const existingProduct = productOption.value.find(p => p.id === selectedProduct);
+      if (!existingProduct) {
+        // If not found, fetch it and add it to productOption
+        axios.get(`/api/products/${selectedProduct}`).then(res => {
+          if (res.data) {
+            productOption.value.push(res.data);
+          }
+        }).catch(error => {
+          console.error(`Failed to fetch product with ID ${selectedProduct}:`, error);
+        });
+      }
     }
     
     // Set default UOM if not already set
