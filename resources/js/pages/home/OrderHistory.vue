@@ -418,7 +418,7 @@ const submitTransfer = async () => {
 
                             <!-- Row 2: detail -->
                             <TableRow>
-                                <TableCell colspan="6" class="rounded-md border border-blue-200 bg-blue-50 p-4">
+                                <TableCell colspan="6" class="rounded-md border border-blue-100 bg-blue-50 p-3">
                                     <h4 class="mb-1 text-sm font-semibold">Detail Pesanan:</h4>
                                     <div class="space-y-1">
                                         <OrderItem v-for="item in order.order_items" :key="item.id" :item="item" />
