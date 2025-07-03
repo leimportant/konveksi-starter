@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\Customer;
+use Illuminate\Support\Facades\DB;
 
 class RegisteredUserController extends Controller
 {
@@ -42,10 +44,24 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+         // 👇 Create related customer record
+        Customer::create([
+            'id' => $user->id,
+            'name' => $user->name,
+            'address' => '',
+            'phone_number' => '',
+            'saldo_kredit' => 0,
+            'is_active' => 'Y',
+        ]);
+
+        // Optional: assign a default role
+        DB::table('user_role')->insert([
+            'user_id' => $user->id,
+            'role_id' => 7, // Default role ID for "customer"
+        ]);
+        
         event(new Registered($user));
-
         Auth::login($user);
-
-        return to_route('dashboard');
+        return to_route('home');
     }
 }
