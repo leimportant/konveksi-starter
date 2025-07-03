@@ -76,7 +76,7 @@ const closeModal = () => {
                             </DialogClose>
 
                             <Button variant="destructive" :disabled="form.processing">
-                                <button type="submit">Delete account</button>
+                                <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Delete account</button>
                             </Button>
                         </DialogFooter>
                     </form>

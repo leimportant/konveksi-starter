@@ -21,6 +21,7 @@ class Order extends Model
         'payment_method',
         'location_id',
         'payment_proof',
+        'delivery_proof',
         'total_amount',
         'is_paid',
         'status',

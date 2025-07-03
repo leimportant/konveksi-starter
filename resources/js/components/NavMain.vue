@@ -30,6 +30,10 @@ const iconMap: Record<string, () => Promise<Component>> = {
   UserPlus: () => import('lucide-vue-next').then(m => m.UserPlus),
   Users: () => import('lucide-vue-next').then(m => m.Users),
   Shield: () => import('lucide-vue-next').then(m => m.Shield),
+   House: () => import('lucide-vue-next').then(m => m.House),
+   Repeat: () => import('lucide-vue-next').then(m => m.Repeat),
+   FileText: () => import('lucide-vue-next').then(m => m.FileText),
+   FileSearch: () => import('lucide-vue-next').then(m => m.FileSearch),
 };
 
 const iconCache: Record<string, Component> = {};

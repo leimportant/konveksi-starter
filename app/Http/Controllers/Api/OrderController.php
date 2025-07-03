@@ -27,7 +27,9 @@ use App\Enums\OrderStatusEnum;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use App\Services\InventoryService;
+use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Inventory;
+use App\Models\CartItem;
 
 class OrderController extends Controller
 {
@@ -39,30 +41,108 @@ class OrderController extends Controller
             return response()->json(['message' => 'Tidak terautentikasi.'], 401);
         }
 
-        $query = Order::with('orderItems.product', 'customer');
-        $status = [1, 2, 3, 4, 5];
-        if ($request->has('status') == 'done') {
-            $status = [6];
-        }
-        if ($request->has('status') == 'cancel') {
-            $status = [7];
-        }
-        if ($request->has('status')) {
-            $query->whereIn('status', $status);
+        // Handle CART status secara khusus
+        if ($request->input('status') === 'cart') {
+            $cartItems = CartItem::with('product')
+                ->get();
+
+            // FILTER berdasarkan `name` atau lainnya
+            if ($request->filled('name')) {
+                $search = strtolower($request->input('name'));
+
+                $cartItems = $cartItems->filter(function ($item) use ($search) {
+                    return
+                        strpos(strtolower($item->product->name ?? ''), $search) !== false ||
+                        strpos((string) $item->id, $search) !== false ||
+                        strpos((string) $item->quantity, $search) !== false ||
+                        strpos((string) $item->price_sell, $search) !== false;
+                });
+            }
+
+            $fakeOrders = $cartItems->map(function ($item) use ($user) {
+                $totalAmount = ($item->price_sell ?? 0) * $item->quantity;
+
+                return [
+                    'id' => 'cart-temp-' . $item->id, // pakai ID CartItem agar bisa dibatalkan per item
+                    'customer_id' => $user->id,
+                    'customer' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                    ],
+                    'total_amount' => number_format($totalAmount, 2, '.', ''),
+                    'status' => 1,
+                    'is_paid' => 'N',
+                    'resi_number' => '',
+                    'order_items' => [
+                        [
+                            'product' => $item->product,
+                            'quantity' => $item->quantity,
+                            'price_sell' => $item->price_sell,
+                            'size_id' => $item->size_id,
+                            'uom_id' => $item->uom_id,
+                        ]
+                    ],
+                    'created_at' => now(),
+                    'payment_method' => '',
+                    'payment_proof' => null,
+                    'updated_at' => now(),
+                ];
+            });
+
+            // Pagination manual
+            $page = (int) $request->input('page', 1);
+            $perPage = (int) $request->input('per_page', 10);
+
+            $paginated = new LengthAwarePaginator(
+                $fakeOrders->forPage($page, $perPage),
+                $fakeOrders->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return response()->json($paginated, 200);
         }
 
-        if ($request->has('search')) {
-            $search = $request->input('search');
+
+        // Default: Ambil data dari Order
+        $query = Order::with('orderItems.product', 'customer');
+
+        $statusParam = $request->input('status');
+        if ($statusParam === 'done') {
+            $status = [6];
+        } elseif ($statusParam === 'cancel') {
+            $status = [7, 8];
+        } elseif ($statusParam === 'pending') {
+            $status = [1, 2, 3, 4, 5];
+        } else {
+            $status = [0];
+        }
+
+        $query->whereIn('status', $status);
+
+        if ($request->filled('name')) {
+            $search = $request->input('name');
+
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
-                    ->orWhereHas('orderItems.product', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
+                    ->orWhere('total_amount', 'like', "%{$search}%")
+                    ->orWhere('payment_method', 'like', "%{$search}%")
+                    ->orWhere('resi_number', 'like', "%{$search}%")
+                    ->orWhere('delivery_provider', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('orderItems.product', function ($q3) use ($search) {
+                        $q3->where('name', 'like', "%{$search}%");
                     });
             });
         }
 
-        $orders = $query->orderBy('created_at', 'desc')->paginate(10);
-        return response()->json($orders, 201);
+        $perPage = (int) $request->input('per_page', 10);
+        $orders = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+        return response()->json($orders, 200);
     }
 
     public function store(StoreOrderRequest $request)
@@ -172,12 +252,12 @@ class OrderController extends Controller
             }
             // langsung update inventory
             $inventory = Inventory::where('product_id', $itemData['product_id'])
-                        ->where('location_id', $locationId)
-                        ->where('uom_id', $itemData['uom_id'])
-                        ->where('sloc_id', 'GS00')
-                        ->where('size_id', $itemData['size_id'])
-                        ->where('status', $status)
-                        ->first();
+                ->where('location_id', $locationId)
+                ->where('uom_id', $itemData['uom_id'])
+                ->where('sloc_id', 'GS00')
+                ->where('size_id', $itemData['size_id'])
+                ->where('status', $status)
+                ->first();
             $qty = $inventory ? $inventory->qty : 0;
             $qty_rese = $inventory ? $inventory->qty_reserved : 0;
 
@@ -287,35 +367,35 @@ class OrderController extends Controller
             // Kembalikan stok dari setiap item dalam pesanan
             foreach ($order->orderItems as $item) {
                 // langsung update inventory
-            $inventory = Inventory::where('product_id', $item->product_id)
-                        ->where('location_id', $locationId)
-                        ->where('uom_id', $item->uom_id)
-                        ->where('sloc_id', 'GS00')
-                        ->where('size_id', $item->size_id)
-                        ->first();
-            $qty = $inventory ? $inventory->qty : 0;
-            $qty_rese = $inventory ? $inventory->qty_reserved : 0;
-            $quantity = $item['qty'] ?? 0;
+                $inventory = Inventory::where('product_id', $item->product_id)
+                    ->where('location_id', $locationId)
+                    ->where('uom_id', $item->uom_id)
+                    ->where('sloc_id', 'GS00')
+                    ->where('size_id', $item->size_id)
+                    ->first();
+                $qty = $inventory ? $inventory->qty : 0;
+                $qty_rese = $inventory ? $inventory->qty_reserved : 0;
+                $quantity = $item['qty'] ?? 0;
 
-            $status = "IN";
-            $qty_reserved = intval($qty_rese + $quantity);
-            if ($order['payment_method'] == "bank_transfer") {
-                $status = "OUT";
-                $qty = $quantity;
-                $qty_reserved = 0;
-            }
+                $status = "IN";
+                $qty_reserved = intval($qty_rese + $quantity);
+                if ($order['payment_method'] == "bank_transfer") {
+                    $status = "OUT";
+                    $qty = $quantity;
+                    $qty_reserved = 0;
+                }
 
-            // update stock
-            app(InventoryService::class)->updateOrCreateInventory([
-                'product_id' => $item->product_id,
-                'location_id' => $locationId,
-                'uom_id' => $item->uom_id,
-                'sloc_id' => 'GS00',
-            ], [
-                'size_id' => $item->size_id,
-                'qty' => $qty, // Reduce stock from source location
-                'qty_reserved' => $qty_reserved, // Reduce stock from source location
-            ], $status);
+                // update stock
+                app(InventoryService::class)->updateOrCreateInventory([
+                    'product_id' => $item->product_id,
+                    'location_id' => $locationId,
+                    'uom_id' => $item->uom_id,
+                    'sloc_id' => 'GS00',
+                ], [
+                    'size_id' => $item->size_id,
+                    'qty' => $qty, // Reduce stock from source location
+                    'qty_reserved' => $qty_reserved, // Reduce stock from source location
+                ], $status);
             }
 
             DB::commit();
@@ -344,7 +424,7 @@ class OrderController extends Controller
             $paymentProofPath = $this->handlePaymentProof($request);
             $order->payment_proof = $paymentProofPath;
             $order->status = OrderStatusEnum::MENUNGGU_KONFIRMASI; // Status 2: MENUNGGU_PEMBAYARAN
-
+            $order->is_paid = "Y";
             $order->updated_by = Auth::id();
             $order->save();
 
@@ -366,7 +446,6 @@ class OrderController extends Controller
         }
     }
 
-
     public function customerOrders(Request $request)
     {
         $user = Auth::user();
@@ -375,17 +454,25 @@ class OrderController extends Controller
             return response()->json(['message' => 'Tidak terautentikasi.'], 401);
         }
 
-        $query = Order::with('orderItems.product')->where('customer_id', $user->id);
-        $status = [1, 2, 3, 4, 5];
-        if ($request->has('status') == 'done') {
+        $statusParam = $request->input('status');
+
+        if ($statusParam === 'done') {
             $status = [6];
+        } elseif ($statusParam === 'cancel') {
+            $status = [7, 8];
+        } elseif ($statusParam === 'pending') {
+            $status = [1, 2, 3, 4, 5]; // optional, sudah default
+        } else {
+            $status = [0];
         }
-        if ($request->has('status') == 'cancel') {
-            $status = [7];
-        }
-        if ($request->has('status')) {
-            $query->whereIn('status', $status);
-        }
+
+        $query = Order::with('orderItems.product')
+            ->where(function ($q) use ($user) {
+                $q->where('customer_id', $user->id)
+                    ->orWhere('created_by', $user->id);
+            });
+
+        $query->whereIn('status', $status);
 
         if ($request->has('search')) {
             $search = $request->input('search');
@@ -461,9 +548,49 @@ class OrderController extends Controller
         return response()->json(['message' => 'Order cancelled successfully.', 'order' => $order]);
     }
 
-    public function checkShipping(Request $request)
+    public function checkShipping($orderId)
     {
-        $data = Order::where('id', $request->id)->first();
-        return response()->json($data);
+        $data = Order::where('id', $orderId)->first();
+        return response()->json(['data' => $data]);
     }
+
+    public function submitShipping(Request $request, Order $order)
+    {
+        $request->validate([
+            'resi_number' => 'required|string|max:255',
+            'delivery_provider' => 'required|string|max:255',
+            'estimation_date' => 'required|date',
+            'delivery_proof' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            if ($request->hasFile('delivery_proof')) {
+                $proofPath = $request->file('delivery_proof')->store('shipping_proofs', 'public');
+                $order->delivery_proof = $proofPath;
+            }
+
+            $order->resi_number = $request->resi_number;
+            $order->delivery_provider = $request->delivery_provider;
+            $order->estimation_date = $request->estimation_date;
+            $order->status = OrderStatusEnum::DIKIRIM; // use appropriate enum
+            $order->updated_by = Auth::id();
+            $order->save();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Informasi pengiriman berhasil diperbarui',
+                'order' => $order
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal memperbarui informasi pengiriman',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

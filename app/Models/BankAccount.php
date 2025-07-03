@@ -15,8 +15,11 @@ class BankAccount extends Model
      * @var string
      */
     protected $table = 'mst_bank_account';
+    protected $primaryKey = 'id';
     protected $keyType = 'string';
     public $incrementing = false;
+
+    
 
     /**
      * The attributes that are mass assignable.
@@ -32,19 +35,4 @@ class BankAccount extends Model
         'deleted_by'
     ];
 
-    /**
-     * Get the good receives that use this UOM as base.
-     */
-    // public function goodReceivesBase()
-    // {
-    //     return $this->hasMany(GoodReceive::class, 'uom_base');
-    // }
-
-    // /**
-    //  * Get the good receives that use this UOM as convert.
-    //  */
-    // public function goodReceivesConvert()
-    // {
-    //     return $this->hasMany(GoodReceive::class, 'uom_convert');
-    // }
 }

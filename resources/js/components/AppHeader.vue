@@ -14,7 +14,7 @@ import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { LucideIcon } from 'lucide-vue-next';
-import { defineProps, withDefaults, type Component } from 'vue';
+import { withDefaults, type Component } from 'vue';
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];

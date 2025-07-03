@@ -354,8 +354,6 @@ function closeFullscreenImage() {
   fullscreenImageUrl.value = '';
 }
 
-
-
 const cartQty = computed(() =>
   cartStore.cartItems.reduce((total: number, item) => total + (item.quantity || 0), 0)
 );

@@ -5,9 +5,9 @@ import { ref, onMounted, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, Plus } from 'lucide-vue-next';
+import { Trash2, Plus, Edit } from 'lucide-vue-next';
 import { useToast } from "@/composables/useToast";
-import { useSizeStore } from '@/stores/useSizeStore';
+import { useBankAccountStore } from '@/stores/useBankAccountStore';
 import { storeToRefs } from 'pinia';
 import debounce from 'lodash-es/debounce';
 
@@ -15,25 +15,27 @@ const toast = useToast();
 
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
-const currentUom = ref<{ id: number; name: string } | null>(null);
+const currentData = ref<{ id: string; name: string, account_number: string } | null>(null);
 
 const form = useForm({
+  id: '',
   name: '',
+  account_number: ''
 });
 
 const breadcrumbs = [
-  { title: 'Ukuran', href: '/sizes' }
+  { title: 'Bank Account', href: '/bank-account' }
 ];
 
-const useStore = useSizeStore();
+const useStore = useBankAccountStore();
 
-const { sizes: sizes, currentPage, lastPage, loading, filterName } = storeToRefs(useStore);
+const { bankAccount: bankAccount, currentPage, lastPage, loading, filterName } = storeToRefs(useStore);
 
 const totalPages = computed(() => lastPage.value || 1);
 
 const goToPage = async (page: number) => {
   if (page < 1 || page > totalPages.value) return;
-  await useStore.fetchSizes(page);
+  await useStore.fetchBankAccount(page);
 };
 const nextPage = () => goToPage(currentPage.value + 1);
 const prevPage = () => goToPage(currentPage.value - 1);
@@ -51,64 +53,66 @@ const handleInput = (e: Event) => {
 
 
 onMounted(() => {
-    useStore.fetchSizes();
+    useStore.fetchBankAccount();
 });
 
 const handleCreate = async () => {
   if (!form.name) return toast.error("Name is required");
 
   try {
-    await useStore.createSize(form.name);
-    toast.success("Size created successfully");
+    await useStore.createBankAccount(form.id, form.name, form.account_number);
+    toast.success("Bank Account created successfully");
     form.reset();
     useStore.loaded = false;
-    await useStore.fetchSizes();
+    await useStore.fetchBankAccount();
     showCreateModal.value = false;
   } catch (error: any) {
     const nameError = error?.response?.data?.errors?.name?.[0];
-    toast.error(nameError || "Failed to create Size");
+    toast.error(nameError || "Failed to create Bank Account ");
   }
 };
 
-// const handleEdit = (uom: { id: number; name: string }) => {
-//   currentUom.value = uom;
-//   form.name = uom.name;
-//   showEditModal.value = true;
-// };
+const handleEdit = (bankAccount: { id: string; name: string; account_number: string }) => {
+  currentData.value = bankAccount;
+  form.id = bankAccount.id;
+  form.name = bankAccount.name;
+  form.account_number = bankAccount.account_number;
+  showEditModal.value = true;
+};
 
 const handleUpdate = async () => {
-  if (!currentUom.value || !form.name) return toast.error("Name is required");
-
+  if (!currentData.value || !form.name) return toast.error("Name is required");
+  if (!currentData.value || !form.account_number) return toast.error("Account Numberis required");
   try {
-    await useStore.updateSize(currentUom.value.id, form.name);
-    toast.success("Size updated successfully");
+    await useStore.updateBankAccount(currentData.value.id, form.name, form.account_number);
+    toast.success("Bank Account updated successfully");
     form.reset();
     useStore.loaded = false;
-    await useStore.fetchSizes();
+    await useStore.fetchBankAccount();
     showEditModal.value = false;
-    currentUom.value = null;
+    currentData.value = null;
   } catch (error: any) {
     const nameError = error?.response?.data?.errors?.name?.[0];
-    toast.error(nameError || "Failed to update UOM");
+    toast.error(nameError || "Failed to update Bank Account");
   }
 };
 
-const handleDelete = async (id: number) => {
-  if (!confirm('Are you sure you want to delete this UOM?')) return;
+const handleDelete = async (id: string) => {
+  if (!confirm('Are you sure you want to delete this Bank Account?')) return;
 
   try {
-    await useStore.deleteSize(id);
+    await useStore.deleteBankAccount(id);
     useStore.loaded = false;
-    await useStore.fetchSizes();
-    toast.success("Size deleted successfully");
+    await useStore.fetchBankAccount();
+    toast.success("Bank Account deleted successfully");
   } catch (error: any) {
-    toast.error(error?.response?.data?.message ?? "Failed to delete UOM");
+    toast.error(error?.response?.data?.message ?? "Failed to delete Bank Account");
   }
 };
 </script>
 
 <template>
-  <Head title="Size Management" />
+  <Head title="Bank Account Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
@@ -131,17 +135,21 @@ const handleDelete = async (id: number) => {
         <Table>
           <TableHeader>
             <TableRow class="bg-gray-100">
+              <TableHead>Id</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>No Rekening</TableHead>
               <TableHead class="w-24">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="data in sizes" :key="data.id">
+            <TableRow v-for="data in bankAccount" :key="data.id">
+              <TableCell>{{ data.id }}</TableCell>
               <TableCell>{{ data.name }}</TableCell>
+              <TableCell>{{ data.account_number }}</TableCell>
               <TableCell class="flex gap-2">
-                <!-- <Button variant="ghost" size="icon" @click="handleEdit(data)">
+                <Button variant="ghost" size="icon" @click="handleEdit(data)">
                   <Edit class="h-4 w-4" />
-                </Button> -->
+                </Button>
                 <Button variant="ghost" size="icon" @click="handleDelete(data.id)">
                   <Trash2 class="h-4 w-4" />
                 </Button>
@@ -186,10 +194,16 @@ const handleDelete = async (id: number) => {
       <!-- Create Modal -->
       <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-lg w-96">
-          <h2 class="text-lg font-semibold mb-4">Tambah Size Baru</h2>
+          <h2 class="text-lg font-semibold mb-4">Tambah Bank Account Baru</h2>
           <form @submit.prevent="handleCreate">
             <div class="mb-4">
-              <Input v-model="form.name" placeholder="Size Name" required />
+              <Input v-model="form.id" placeholder="BCA" required />
+            </div>
+            <div class="mb-4">
+              <Input v-model="form.name" placeholder="Bank BCA" required />
+            </div>
+            <div class="mb-4">
+              <Input v-model="form.account_number" placeholder="1234498" required />
             </div>
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
@@ -202,10 +216,16 @@ const handleDelete = async (id: number) => {
       <!-- Edit Modal -->
       <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-lg w-96">
-          <h2 class="text-lg font-semibold mb-4">Edit Size</h2>
+          <h2 class="text-lg font-semibold mb-4">Edit Bank Account</h2>
           <form @submit.prevent="handleUpdate">
+             <div class="mb-4">
+              <Input v-model="form.id" placeholder="BCA" required readonly/>
+            </div>
             <div class="mb-4">
-              <Input v-model="form.name" placeholder="Size Name" required />
+              <Input v-model="form.name" placeholder="Bank BCA" required />
+            </div>
+            <div class="mb-4">
+              <Input v-model="form.account_number" placeholder="1234498" required />
             </div>
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="showEditModal = false">Cancel</Button>

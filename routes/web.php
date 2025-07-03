@@ -70,6 +70,10 @@ Route::get('/sizes', function () {
     return Inertia::render('size/Index');
 })->middleware(['auth'])->name('size.getIndex');
 
+Route::get('/bank-accounts', function () {
+    return Inertia::render('bank-account/Index');
+})->middleware(['auth'])->name('bank-account.getIndex');
+
 Route::get('/customers', function () {
     return Inertia::render('customer/Index');
 })->middleware(['auth'])->name('customer.getIndex');
@@ -227,8 +231,8 @@ Route::get('/order/approve', function () {
 
 // list order untuk admin
 Route::get('/order-request', function () {
-    return Inertia::render('Order/Index');
-})->name('order.index');
+    return Inertia::render('Order/OrderRequest');
+})->name('order.request');
 
 // list order untuk customer
 Route::get('/order-history', function () {

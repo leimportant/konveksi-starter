@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ChatMessageController;
+use App\Http\Controllers\API\BankAccountController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -52,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::post('api/orders/{id}/cancel', [OrderController::class, 'cancelOrder']);
     Route::get('api/orders/scan', [OrderController::class, 'scan']);
     Route::get('api/orders/{orderId}/shipping', [OrderController::class, 'checkShipping']);
+    Route::post('api/orders/{orderId}/shipping', [OrderController::class, 'submitShipping']);
 });
 
 // // Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
@@ -106,6 +108,7 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/customers', CustomerController::class);
     Route::apiResource('api/payment-methods', PaymentMethodController::class);
     Route::apiResource('api/sizes', SizeController::class);
+    Route::apiResource('api/bank-account', BankAccountController::class);
     Route::apiResource('api/categories', CategoryController::class);
     Route::apiResource('api/products', ProductController::class);
     Route::get('api/products-search', [ProductController::class, 'productsBySearch']);

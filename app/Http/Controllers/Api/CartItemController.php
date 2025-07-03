@@ -145,13 +145,6 @@ class CartItemController extends Controller
         try {
             $cartItem = CartItem::findOrFail($id);
 
-            if ($cartItem->created_by !== Auth::id()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized to remove this cart item',
-                ], 403);
-            }
-
             $cartItem->delete();
 
             return response()->json([

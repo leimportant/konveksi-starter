@@ -3,7 +3,7 @@ import { ref } from "vue";
 
 const loading = ref(false);
 
-async function uploadPaymentProof(orderId: number, file: File) {
+async function uploadPaymentProof(orderId: string | number, file: File) {
   loading.value = true;
   try {
     const formData = new FormData();

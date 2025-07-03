@@ -12,6 +12,7 @@ enum OrderStatusEnum: int
     case DONE = 6;
     case CANCEL = 7;
     case CONFIRM_CANCEL = 8;
+    case DIKIRIM = 9;
 
     public function label(): string
     {
@@ -23,6 +24,7 @@ enum OrderStatusEnum: int
             self::DONE => 'Selesai',
             self::CANCEL => 'Dibatalkan',
             self::CONFIRM_CANCEL => 'Konfirmasi Pembatalan',
+            self::DIKIRIM => 'Sedang dalam perjalanan',
         };
     }
 }
