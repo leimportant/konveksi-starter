@@ -22,6 +22,7 @@ export interface SizeItem {
     qty: number;
     uom_id: number;
     remark: string;
+    price: number | null;
   }
 interface ModelData {
     description: string;

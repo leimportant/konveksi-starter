@@ -271,9 +271,12 @@ const handleSubmit = async () => {
     if (error.response?.status === 422 && error.response?.data?.errors) {
       errors.value = error.response.data.errors;
 
-      // Ambil dan tampilkan pesan error pertama saja
-      const firstError = Object.values(errors.value)[0]?.[0];
-      if (firstError) toast.error(firstError);
+      // Iterate and display all error messages
+      for (const key in errors.value) {
+        errors.value[key].forEach((errorMsg: string) => {
+          toast.error(errorMsg);
+        });
+      }
     } 
      // Jika ada message dari backend (misal error 400, 500, dll)
       else if (error.response?.data?.message) {
