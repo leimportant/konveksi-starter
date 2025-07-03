@@ -390,8 +390,8 @@ const submitTransfer = async () => {
                                         'text-green-600': order.status === 2,
                                         'text-red-600': order.status === 3,
                                     }">
-                                        {{ order.status === 1 ? 'Pending' : order.status === 2 ? 'Selesai' :
-                                        'Dibatalkan' }}
+                                        {{ order.status === 1 ? 'Pending' : order.status === 2 ? 'Selesai' : order.status === 3 ? 'Menunggu Konfirmasi' : order.status === 4 ? 'On Progress' : order.status === 5 ? 'Sedang di kemas' :
+                                        'Dikirim' }}
                                     </span>
                                 </TableCell>
 
