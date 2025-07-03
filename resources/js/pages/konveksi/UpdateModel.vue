@@ -204,9 +204,23 @@ const handleSubmit = async () => {
     toast.success('Model berhasil diperbarui');
     router.visit('/konveksi/model/list');
   } catch (error: any) {
-    const message = error?.response?.data?.message || 'Gagal memperbarui model';
-    toast.error(message);
-  }
+    if (error.response?.status === 422 && error.response?.data?.errors) {
+      errors.value = error.response.data.errors;
+
+      // Iterate and display all error messages
+      for (const key in errors.value) {
+        errors.value[key].forEach((errorMsg: string) => {
+          toast.error(errorMsg);
+        });
+      }
+    } 
+     // Jika ada message dari backend (misal error 400, 500, dll)
+      else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+          toast.error('Terjadi kesalahan saat menyimpan model');
+        }
+    }
 };
 
 // Initialize data
@@ -229,7 +243,7 @@ onMounted(async () => {
       sizeItems.value = model.data.sizes || [];
       activityItems.value = model.data.activities || [];
       uploadedDocuments.value = model.data.documents || [];
-      modelMaterials.value = model.data.modelMaterials || [];
+      modelMaterials.value = model.data.model_material || [];
     }
   } catch (error: any) {
     if (error.response?.data?.errors) {
