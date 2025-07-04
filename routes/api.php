@@ -36,7 +36,7 @@ use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ChatMessageController;
-use App\Http\Controllers\API\BankAccountController;
+use App\Http\Controllers\Api\BankAccountController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 

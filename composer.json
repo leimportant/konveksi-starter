@@ -19,6 +19,7 @@
         "masbug/flysystem-google-drive-ext": "^2.4",
         "minishlink/web-push": "^9.0",
         "php-ffmpeg/php-ffmpeg": "*",
+        "pusher/pusher-php-server": "^7.2",
         "tes/laravel-google-drive-storage": "^1.0",
         "tightenco/ziggy": "^2.4"
     },
