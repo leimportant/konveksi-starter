@@ -226,12 +226,12 @@ Route::get('/production/{activity_role}', function ($activity_role) {
 })->middleware(['auth'])->name('production.getIndex');
 
 Route::get('/order/approve', function () {
-    return Inertia::render('Order/Approve');
+    return Inertia::render('order/Approve');
 })->name('order.approve');
 
 // list order untuk admin
 Route::get('/order-request', function () {
-    return Inertia::render('Order/OrderRequest');
+    return Inertia::render('order/OrderRequest');
 })->name('order.request');
 
 // list order untuk customer
