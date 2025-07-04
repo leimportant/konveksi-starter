@@ -85,74 +85,113 @@ const formatDate = (date: string | null | undefined) => {
 </script>
 
 <template>
-    <Head title="List Model" />
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="px-4 py-6 sm:px-6 lg:px-8">
-            <!-- Filter & Action -->
-            <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  <Head title="List Model" />
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+      <!-- Filter & Action -->
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  <!-- Tombol Tambah + Search di 1 baris -->
+  <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto justify-between">
+    <Button
+      @click="router.visit('/konveksi/model/create')"
+      class="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+    >
+      <Plus class="h-4 w-4" /> Tambah
+    </Button>
+
+    <Input
+      v-model="searchQuery"
+      placeholder="Cari data"
+      class="w-full sm:w-64"
+    />
+  </div>
+
+  <!-- Date Range di baris berikutnya -->
+  <div class="flex items-center gap-2 w-full sm:w-auto">
+    <DateInput
+      v-model="startDate"
+      placeholder="Start"
+      class="w-full sm:w-[8rem]"
+    />
+    <span class="text-gray-500">–</span>
+    <DateInput
+      v-model="endDate"
+      placeholder="End"
+      class="w-full sm:w-[8rem]"
+    />
+  </div>
+</div>
+      <!-- Table -->
+      <div class="overflow-x-auto rounded-md border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+        <Table class="min-w-[600px] w-full text-sm">
+          <TableHeader>
+            <TableRow class="bg-gray-100 dark:bg-gray-800">
+              <TableHead class="px-3 py-2 w-[300px]">Nama Model</TableHead>
+              <TableHead class="px-3 py-2">Est Harga/Pcs</TableHead>
+              <TableHead class="px-3 py-2">Est Qty</TableHead>
+              <TableHead class="px-3 py-2 hidden md:table-cell">Catatan</TableHead>
+              <TableHead class="px-3 py-2 text-right">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow
+              v-for="item in models"
+              :key="item.id"
+              class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              <TableCell class="px-3 py-2 font-medium text-foreground">
+                <div class="font-semibold">{{ item.description }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Mulai: {{ formatDate(item.start_date) }}</div>
+              </TableCell>
+              <TableCell class="px-3 py-2">{{ formatPrice(item.estimation_price_pcs) }}</TableCell>
+              <TableCell class="px-3 py-2">
+                <template v-if="item.sizes?.length">
+                  <div class="flex flex-wrap gap-1 text-xs">
+                    <span v-for="(size, index) in item.sizes" :key="index" class="inline-block">
+                      {{ size.size_id }} ({{ size.qty }})<span v-if="index !== item.sizes.length - 1">,</span>
+                    </span>
+                  </div>
+                </template>
+                <span v-else>-</span>
+              </TableCell>
+              <TableCell class="px-3 py-2 hidden md:table-cell text-sm text-gray-500 dark:text-gray-400">
+                {{ item.remark || '-' }}
+              </TableCell>
+              <TableCell class="px-3 py-2 text-right space-x-1">
                 <Button
-                        @click="router.visit('/konveksi/model/create')"
-                        class="rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                    >
-                        <Plus class="mr-1 h-4 w-4" /> Tambah
-                    </Button>
-                
-                <div class="mb-4 flex items-center gap-2 justify-between">
-                    <div class="flex min-w-[18rem] items-center gap-2">
-                    <DateInput v-model="startDate" placeholder="Start" class="min-w-[8rem]" />
-                    <span class="text-gray-500">–</span>
-                    <DateInput v-model="endDate" placeholder="End" class="min-w-[8rem]" />
-                </div>
-    
-                    <Input v-model="searchQuery" placeholder="Cari data" class="w-64" />
-                </div>
-            </div>
+                  size="icon"
+                  variant="ghost"
+                  class="hover:bg-gray-100 dark:hover:bg-gray-700"
+                  @click.stop="router.visit(`/konveksi/model/${item.id}/edit`)"
+                >
+                  <Edit class="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  class="hover:bg-gray-100 dark:hover:bg-gray-700"
+                  @click.stop="handleDelete(item.id)"
+                >
+                  <Trash2 class="h-4 w-4 text-red-500" />
+                </Button>
+              </TableCell>
+            </TableRow>
 
-            <!-- Table -->
-            <div class="overflow-x-auto border bg-white shadow-sm dark:bg-gray-900">
-                <Table>
-                    <TableHeader>
-                        <TableRow class="bg-gray-100">
-                            <TableHead class="w-[300px]">Nama Model</TableHead>
-                            <TableHead>Est Harga/Pcs</TableHead>
-                            <TableHead>Est Qty</TableHead>
-                            <TableHead class="hidden md:table-cell">Catatan</TableHead>
-                            <TableHead class="text-right">Action</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow v-for="item in models" :key="item.id">
-                            <TableCell class="font-medium text-foreground">
-                                <span class="font-semibold">{{ item.description }}</span> <br />
-                                <span class="font-xs text-gray-500">Mulai :{{ formatDate(item.start_date) }}</span>
-                            </TableCell>
-                            <TableCell>{{ formatPrice(item.estimation_price_pcs) }}</TableCell>
-                            <TableCell>
-                                <div v-if="item.sizes && item.sizes.length">
-                                    <span v-for="(size, index) in item.sizes" :key="index" class="font-xs inline-block">
-                                        {{ size.size_id }} ({{ size.qty }})<span v-if="index !== item.sizes.length - 1">, </span>
-                                    </span>
-                                </div>
-                                <span v-else>-</span>
-                            </TableCell>
-                            <TableCell class="hidden text-muted-foreground md:table-cell">{{ item.remark || '-' }}</TableCell>
-                            <TableCell class="space-x-1 text-right">
-                                <Button size="icon" variant="ghost" @click.stop="router.visit(`/konveksi/model/${item.id}/edit`)">
-                                    <Edit class="h-4 w-4" />
-                                </Button>
-                                <Button size="icon" variant="ghost" @click.stop="handleDelete(item.id)">
-                                    <Trash2 class="h-4 w-4 text-red-500" />
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-
-                        <TableRow v-if="!modelStore.loading && models.length === 0">
-                            <TableCell colspan="6" class="py-6 text-center text-muted-foreground"> Tidak ada model yang ditemukan. </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-                <div v-if="modelStore.loading" class="p-4 text-center text-sm text-muted-foreground">Memuat data...</div>
-            </div>
+            <TableRow v-if="!modelStore.loading && models.length === 0">
+              <TableCell colspan="5" class="px-3 py-6 text-center text-sm text-muted-foreground">
+                Tidak ada model yang ditemukan.
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+        <div
+          v-if="modelStore.loading"
+          class="p-4 text-center text-sm text-gray-500 dark:text-gray-400"
+        >
+          Memuat data...
         </div>
-    </AppLayout>
+      </div>
+    </div>
+  </AppLayout>
 </template>
+

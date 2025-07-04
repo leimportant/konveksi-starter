@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useProductionStore } from '@/stores/useProductionStore';
@@ -69,92 +69,103 @@ const handleDelete = async (id: string) => {
 </script>
 
 <template>
-    <Head title="Production Management" />
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="px-2 py-2">
-            <!-- Top Bar -->
-            <div class="mb-6 flex items-center justify-between">
-                <Button
-                    @click="$inertia.visit(`/production/${props.activity_role}/create`)"
-                    class="rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                >
-                    <Plus class="mr-2 h-4 w-4" />
-                    Tambah Data
-                </Button>
-                <Input v-model="searchQuery" placeholder="Search..." class="w-full md:w-64" @keyup.enter="fetchData" />
-            </div>
+  <Head title="Production Management" />
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="px-3 py-4">
 
-            <div class="space-y-4">
-                <div v-if="loading" class="py-4 text-center text-gray-500">Loading...</div>
-
-                <!-- Responsive Table Container -->
-                <div v-else class="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-                    <Table class="w-full min-w-[600px] text-left text-sm text-gray-700 dark:text-gray-200">
-                        <TableHeader>
-                            <TableRow class="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                                <TableHead class="px-3 py-2">Model</TableHead>
-                                <TableHead class="px-3 py-2">Activity</TableHead>
-                                <TableHead class="px-3 py-2">Size/Qty</TableHead>
-                                <TableHead class="px-3 py-2">Created At</TableHead>
-                                <TableHead class="px-3 py-2 text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow
-                                v-for="item in productions"
-                                :key="item.id"
-                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
-                            >
-                                <TableCell class="px-3 py-2">
-                                    {{ item.model?.description || '-' }}
-                                </TableCell>
-                                <TableCell class="px-3 py-2">
-                                    {{ item.activity_role?.name || '-' }}
-                                </TableCell>
-                                <TableCell class="px-3 py-2">
-                                    <template v-if="item.items?.length">
-                                        <div v-for="i in item.items" :key="i.id">{{ i.size_id }} : {{ i.qty }}</div>
-                                    </template>
-                                    <template v-else>-</template>
-                                </TableCell>
-                                <TableCell class="px-3 py-2">
-                                    {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }}
-                                </TableCell>
-                                <TableCell class="px-3 py-2 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <Button
-                                            v-if="item.status === 1 || item.status === 3"
-                                            variant="ghost"
-                                            size="icon"
-                                            class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)"
-                                        >
-                                            <Edit class="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            v-if="item.status === 1 || item.status === 3"
-                                            variant="ghost"
-                                            size="icon"
-                                            class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            @click="handleDelete(item.id)"
-                                        >
-                                            <Trash2 class="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            @click="$inertia.visit(`/production/${item.activity_role_id}/view/${item.id}`)"
-                                        >
-                                            <LucideView class="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
+      <!-- Top Bar -->
+      <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex flex-1 gap-2">
+          <Button
+            @click="$inertia.visit(`/production/${props.activity_role}/create`)"
+            class="flex-shrink-0 flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+          >
+            <Plus class="h-4 w-4" />
+            Tambah Data
+          </Button>
+          <Input
+            v-model="searchQuery"
+            placeholder="Search..."
+            class="flex-1 text-sm"
+            @keyup.enter="fetchData"
+          />
         </div>
-    </AppLayout>
+      </div>
+
+      <!-- Data Table Section -->
+      <div v-if="loading" class="py-4 text-center text-sm text-gray-500">Loading...</div>
+
+      <div v-else class="space-y-2">
+        <div class="overflow-x-auto rounded-md border border-gray-200 dark:border-gray-700">
+          <table class="min-w-full table-auto text-sm text-left text-gray-800 dark:text-gray-100">
+            <thead class="bg-gray-100 dark:bg-gray-800 text-xs font-semibold uppercase text-gray-600 dark:text-gray-300">
+              <tr>
+                <th class="px-3 py-2">Model</th>
+                <th class="px-3 py-2">Activity</th>
+                <th class="px-3 py-2">Size/Qty</th>
+                <th class="px-3 py-2">Created At</th>
+                <th class="px-3 py-2 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="item in productions"
+                :key="item.id"
+                class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <td class="px-3 py-2 max-w-[160px] truncate">
+                  {{ item.model?.description || '-' }}
+                </td>
+                <td class="px-3 py-2 truncate">
+                  {{ item.activity_role?.name || '-' }}
+                </td>
+                <td class="px-3 py-2 whitespace-nowrap">
+                  <div v-if="item.items?.length">
+                    <div v-for="i in item.items" :key="i.id">
+                      {{ i.size_id }}: {{ i.qty }}
+                    </div>
+                  </div>
+                  <div v-else>-</div>
+                </td>
+                <td class="px-3 py-2 whitespace-nowrap">
+                  {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }}
+                </td>
+                <td class="px-3 py-2 text-right">
+                  <div class="flex justify-end gap-1 sm:gap-2">
+                    <Button
+                      v-if="item.status === 1 || item.status === 3"
+                      variant="ghost"
+                      size="icon"
+                      class="hover:bg-gray-100 dark:hover:bg-gray-700"
+                      @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)"
+                    >
+                      <Edit class="h-4 w-4" />
+                    </Button>
+                    <Button
+                      v-if="item.status === 1 || item.status === 3"
+                      variant="ghost"
+                      size="icon"
+                      class="hover:bg-gray-100 dark:hover:bg-gray-700"
+                      @click="handleDelete(item.id)"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      class="hover:bg-gray-100 dark:hover:bg-gray-700"
+                      @click="$inertia.visit(`/production/${item.activity_role_id}/view/${item.id}`)"
+                    >
+                      <LucideView class="h-4 w-4" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </AppLayout>
 </template>
+

@@ -24,6 +24,9 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/dashboard',
     },
 ];
+
+const formatNumber = (val: number) =>
+    new Intl.NumberFormat('id-ID').format(val);
 </script>
 
 <template>
@@ -31,39 +34,51 @@ const breadcrumbs: BreadcrumbItem[] = [
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <!-- Stats Section  -->
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative h-32 overflow-hidden rounded-xl border border-sidebar-border/40 dark:border-sidebar-border p-3 flex flex-col justify-between bg-sky-50 dark:bg-sky-950/20">
-                    <div class="relative z-3">
+            <!-- Stats Section -->
+            <div class="flex gap-4 overflow-x-auto pb-2">
+                <!-- CARD 1 -->
+                <div class="min-w-[200px] h-32 relative rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col justify-between bg-sky-50 dark:bg-sky-950/20">
+                    <div class="relative z-10">
                         <h3 class="text-gray-500 text-sm font-medium">Total Orders</h3>
-                        <p class="text-6xl font-semibold mt-2">{{ stats.total_order }}</p>
+                        <p class="text-2xl font-bold mt-1 break-words">
+                            {{ formatNumber(stats.total_order) }}
+                        </p>
                     </div>
-                    <ShirtIcon class="absolute top-1/2 -translate-y-1/2 right-3 h-24 w-24 text-sky-600/10 dark:text-sky-400/10" />
+                    <ShirtIcon class="absolute top-1/2 -translate-y-1/2 right-3 h-16 w-16 text-sky-600/10 dark:text-sky-400/10" />
                 </div>
-                <div class="relative h-32 overflow-hidden rounded-xl border border-sidebar-border/40 dark:border-sidebar-border p-3 flex flex-col justify-between bg-emerald-50 dark:bg-emerald-950/20">
-                    <div class="relative z-3">
+
+                <!-- CARD 2 -->
+                <div class="min-w-[200px] h-32 relative rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col justify-between bg-emerald-50 dark:bg-emerald-950/20">
+                    <div class="relative z-10">
                         <h3 class="text-gray-500 text-sm font-medium">Total Transactions</h3>
-                        <p class="text-6xl font-semibold mt-2">{{ stats.total_transactions }}</p>
+                        <p class="text-2xl font-bold mt-1 break-words">
+                            {{ formatNumber(stats.total_transactions) }}
+                        </p>
                     </div>
-                    <Truck class="absolute top-1/2 -translate-y-1/2 right-3 h-24 w-24 text-emerald-600/10 dark:text-emerald-400/10" />
+                    <Truck class="absolute top-1/2 -translate-y-1/2 right-3 h-16 w-16 text-emerald-600/10 dark:text-emerald-400/10" />
                 </div>
-                <div class="relative h-32 overflow-hidden rounded-xl border border-sidebar-border/40 dark:border-sidebar-border p-3 flex flex-col justify-between bg-purple-50 dark:bg-purple-950/20">
-                    <div class="relative z-3">
+
+                <!-- CARD 3 -->
+                <div class="min-w-[200px] h-32 relative rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col justify-between bg-purple-50 dark:bg-purple-950/20">
+                    <div class="relative z-10">
                         <h3 class="text-gray-500 text-sm font-medium">Total Products</h3>
-                        <p class="text-6xl font-semibold mt-2">{{ stats.total_products }}</p>
+                        <p class="text-2xl font-bold mt-1 break-words">
+                            {{ formatNumber(stats.total_products) }}
+                        </p>
                     </div>
-                    <ShoppingBag class="absolute top-1/2 -translate-y-1/2 right-3 h-24 w-24 text-purple-600/10 dark:text-purple-400/10" />
+                    <ShoppingBag class="absolute top-1/2 -translate-y-1/2 right-3 h-16 w-16 text-purple-600/10 dark:text-purple-400/10" />
                 </div>
             </div>
 
+            <!-- Charts -->
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border md:min-h-min">
                 <SalesChart />
             </div>
 
-             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border md:min-h-min">
+            <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border md:min-h-min">
                 <SalesChartByAmount />
             </div>
-           
         </div>
     </AppLayout>
 </template>
+

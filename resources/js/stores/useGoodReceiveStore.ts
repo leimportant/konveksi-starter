@@ -32,6 +32,8 @@ interface State {
     total: number;
     loading: boolean;
     loaded: boolean;
+    currentPage: number;
+    filterName: string;
 }
 
 export const useGoodReceiveStore = defineStore('goodReceive', {
@@ -40,13 +42,22 @@ export const useGoodReceiveStore = defineStore('goodReceive', {
         total: 0,
         loading: false,
         loaded: false,
+        currentPage: 1,
+        filterName: '',
     }),
 
     actions: {
         async fetchGoodReceives(page = 1, perPage = 10) {
             this.loading = true;
             try {
-                const response = await axios.get(`/api/good-receive?page=${page}&perPage=${perPage}`);
+                const response = await axios.get('/api/good-receive', {
+                params: {
+                    page,
+                    perPage,
+                    name: this.filterName,  // pakai filterName kalau ada
+                }
+                });
+
                 this.items = response.data.data;
                 this.total = response.data.total;
                 this.loaded = true; // optional: might not be needed anymore
@@ -70,7 +81,13 @@ export const useGoodReceiveStore = defineStore('goodReceive', {
                 throw error;
             }
         },
-
+        setFilter(field: string, value: string) {
+            if (field === 'name') {
+                this.filterName = value;
+                this.currentPage = 1;
+                this.fetchGoodReceives(1);
+                }
+        },
         async createGoodReceive(data: Omit<GoodReceive, "id" | "created_at" | "updated_at">) {
             try {
                 const response = await axios.post('/api/good-receive', data);

@@ -179,6 +179,97 @@ class ReportController extends Controller
         return response()->json($paginatedResult);
     }
 
+    public function reportProductionDetail(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $searchKey = $request->input('search_key');
+
+        $query = DB::table('tr_model as a')
+            ->join('tr_production as b', 'a.id', '=', 'b.model_id')
+            ->leftJoin('tr_production_item as c', 'b.id', '=', 'c.production_id')
+            ->leftJoin('mst_activity_role as d', 'b.activity_role_id', '=', 'd.id')
+            ->leftJoin('users as u', 'b.created_by', '=', 'u.id') // join ke users
+            ->select(
+                'a.id',
+                'a.description',
+                'a.estimation_price_pcs',
+                'a.estimation_qty',
+                'a.start_date',
+                'a.end_date',
+                'b.created_by',
+                'u.name as created_by_name', // nama staff
+                'b.activity_role_id',
+                'd.name as activity_role_name',
+                'c.size_id',
+                'c.qty',
+                'b.remark' // include remark
+            )
+            ->whereNull('b.deleted_at')
+            ->whereNull('c.deleted_at')
+            ->whereNull('a.deleted_at')
+            ->whereBetween('a.created_at', [$startDate, $endDate]);
+
+        if ($searchKey) {
+            $query->where(function ($q) use ($searchKey) {
+                $q->where('a.description', 'like', '%' . $searchKey . '%')
+                    ->orWhere('b.activity_role_id', 'like', '%' . $searchKey . '%')
+                    ->orWhere('c.size_id', 'like', '%' . $searchKey . '%');
+            });
+        }
+
+        $data = $query->get();
+
+        $pivot = [];
+        $activityTotals = [];
+
+        foreach ($data as $row) {
+            $modelId = $row->id;
+
+            if (!isset($pivot[$modelId])) {
+                $pivot[$modelId] = [
+                    'model_id' => $row->id,
+                    'description' => $row->description,
+                    'created_by' => $row->created_by_name ?? 'Unknown',
+                    'estimation_price_pcs' => $row->estimation_price_pcs,
+                    'estimation_qty' => $row->estimation_qty,
+                    'start_date' => Carbon::parse($row->start_date)->format('d/m/Y'),
+                    'end_date' => $row->end_date ? Carbon::parse($row->end_date)->format('d/m/Y') : null,
+                    'activities' => [],
+                    'subtotal_qty' => 0,
+                ];
+            }
+
+            $activityId = $row->activity_role_id ?? 'unknown';
+            $activityName = $row->activity_role_name ?? 'Unknown';
+            $qty = $row->qty ?? 0;
+
+            if (!isset($pivot[$modelId]['activities'][$activityId])) {
+                $pivot[$modelId]['activities'][$activityId] = [
+                    'role_id' => $activityId,
+                    'name' => $activityName,
+                    'qty' => 0,
+                    'remark' => $row->remark ?? null
+                ];
+            }
+
+            $pivot[$modelId]['activities'][$activityId]['qty'] += $qty;
+            $pivot[$modelId]['subtotal_qty'] += $qty;
+
+            // Global activity total
+            if (!isset($activityTotals[$activityId])) {
+                $activityTotals[$activityId] = 0;
+            }
+            $activityTotals[$activityId] += $qty;
+        }
+
+        $productionSummary = array_values($pivot);
+
+        return response()->json([
+            'data' => $productionSummary,
+            'activity_totals' => $activityTotals,
+        ]);
+    }
 
 
 }
