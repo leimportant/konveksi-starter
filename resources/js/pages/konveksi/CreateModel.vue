@@ -1,97 +1,107 @@
 <template>
-
   <Head :title="isEditMode ? 'Edit Model' : 'Create Model'" />
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800">
-      <div class="border-b pb-4">
-        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+    <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800 sm:p-6">
+      <!-- Header -->
+      <div class="border-b pb-3 mb-4">
+        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
           {{ isEditMode ? 'Edit Model' : 'Buat Model Baru' }}
         </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
           {{ isEditMode ? 'Ubah data model, ukuran, dan aktivitas' : 'Isi data model, ukuran, dan aktivitas' }}
         </p>
       </div>
 
       <!-- Tabs -->
-      <div class="my-6 flex space-x-4 border-b dark:border-gray-700">
-        <button v-for="tab in tabs" :key="tab" class="pb-2 text-sm font-medium" :class="{
-          'border-b-2 border-primary text-primary': activeTab === tab,
-          'text-gray-500 hover:text-gray-700': activeTab !== tab
-        }" @click="activeTab = tab">
+      <div class="flex flex-wrap gap-2 mb-6 text-sm">
+        <button
+          v-for="tab in tabs"
+          :key="tab"
+          @click="activeTab = tab"
+          class="px-3 py-1.5 rounded-full transition-all"
+          :class="{
+            'bg-indigo-600 text-white': activeTab === tab,
+            'bg-gray-100 text-gray-600 hover:bg-gray-200': activeTab !== tab
+          }"
+        >
           {{ tab.charAt(0).toUpperCase() + tab.slice(1) }}
         </button>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="space-y-6">
-        <!-- Model Tab -->
-        <div v-if="activeTab === 'model'" class="space-y-6">
+      <!-- Form -->
+      <form @submit.prevent="handleSubmit" class="space-y-5 text-sm">
+        <!-- Tab: Model -->
+        <div v-if="activeTab === 'model'" class="space-y-4">
           <div>
-            <label for="description" class="text-sm font-medium">Nama Model</label>
+            <label for="description" class="block mb-1 font-medium">Nama Model</label>
             <Input id="description" v-model="form.description" />
-            <small class="text-destructive" v-if="errors.description">{{ errors.description[0] }}</small>
+            <small class="text-red-500" v-if="errors.description">{{ errors.description[0] }}</small>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label for="start_date" class="text-sm font-medium">Tanggal Mulai</label>
+              <label class="block mb-1 font-medium" for="start_date">Tanggal Mulai</label>
               <DateInput id="start_date" v-model="form.start_date" />
-              <small class="text-destructive" v-if="errors.start_date">{{ errors.start_date[0] }}</small>
+              <small class="text-red-500" v-if="errors.start_date">{{ errors.start_date[0] }}</small>
             </div>
             <div>
-              <label for="end_date" class="text-sm font-medium">Estimasi Selesai</label>
+              <label class="block mb-1 font-medium" for="end_date">Estimasi Selesai</label>
               <DateInput id="end_date" v-model="form.end_date" />
-              <small class="text-destructive" v-if="errors.end_date">{{ errors.end_date[0] }}</small>
+              <small class="text-red-500" v-if="errors.end_date">{{ errors.end_date[0] }}</small>
             </div>
-            <div>
-              <label for="estimation_price_pcs" class="text-sm font-medium">Estimasi Harga</label>
+            <div class="sm:col-span-2">
+              <label class="block mb-1 font-medium" for="estimation_price_pcs">Estimasi Harga</label>
               <Input id="estimation_price_pcs" type="number" v-model="form.estimation_price_pcs" />
-              <small class="text-destructive" v-if="errors.estimation_price_pcs">
-                {{ errors.estimation_price_pcs[0] }}
-              </small>
+              <small class="text-red-500" v-if="errors.estimation_price_pcs">{{ errors.estimation_price_pcs[0] }}</small>
             </div>
           </div>
 
           <div>
-            <label for="remark" class="text-sm font-medium">Catatan</label>
+            <label class="block mb-1 font-medium" for="remark">Catatan</label>
             <Input id="remark" v-model="form.remark" />
-            <small class="text-destructive" v-if="errors.remark">{{ errors.remark[0] }}</small>
+            <small class="text-red-500" v-if="errors.remark">{{ errors.remark[0] }}</small>
           </div>
 
-          <div v-if="uploadedDocuments.length" class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div v-for="(doc, idx) in uploadedDocuments" :key="doc.id"
-              class="relative group border rounded-xl overflow-hidden">
-              <img :src="doc.url"
-                class="object-cover w-full aspect-square transition-transform group-hover:scale-105" />
-              <div class="absolute inset-x-0 bottom-0 bg-black/50 p-2 text-white text-xs truncate">{{ doc.filename }}
+          <!-- Uploaded Documents -->
+          <div v-if="uploadedDocuments.length" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div v-for="(doc, idx) in uploadedDocuments" :key="doc.id" class="relative group rounded-lg overflow-hidden border">
+              <img :src="doc.url" class="aspect-square w-full object-cover transition-transform group-hover:scale-105" />
+              <div class="absolute bottom-0 inset-x-0 bg-black/60 p-1 text-[11px] text-white truncate">
+                {{ doc.filename }}
               </div>
-              <Button variant="destructive" size="icon" class="absolute top-2 right-2"
-                @click.prevent="removeDocument(idx)">
-                <i class="pi pi-times" />
+              <Button
+                variant="destructive"
+                size="icon"
+                class="absolute top-1 right-1 p-1 h-6 w-6"
+                @click.prevent="removeDocument(idx)"
+              >
+                <i class="pi pi-times text-xs" />
               </Button>
             </div>
           </div>
         </div>
 
-        <!-- Size Tab -->
+        <!-- Tab: Size -->
         <div v-if="activeTab === 'size'">
           <SizeTab v-model="sizeItems" @update:totalQuantity="totalProduction = $event" />
         </div>
 
-        <!-- Activity Tab -->
+        <!-- Tab: Activity -->
         <div v-if="activeTab === 'activity'">
           <ActivityTab v-model="activityItems" />
         </div>
 
-        <!-- Document Tab -->
-        <div v-if="activeTab === 'document'" class="space-y-6">
+        <!-- Tab: Document -->
+        <div v-if="activeTab === 'document'">
           <DocumentList :reference-id="generatedDocId" :reference-type="referenceType" />
         </div>
 
-        <!-- Material Tab -->
+        <!-- Tab: Material -->
         <div v-if="activeTab === 'bahan_dan_biaya'">
           <ModelMaterialTab v-model="modelMaterials" />
         </div>
-        <!-- HPP Tab -->
+
+        <!-- Tab: HPP -->
         <div v-if="activeTab === 'hpp'">
           <HPPTab 
             :model-materials="modelMaterials"
@@ -102,24 +112,28 @@
             :start-date="form.start_date"
             :end-date="form.end_date"
             :total-production="totalProduction"
-            :size-items="sizeItems.map(item => ({
-              ...item,
-            }))"
-            
+            :size-items="sizeItems"
           />
         </div>
 
         <!-- Submit Buttons -->
-        <div class="flex justify-end border-t pt-6 dark:border-gray-300 space-x-2">
-          <Button type="button" variant="secondary" @click="router.visit('/konveksi')">Batal</Button>
-          <Button type="submit" :loading="form.processing" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
-            <i class="pi pi-check" /> {{ isEditMode ? 'Perbarui' : 'Simpan' }}
+        <div class="flex justify-end border-t pt-4 gap-2 text-sm">
+          <Button type="button" variant="secondary" @click="router.visit('/konveksi')">
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            :loading="form.processing"
+            class="bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+          >
+            <i class="pi pi-check mr-1" /> {{ isEditMode ? 'Perbarui' : 'Simpan' }}
           </Button>
         </div>
       </form>
     </div>
   </AppLayout>
 </template>
+
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue';

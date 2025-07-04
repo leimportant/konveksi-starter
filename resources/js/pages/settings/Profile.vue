@@ -5,7 +5,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
@@ -14,9 +14,9 @@ import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 interface Props {
     mustVerifyEmail: boolean;
     status?: string;
+    address?: string;
+    phone_number?:string;
 }
-
-defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -25,12 +25,15 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+const props = defineProps<Props>();
 const page = usePage<SharedData>();
 const user = page.props.auth.user as User;
 
 const form = useForm({
     name: user.name,
     email: user.email,
+    phone_number: props.phone_number ?? '',
+    address: props.address ?? '',
 });
 
 const submit = () => {
@@ -65,6 +68,34 @@ const submit = () => {
                             required
                             autocomplete="username"
                             placeholder="Email address"
+                        />
+                        <InputError class="mt-2" :message="form.errors.email" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="email">Phone Number</Label>
+                        <Input
+                            id="phone_number"
+                            type="text"
+                            class="mt-1 block w-full"
+                            v-model="form.phone_number"
+                            required
+                            autocomplete="phone_number"
+                            placeholder="Phone Number"
+                        />
+                        <InputError class="mt-2" :message="form.errors.email" />
+                    </div>
+
+                     <div class="grid gap-2">
+                        <Label for="email">Address</Label>
+                        <Textarea
+                            id="address"
+                            type="text"
+                            class="mt-1 block w-full"
+                            v-model="form.address"
+                            required
+                            autocomplete="address"
+                            placeholder="Address"
                         />
                         <InputError class="mt-2" :message="form.errors.email" />
                     </div>

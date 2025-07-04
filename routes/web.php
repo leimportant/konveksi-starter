@@ -289,6 +289,10 @@ Route::get('/reports/production-summary', function () {
         return Inertia::render('reports/ProductionSummary');
     })->middleware(['auth'])->name('reports.production-summary');
 
+Route::get('/reports/production-detail', function () {
+        return Inertia::render('reports/ProductionDetailReport');
+    })->middleware(['auth'])->name('reports.production-detail');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/api.php';

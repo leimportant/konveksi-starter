@@ -15,7 +15,17 @@ class ProductionController extends Controller
     public function index(Request $request)
     {
         try {
-            $activityRoleId = $request->input('activity_role_id');
+            $activityRole = $request->input('activity_role_id');
+
+            if ($activityRole == "CUTTING") {
+                $activityRoleId = [1];
+            }
+            if ($activityRole == "SEWING") {
+                $activityRoleId = [2,6];
+            }
+             if ($activityRole == "FINISHING") {
+                $activityRoleId = [3,4,5,8,9];
+            }
             $userId = Auth::id();
             $search = $request->input('search');
             $dateFrom = $request->input('date_from');
@@ -25,7 +35,7 @@ class ProductionController extends Controller
                 ->latest();
 
             if ($activityRoleId) {
-                $query->where('activity_role_id', $activityRoleId);
+                $query->whereIn('activity_role_id', $activityRoleId);
             }
 
             if ($userId) {

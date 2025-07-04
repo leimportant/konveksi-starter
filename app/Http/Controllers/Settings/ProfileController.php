@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Models\Customer;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,11 +17,18 @@ class ProfileController extends Controller
     /**
      * Show the user's profile settings page.
      */
-    public function edit(Request $request): Response
+   public function edit(Request $request): Response
     {
+        $user = $request->user();
+
+        // Ambil data customer jika ada
+        $customer = Customer::find($user->id);
+
         return Inertia::render('settings/Profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'address' => $customer?->address,
+            'phone_number' => $customer?->phone_number,
         ]);
     }
 
@@ -29,18 +37,42 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        // Update user basic info
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->forceFill([
-                'email_verified_at' => null
+        if ($user->isDirty('email')) {
+            $user->forceFill(['email_verified_at' => null]);
+        }
+
+        $user->save();
+
+        $isExist = Customer::where('id', $user->id)->first();
+
+        if ($isExist) {
+            // Sudah ada -> update
+            Customer::where('id', $user->id)->update([
+                'name' => $request->input('name'),
+                'phone_number' => $request->input('phone_number'),
+                'address' => $request->input('address'),
+            ]);
+        } else {
+            // Belum ada -> create
+            Customer::create([
+                'id' => $user->id,
+                'name' => $request->input('name'),
+                'phone_number' => $request->input('phone_number'),
+                'address' => $request->input('address'),
+                'is_active' => 'Y',
+                'saldo_kredit' => 0
             ]);
         }
 
-        $request->user()->save();
 
-        return to_route('profile.edit');
+
+        return to_route('profile.edit')->with('status', 'profile-updated');
     }
+
 
     /**
      * Delete the user's profile.

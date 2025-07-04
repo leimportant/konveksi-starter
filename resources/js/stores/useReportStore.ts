@@ -42,11 +42,33 @@ interface ProductionSummaryItem {
   subtotal_qty: number;
 }
 
+interface ProductionDetailItem {
+  model_id: number;
+  id: number;
+  created_by_name: string;
+  description: string;
+  estimation_price_pcs: number;
+  estimation_qty: number;
+  start_date: string;
+  end_date: string;
+  activity_role_id: number;
+  size_id: string;
+  qty: number;
+  activities: Record<number, {
+    name: string;
+    qty: number;
+    remark: string | null; // ✅ remark bisa null
+  }>;
+  subtotal_qty: number;
+}
+
+
 interface ReportStoreState {
   salesSummary: Ref<any[]>;
   omsetSummary: Ref<OmsetPerPayment[]>;
   omsetSummaryPerCustomer: Ref<OmsetPerCustomer[]>;
-  productionSummary: Ref<ProductionSummaryItem[]>;
+  productionSummary: Ref<ProductionSummaryItem[]>;  
+  productionDetailItem: Ref<ProductionDetailItem[]>;
   loading: Ref<boolean>;
   error: Ref<any>;
   currentPage: Ref<number>;
@@ -58,6 +80,7 @@ interface ReportStoreState {
 interface ReportStoreActions {
   fetchSalesSummary: (startDate: string, endDate: string, searchKey?: string) => Promise<void>;
   fetchProductionSummary: (startDate: string, endDate: string, searchKey?: string) => Promise<void>;
+  fetchProductionDetail: (startDate: string, endDate: string, searchKey?: string) => Promise<void>;
   fetchOmsetPerPayment: (startDate: string, endDate: string, page?: number, perPage?: number) => Promise<void>;
   fetchOmsetPerCustomer: (customerId: number, startDate: string, endDate: string, page?: number, perPage?: number) => Promise<void>;
 }
@@ -69,6 +92,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
   const omsetSummary = ref<OmsetPerPayment[]>([]);
   const omsetSummaryPerCustomer = ref<OmsetPerCustomer[]>([]);
   const productionSummary = ref<ProductionSummaryItem[]>([]);
+  const productionDetailItem = ref<ProductionDetailItem[]>([]);
   const loading = ref(false);
   const error = ref<any>(null);
   const currentPage = ref(1);
@@ -129,6 +153,24 @@ export const useReportStore = defineStore('report', (): ReportStore => {
       loading.value = false;
     }
   }
+
+    async function fetchProductionDetail(startDate: string, endDate: string, searchKey: string = '') {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await axios.get('/api/reports/production-detail', {
+        params: { start_date: startDate, end_date: endDate, search_key: searchKey },
+      });
+
+      console.log('Production Detail Response:', response.data);
+      productionDetailItem.value = response.data.data;
+    } catch (err: any) {
+      error.value = err;
+      console.error('Error fetching production summary:', err);
+    } finally {
+      loading.value = false;
+    }
+  }
   
   async function fetchOmsetPerCustomer(customerId: number, startDate: string, endDate: string, page: number = 1, perPage: number = 10) {
     loading.value = true;
@@ -155,6 +197,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
     omsetSummary,
     omsetSummaryPerCustomer,
     productionSummary,
+    productionDetailItem,
     loading,
     error,
     currentPage,
@@ -163,6 +206,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
     perPage,
     fetchSalesSummary,
     fetchProductionSummary,
+    fetchProductionDetail,
     fetchOmsetPerPayment,
     fetchOmsetPerCustomer,
   };

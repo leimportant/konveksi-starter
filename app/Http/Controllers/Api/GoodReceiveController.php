@@ -11,13 +11,27 @@ use Illuminate\Support\Facades\Log;
 
 class GoodReceiveController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = GoodReceive::with(['items', 'model'])
-            ->latest()
-            ->paginate(10);
+        $search = $request->input('name');
+
+        $query = GoodReceive::with(['items', 'model'])
+            ->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('recipent', 'like', "%{$search}%")
+                    ->orWhereHas('model', function ($q2) use ($search) {
+                        $q2->where('description', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $data = $query->paginate(10);
+
         return response()->json($data);
     }
+
 
     public function store(Request $request)
     {
@@ -37,7 +51,7 @@ class GoodReceiveController extends Controller
         $validated['updated_by'] = Auth::id();
 
         $goodReceive = GoodReceive::create($validated);
-        
+
         // Save items
         foreach ($request->items as $item) {
             $goodReceive->items()->create([
@@ -87,10 +101,10 @@ class GoodReceiveController extends Controller
         $validated['updated_by'] = Auth::id();
 
         $goodReceive->update($validated);
-        
+
         // Delete existing items
         $goodReceive->items()->delete();
-        
+
         // Create new items
         foreach ($request->good_receive_items as $item) {
             $goodReceive->items()->create([

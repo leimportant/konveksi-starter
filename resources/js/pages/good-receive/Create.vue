@@ -207,46 +207,23 @@ const handleSubmit = async () => {
               </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
-              <Button type="button" variant="outline" @click="$inertia.visit('/good-receive')">
-                Cancel
-              </Button>
-              <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
-            </div>
+             <!-- Submit Buttons -->
+        <div class="flex justify-end border-t pt-4 gap-2 text-sm">
+          <Button type="button" variant="secondary" @click="$inertia.visit('/good-receive')">
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            :loading="form.processing"
+            class="bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+          >
+          Simpan
+          </Button>
+        </div>
+
           </form>
         </div>
       </div>
     </div>
   </AppLayout>
 </template>
-
-<style scoped>
-@media (max-width: 640px) {
-  tr.block {
-    display: block;
-    padding: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  tr.block > td {
-    display: block;
-    padding: 0.25rem 0;
-  }
-  
-  tr.block > td:not([class*="hidden"]) {
-    display: block;
-    padding: 0.25rem 0;
-  }
-
-  tr.block > td:before {
-    content: attr(data-label);
-    font-weight: 600;
-    display: inline-block;
-    width: 30%;
-  }
-  
-  .hidden-mobile {
-    display: none;
-  }
-}
-</style>
