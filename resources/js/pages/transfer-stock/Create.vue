@@ -1,24 +1,20 @@
 <template>
   <AppLayout title="Tambah Transfer Stock">
-    <div class="p-6 space-y-6">
+    <div class="p-4 space-y-4 text-sm">
       <!-- Header -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         <div>
           <Label for="location_id">Lokasi Asal</Label>
           <select
             v-model="form.location_id"
             id="location_id"
-            class="w-full border rounded p-2"
+            class="w-full border rounded p-1"
             @change="onLocationOrSlocChange"
           >
             <option disabled value="">Pilih lokasi</option>
-            <option v-for="loc in locations" :key="loc.id" :value="loc.id">
-              {{ loc.name }}
-            </option>
+            <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
           </select>
-          <p v-if="errors.location_id" class="text-red-600 text-sm mt-1">
-            {{ errors.location_id }}
-          </p>
+          <p v-if="errors.location_id" class="text-red-600 text-xs mt-1">{{ errors.location_id }}</p>
         </div>
 
         <div>
@@ -26,20 +22,13 @@
           <select
             v-model="form.location_destination_id"
             id="location_destination_id"
-            class="w-full border rounded p-2"
+            class="w-full border rounded p-1"
             @change="clearError('location_destination_id')"
           >
             <option disabled value="">Pilih lokasi</option>
-            <option v-for="loc in locations" :key="loc.id" :value="loc.id">
-              {{ loc.name }}
-            </option>
+            <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
           </select>
-          <p
-            v-if="errors.location_destination_id"
-            class="text-red-600 text-sm mt-1"
-          >
-            {{ errors.location_destination_id }}
-          </p>
+          <p v-if="errors.location_destination_id" class="text-red-600 text-xs mt-1">{{ errors.location_destination_id }}</p>
         </div>
 
         <div>
@@ -47,151 +36,95 @@
           <select
             v-model="form.sloc_id"
             id="sloc_id"
-            class="w-full border rounded p-2"
+            class="w-full border rounded p-1"
             @change="onLocationOrSlocChange"
           >
             <option disabled value="">Pilih sloc</option>
-            <option v-for="sloc in slocs" :key="sloc.id" :value="sloc.id">
-              {{ sloc.name }}
-            </option>
+            <option v-for="sloc in slocs" :key="sloc.id" :value="sloc.id">{{ sloc.name }}</option>
           </select>
-          <p v-if="errors.sloc_id" class="text-red-600 text-sm mt-1">
-            {{ errors.sloc_id }}
-          </p>
+          <p v-if="errors.sloc_id" class="text-red-600 text-xs mt-1">{{ errors.sloc_id }}</p>
         </div>
       </div>
 
       <!-- Detail Transfer -->
-      <div class="border rounded p-4">
-        <div class="font-semibold text-lg mb-4 flex justify-between items-center">
-          Detail Barang
-          <Button
-            variant="outline"
-            class="ml-2"
-            @click="openDialog"
-            :disabled="!form.location_id || !form.sloc_id"
-          >
-            Tambah Baris
-          </Button>
+      <div class="border rounded p-3 space-y-3">
+        <div class="flex justify-between items-center">
+          <h2 class="font-semibold">Detail Barang</h2>
+          <Button variant="outline" class="px-2 py-1 text-xs" @click="openDialog" :disabled="!form.location_id || !form.sloc_id">Tambah Baris</Button>
         </div>
 
         <div
           v-for="(detail, index) in form.transfer_detail"
           :key="index"
-          class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4 items-end"
+          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2"
         >
+          <input type="hidden" :value="detail.product_id" />
+
           <div>
             <Label :for="`product_id_${index}`">Produk</Label>
-            <input
-              type="hidden"
-              :value="detail.product_id"
-              readonly
-              class="w-full border rounded p-2 bg-gray-100 cursor-not-allowed"
-            /> 
-            <input
-              type="text"
-              :value="detail.product_name"
-              readonly
-              class="w-full border rounded p-2 bg-gray-100 cursor-not-allowed"
-            /> 
+            <input type="text" :value="detail.product_name" readonly class="w-full border rounded p-1 bg-gray-100 text-sm" />
           </div>
 
           <div>
             <Label :for="`size_id_${index}`">Ukuran</Label>
-            <input
-              type="text"
-              :value="detail.size_id"
-              readonly
-              class="w-full border rounded p-2 bg-gray-100 cursor-not-allowed"
-            />
+            <input type="text" :value="detail.size_id" readonly class="w-full border rounded p-1 bg-gray-100 text-sm" />
           </div>
 
           <div>
             <Label :for="`uom_id_${index}`">UOM</Label>
-            <input
-              type="text"
-              :value="detail.uom_id"
-              readonly
-              class="w-full border rounded p-2 bg-gray-100 cursor-not-allowed"
-            />
+            <input type="text" :value="detail.uom_id" readonly class="w-full border rounded p-1 bg-gray-100 text-sm" />
           </div>
 
           <div>
             <Label :for="`qty_${index}`">Qty</Label>
-            <Input
-              type="number"
-              min="1"
-              step="1"
-              v-model="detail.qty"
-              :id="`qty_${index}`"
-            />
+            <Input type="number" min="1" step="1" v-model="detail.qty" :id="`qty_${index}`" class="p-1" />
           </div>
         </div>
       </div>
 
       <!-- Submit -->
-      <div class="flex justify-end">
-        <Button @click="submit" :disabled="form.processing"  class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
-        <Button @click="resetForm" variant="outline" class="ml-2">Batal</Button>
+      <div class="flex justify-end gap-2">
+        <Button @click="submit" :disabled="form.processing" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded hover:bg-indigo-700">Simpan</Button>
+        <Button @click="resetForm" variant="outline" class="text-sm px-4 py-2">Batal</Button>
       </div>
     </div>
 
     <!-- Dialog Modal -->
-    <div
-      v-if="dialogOpen"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-    >
-      <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-4xl p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">Pilih Produk dari Inventory</h3>
-          <button
-            @click="dialogOpen = false"
-            class="text-gray-600 hover:text-gray-900"
-          >
-            &times;
-          </button>
+    <div v-if="dialogOpen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-4xl p-4 space-y-4 text-sm">
+        <div class="flex justify-between items-center">
+          <h3 class="text-base font-semibold">Pilih Produk dari Inventory</h3>
+          <button @click="dialogOpen = false" class="text-gray-600 hover:text-gray-900 text-lg">&times;</button>
         </div>
 
-        <div v-if="inventoryStore.loading" class="text-center py-10">
-          Loading inventory...
-        </div>
+        <div v-if="inventoryStore.loading" class="text-center py-6">Loading inventory...</div>
         <div v-else>
-          <table class="w-full border-collapse border border-gray-300">
-            <thead>
+          <table class="w-full text-sm border border-gray-200">
+            <thead class="bg-gray-100">
               <tr>
-                <th class="border border-gray-300 p-2">Produk</th>
-                <th class="border border-gray-300 p-2">Size</th>
-                <th class="border border-gray-300 p-2">UOM</th>
-                <th class="border border-gray-300 p-2">Qty</th>
-                <th class="border border-gray-300 p-2">Action</th>
+                <th class="border p-2">Produk</th>
+                <th class="border p-2">Size</th>
+                <th class="border p-2">UOM</th>
+                <th class="border p-2">Qty</th>
+                <th class="border p-2">Action</th>
               </tr>
             </thead>
             <tbody>
               <tr
                 v-for="item in inventoryStore.inventoryRpt"
                 :key="`${item.product_id}-${item.location_id}-${item.sloc_id}-${item.size_id}`"
-                class="hover:bg-gray-100"
+                class="hover:bg-gray-50"
               >
-                <td class="border border-gray-300 p-2">{{ item.product_name }}</td>
-                <td class="border border-gray-300 p-2">{{ item.size_id }}</td>
-                <td class="border border-gray-300 p-2">{{ item.uom_id }}</td>
-                <td class="border border-gray-300 p-2">{{ item.qty_available }}</td>
-                <td class="border border-gray-300 p-2 text-center">
-                  <button
-                    @click="selectInventoryItem(item)"
-                    class="text-blue-600 hover:underline"
-                  >
-                    Pilih
-                  </button>
+                <td class="border p-2">{{ item.product_name }}</td>
+                <td class="border p-2">{{ item.size_id }}</td>
+                <td class="border p-2">{{ item.uom_id }}</td>
+                <td class="border p-2">{{ item.qty_available }}</td>
+                <td class="border p-2 text-center">
+                  <button @click="selectInventoryItem(item)" class="text-blue-600 hover:underline">Pilih</button>
                 </td>
               </tr>
               <tr v-if="inventoryStore.inventoryRpt.length === 0">
-                <td
-                  class="border border-gray-300 p-2 text-center"
-                  colspan="5"
-                >
-                  Tidak ada inventory ditemukan.
-                </td>
+                <td colspan="5" class="border p-2 text-center">Tidak ada inventory ditemukan.</td>
               </tr>
             </tbody>
           </table>
@@ -200,6 +133,7 @@
     </div>
   </AppLayout>
 </template>
+
 
 <script setup lang="ts">
 import { reactive, onMounted, watch, ref } from 'vue'

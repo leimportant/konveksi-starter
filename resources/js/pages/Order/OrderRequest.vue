@@ -86,24 +86,12 @@ const debouncedSetFilter = debounce((field: string, value: string) => {
 
 const handleFilter = (e: Event) => {
     const target = e.target as HTMLInputElement;
+    filterName.value = target.value; // Update filterName
     debouncedSetFilter('name', target.value);
 };
 
     const filteredOrders = computed(() => {
-        if (!orders.value) return [];
-        const filtered = orders.value.filter(order => {
-            const matchesStatus = (activeTab.value === 'pending' && order.status === 1) ||
-                                  (activeTab.value === 'done' && order.status === 2) ||
-                                  (activeTab.value === 'cancel' && order.status === 3) ||
-                                  (activeTab.value === 'cart' && order.id && String(order.id).startsWith('cart-temp-'));
-
-            const matchesFilter = filterName.value === '' ||
-                                  order.customer?.name?.toLowerCase().includes(filterName.value.toLowerCase()) ||
-                                  order.id.toLowerCase().includes(filterName.value.toLowerCase());
-            return matchesStatus && matchesFilter;
-        });
-
-        return filtered;
+        return orders.value;
     });
 
 const openMessageModal = (ids: string[], targetReceiverId: number) => {
@@ -234,7 +222,7 @@ async function submitShipping() {
          <div class="px-4 py-4">
         <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white min-h-screen overflow-x-auto">
             <Input
-            v-model="filterName"
+            :value="filterName"
             placeholder="Search"
             @input="handleFilter"
             class="w-64"
