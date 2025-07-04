@@ -49,7 +49,7 @@ export const useChatStore = defineStore('chat', {
       order_id?: string;
     }) {
       const { data } = await axios.post('/api/chat/send', payload);
-      this.messages.push(data);
+      this.messages.push(data.data);
     },
 
     async fetchConversations() {
@@ -71,6 +71,10 @@ export const useChatStore = defineStore('chat', {
 
     clearMessages() {
       this.messages = [];
+    },
+
+    addMessage(message: ChatMessage) {
+      this.messages.push(message);
     },
 
     listOrderIds() {

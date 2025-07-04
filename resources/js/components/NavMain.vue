@@ -34,6 +34,7 @@ const iconMap: Record<string, () => Promise<Component>> = {
    Repeat: () => import('lucide-vue-next').then(m => m.Repeat),
    FileText: () => import('lucide-vue-next').then(m => m.FileText),
    FileSearch: () => import('lucide-vue-next').then(m => m.FileSearch),
+   BadgeCentIcon: () => import('lucide-vue-next').then(m => m.BadgeCentIcon),
 };
 
 const iconCache: Record<string, Component> = {};
@@ -86,7 +87,7 @@ function toggleMenu(title: string) {
 </script>
 
 <template>
-  <SidebarGroup class="px-3 py-2">
+  <SidebarGroup class="px-3 py-2 text-gray-700 dark:text-gray-200">
     <SidebarMenu class="space-y-1">
       <template v-for="item in items" :key="item.title">
         <SidebarMenuItem class="relative">

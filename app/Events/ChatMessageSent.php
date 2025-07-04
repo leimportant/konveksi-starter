@@ -34,8 +34,7 @@ class ChatMessageSent implements ShouldBroadcast
     {
         // Broadcast to a private channel for the recipient and sender
         return [
-            new Channel('chat.' . $this->chatMessage->receiver_id),
-            new Channel('chat.' . $this->chatMessage->sender_id),
+            new Channel('chat.' . $this->chatMessage->order_id),
         ];
     }
 

@@ -25,10 +25,7 @@ class ChatMessageController extends Controller
         $userId = Auth::id();
         $order_id = $request->order_id ?? "";
 
-        $messages = ChatMessage::with('sender')->where(function ($query) use ($userId) {
-            $query->where('sender_id', $userId)
-                ->orwhere('receiver_id', $userId);
-        })
+        $messages = ChatMessage::with('sender')
             ->where('order_id', $order_id)
             ->orderBy('created_at', 'asc')
             ->get();

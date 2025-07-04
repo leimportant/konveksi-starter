@@ -8,7 +8,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { useChatStore } from '@/stores/chatStore';
 import type { ChatMessage } from '@/stores/chatStore'; // ✅ konsisten
 import { Head, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface User {
     id: number;
@@ -130,7 +130,40 @@ onMounted(async () => {
     }
 });
 
-watch(() => props.orderId, fetchMessages, { immediate: true });
+const intervalId = null;
+
+watch(selectedOrderId, (newOrderId, oldOrderId) => {
+  if (intervalId) {
+    clearInterval(intervalId);
+  }
+
+  if (newOrderId) {
+    chatStore.fetchMessages(newOrderId);
+    // Subscribe to Pusher channel
+    window.Echo.private(`chat.${newOrderId}`)
+      .listen('ChatMessageSent', (e: any) => {
+        chatStore.addMessage(e.chatMessage as ChatMessage);
+      });
+
+    // Optional: Set up interval for periodic historical data retrieval
+    // intervalId = setInterval(() => {
+    //   chatStore.fetchMessages(newOrderId);
+    // }, 30000); // Fetch every 30 seconds
+
+  } else if (oldOrderId) {
+    // Unsubscribe from old channel when orderId changes to null or newOrderId
+    window.Echo.leave(`chat.${oldOrderId}`);
+  }
+});
+
+onUnmounted(() => {
+  if (selectedOrderId.value) {
+    window.Echo.leave(`chat.${selectedOrderId.value}`);
+  }
+  if (intervalId) {
+    clearInterval(intervalId);
+  }
+});
 </script>
 
 <template>
