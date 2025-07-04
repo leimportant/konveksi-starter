@@ -8,12 +8,12 @@ export function updateTheme(value: Appearance) {
     }
 
     if (value === 'system') {
-        const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
-        const systemTheme = mediaQueryList.matches ? 'dark' : 'light';
+        // const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+        // const systemTheme = mediaQueryList.matches ? 'dark' : 'light';
 
-        document.documentElement.classList.toggle('dark', systemTheme === 'dark');
+        document.documentElement.classList.remove('dark'); // Always remove dark class for system theme
     } else {
-        document.documentElement.classList.toggle('dark', value === 'dark');
+        document.documentElement.classList.remove('dark'); // Always remove dark class, regardless of value
     }
 }
 
@@ -35,18 +35,11 @@ const mediaQuery = () => {
     return window.matchMedia('(prefers-color-scheme: dark)');
 };
 
-const getStoredAppearance = () => {
-    if (typeof window === 'undefined') {
-        return null;
-    }
 
-    return localStorage.getItem('appearance') as Appearance | null;
-};
 
 const handleSystemThemeChange = () => {
-    const currentAppearance = getStoredAppearance();
 
-    updateTheme(currentAppearance || 'system');
+    document.documentElement.classList.remove('dark'); // Ensure dark class is removed on system theme change
 };
 
 export function initializeTheme() {
@@ -54,9 +47,14 @@ export function initializeTheme() {
         return;
     }
 
-    // Initialize theme from saved preference or default to system...
-    const savedAppearance = getStoredAppearance();
-    updateTheme(savedAppearance || 'system');
+    // Always ensure dark mode is off on initialization
+    document.documentElement.classList.remove('dark');
+
+    // Clear any saved appearance to prevent re-enabling dark mode
+    localStorage.removeItem('appearance');
+    setCookie('appearance', '', -1); // Delete the cookie
+
+    // No need to call updateTheme here as we are explicitly disabling dark mode
 
     // Set up system theme change listener...
     mediaQuery()?.addEventListener('change', handleSystemThemeChange);
@@ -79,10 +77,10 @@ export function useAppearance() {
         appearance.value = value;
 
         // Store in localStorage for client-side persistence...
-        localStorage.setItem('appearance', value);
+        localStorage.removeItem('appearance');
 
-        // Store in cookie for SSR...
-        setCookie('appearance', value);
+        // Remove from cookie for SSR...
+        setCookie('appearance', '', -1); // Set max-age to -1 to delete the cookie
 
         updateTheme(value);
     }
