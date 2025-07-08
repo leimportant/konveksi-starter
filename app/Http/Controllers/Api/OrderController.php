@@ -76,10 +76,13 @@ class OrderController extends Controller
                     'order_items' => [
                         [
                             'product' => $item->product,
-                            'quantity' => $item->quantity,
-                            'price_sell' => $item->price_sell,
+                            'qty' => $item->quantity,
+                            'price' => $item->price_grosir > 0 ? $item->price_grosir : $item->price,
+                            'price_sell' => $item->price_sell_grosir > 0 ? $item->price_sell_grosir : $item->price_sell,
                             'size_id' => $item->size_id,
                             'uom_id' => $item->uom_id,
+                            'discount' => $item->discount_grosir > 0 ? $item->discount_grosir :  $item->discount,
+                            'price_final' => $item->quantity * ($item->price_sell_grosir > 0 ? $item->price_sell_grosir : $item->price_sell),
                         ]
                     ],
                     'created_at' => now(),
