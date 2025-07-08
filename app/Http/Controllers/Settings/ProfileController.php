@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use \Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
@@ -21,10 +22,14 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        Log::info($user);
+
         // Ambil data customer jika ada
         $customer = Customer::find($user->id);
 
         return Inertia::render('settings/Profile', [
+            'name' => $user->name,
+            'email' => $user->email,
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'address' => $customer?->address,
@@ -64,7 +69,6 @@ class ProfileController extends Controller
                 'phone_number' => $request->input('phone_number'),
                 'address' => $request->input('address'),
                 'is_active' => 'Y',
-                'saldo_kredit' => 0
             ]);
         }
 

@@ -992,45 +992,98 @@ function doPrintKasir80mm() {
 }
 
 function printToRawBT() {
+    const maxLineWidth = 46; // Ganti sesuai kapasitas karakter printer (44–48 umumnya)
+
+    const separator = '-'.repeat(maxLineWidth);
+
     const lines = [
-        `     ${locationName.value}`,
-        ` ${locationAddress.value}`,
-        '----------------------------------------',
+        locationName.value.padStart(Math.floor((maxLineWidth + locationName.value.length) / 2)),
+        locationAddress.value.padStart(Math.floor((maxLineWidth + locationAddress.value.length) / 2)),
+        separator,
         `Kasir   : ${cashierName.value}`,
         `Tanggal : ${lastOrderDate.value}`,
         `Nomor   : ${transactionNumber.value}`,
-        '----------------------------------------',
+        separator,
         `Customer: ${selectedCustomerName.value || '-'}`,
-        '----------------------------------------',
-        ...lastOrderItems.value.flatMap(item => [
-            `${item.product_name}`,
-            `${item.quantity} x ${formatRupiah(item.price)}${' '.repeat(20 - (item.quantity + '').length - formatRupiah(item.price).length)}${formatRupiah(item.quantity * item.price)}`
-        ]),
-        '----------------------------------------',
-        `Total QTY        ${lastOrderItems.value.reduce((sum, item) => sum + item.quantity, 0)}`,
-        `Total Bayar      ${formatRupiah(lastOrderTotal.value || totalAmount.value)}`,
-        `Jenis Bayar      ${lastOrderPaymentMethodName.value || '-'}`,
-        `Bayar Cash       ${formatRupiah(paidAmount.value || 0)}`,
-        `Sisa             ${formatRupiah(((lastOrderTotal.value || totalAmount.value) - (paidAmount.value || 0)))}`,
-        '----------------------------------------',
-        '      ---TERIMA KASIH---',
-        '     aninkafashion.com',
+        separator,
+        ...lastOrderItems.value.flatMap(item => {
+            const name = item.product_name;
+            const qtyPrice = `${item.quantity} x ${formatRupiah(item.price)}`;
+            const total = formatRupiah(item.quantity * item.price);
+
+            // Panjang qtyPrice dan total dirapikan
+            const left = qtyPrice.padEnd(23); // Setengah baris
+            const right = total.padStart(maxLineWidth - 23); // Sisanya ke kanan
+
+            return [
+                name.length > maxLineWidth ? name.slice(0, maxLineWidth) : name,
+                `${left}${right}`
+            ];
+        }),
+        separator,
+        `Total QTY   : ${lastOrderItems.value.reduce((sum, item) => sum + item.quantity, 0)}`,
+        `Total Bayar : ${formatRupiah(lastOrderTotal.value || totalAmount.value)}`,
+        `Jenis Bayar : ${lastOrderPaymentMethodName.value || '-'}`,
+        `Bayar Cash  : ${formatRupiah(paidAmount.value || 0)}`,
+        `Sisa        : ${formatRupiah((lastOrderTotal.value || totalAmount.value) - (paidAmount.value || 0))}`,
+        separator,
+        '---TERIMA KASIH---'.padStart(Math.floor((maxLineWidth + 18) / 2)),
+        'aninkafashion.com'.padStart(Math.floor((maxLineWidth + 19) / 2)),
         '\n\n\n'
     ];
 
     const rawText = lines.join('\n');
 
-    // Encode entire string
     const encoded = encodeURIComponent(rawText)
         .replace(/'/g, '%27')
         .replace(/"/g, '%22');
 
-    // Build RawBT intent URI
-    const rawbtUrl = `intent://print/${encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+    const rawbtUrl = `intent://${encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
 
-    // Redirect
     window.location.href = rawbtUrl;
 }
+
+
+// function printToRawBT2() {
+//     const lines = [
+//         `     ${locationName.value}`,
+//         ` ${locationAddress.value}`,
+//         '----------------------------------------',
+//         `Kasir   : ${cashierName.value}`,
+//         `Tanggal : ${lastOrderDate.value}`,
+//         `Nomor   : ${transactionNumber.value}`,
+//         '----------------------------------------',
+//         `Customer: ${selectedCustomerName.value || '-'}`,
+//         '----------------------------------------',
+//         ...lastOrderItems.value.flatMap(item => [
+//             `${item.product_name}`,
+//             `${item.quantity} x ${formatRupiah(item.price)}${' '.repeat(20 - (item.quantity + '').length - formatRupiah(item.price).length)}${formatRupiah(item.quantity * item.price)}`
+//         ]),
+//         '----------------------------------------',
+//         `Total QTY        ${lastOrderItems.value.reduce((sum, item) => sum + item.quantity, 0)}`,
+//         `Total Bayar      ${formatRupiah(lastOrderTotal.value || totalAmount.value)}`,
+//         `Jenis Bayar      ${lastOrderPaymentMethodName.value || '-'}`,
+//         `Bayar Cash       ${formatRupiah(paidAmount.value || 0)}`,
+//         `Sisa             ${formatRupiah(((lastOrderTotal.value || totalAmount.value) - (paidAmount.value || 0)))}`,
+//         '----------------------------------------',
+//         '      ---TERIMA KASIH---',
+//         '     aninkafashion.com',
+//         '\n\n\n'
+//     ];
+
+//     const rawText = lines.join('\n');
+
+//     // Encode entire string
+//     const encoded = encodeURIComponent(rawText)
+//         .replace(/'/g, '%27')
+//         .replace(/"/g, '%22');
+
+//     // Build RawBT intent URI
+//     const rawbtUrl = `intent://${encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+
+//     // Redirect
+//     window.location.href = rawbtUrl;
+// }
 
 
 function autoPrint() {
