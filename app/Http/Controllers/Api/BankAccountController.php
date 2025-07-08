@@ -62,11 +62,12 @@ class BankAccountController extends Controller
     }
 
 
-    public function destroy(BankAccount $account)
+    public function destroy(Request $request, $id)
     {
-        $account->deleted_by = Auth::id();
-        $account->save();
+        $account = BankAccount::findOrFail($id);
+        $account->update(['deleted_by' => Auth::id()]);
         $account->delete();
         return response()->json(null, 204);
     }
+
 }

@@ -83,7 +83,7 @@ export const useBankAccountStore = defineStore('bankAccount', {
 
         async deleteBankAccount(id: string) {
             try {
-                await axios.delete(`/api/bank-account/${id}`);
+                await axios.delete(`/api/bank-account?id=${id}`);
                 await this.fetchBankAccount();
             } catch (error) {
                 throw error;

@@ -148,6 +148,7 @@ Route::middleware('auth')->group(function () {
     Route::get('api/reports/sales-summary', [ReportController::class, 'reportSalesSummary']);
     Route::get('api/reports/production-summary', [ReportController::class, 'reportProductionSummary']);
     Route::get('api/reports/omset-per-payment', [ReportController::class, 'reportOmsetPerPayment']);
+    Route::get('api/reports/omset-per-customer', [ReportController::class, 'reportOmsetPerPayment']);
     Route::get('api/setting/{key}', [SettingController::class, 'getData']);
 
 });

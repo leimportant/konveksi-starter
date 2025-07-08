@@ -45,42 +45,85 @@
           <p v-if="errors.sloc_id" class="text-red-600 text-xs mt-1">{{ errors.sloc_id }}</p>
         </div>
       </div>
+<!-- Detail Barang -->
+<div class="border rounded-lg p-4 bg-white shadow-sm">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="font-semibold text-gray-800 text-base">Detail Barang</h2>
+    <Button
+      variant="outline"
+      size="sm"
+      class="text-xs"
+      @click="openDialog"
+      :disabled="!form.location_id || !form.sloc_id"
+    >
+      Tambah Baris
+    </Button>
+  </div>
 
-      <!-- Detail Transfer -->
-      <div class="border rounded p-3 space-y-3">
-        <div class="flex justify-between items-center">
-          <h2 class="font-semibold">Detail Barang</h2>
-          <Button variant="outline" class="px-2 py-1 text-xs" @click="openDialog" :disabled="!form.location_id || !form.sloc_id">Tambah Baris</Button>
-        </div>
+  <Table>
+    <TableHeader>
+      <TableRow>
+        <TableHead class="text-xs">Produk</TableHead>
+        <TableHead class="text-xs">Ukuran</TableHead>
+        <TableHead class="text-xs">UOM</TableHead>
+        <TableHead class="text-xs text-center">Qty</TableHead>
+        <TableHead class="text-xs text-center">Aksi</TableHead>
+      </TableRow>
+    </TableHeader>
 
-        <div
-          v-for="(detail, index) in form.transfer_detail"
-          :key="index"
-          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2"
-        >
-          <input type="hidden" :value="detail.product_id" />
+    <TableBody>
+      <TableRow v-for="(detail, index) in form.transfer_detail" :key="index">
+        <TableCell>
+          <input
+            type="text"
+            :value="detail.product_name"
+            readonly
+            class="w-full bg-gray-100 text-sm border rounded px-2 py-1"
+          />
+        </TableCell>
 
-          <div>
-            <Label :for="`product_id_${index}`">Produk</Label>
-            <input type="text" :value="detail.product_name" readonly class="w-full border rounded p-1 bg-gray-100 text-sm" />
-          </div>
+        <TableCell>
+          <input
+            type="text"
+            :value="detail.size_id"
+            readonly
+            class="w-full bg-gray-100 text-sm border rounded px-2 py-1"
+          />
+        </TableCell>
 
-          <div>
-            <Label :for="`size_id_${index}`">Ukuran</Label>
-            <input type="text" :value="detail.size_id" readonly class="w-full border rounded p-1 bg-gray-100 text-sm" />
-          </div>
+        <TableCell>
+          <input
+            type="text"
+            :value="detail.uom_id"
+            readonly
+            class="w-full bg-gray-100 text-sm border rounded px-2 py-1"
+          />
+        </TableCell>
 
-          <div>
-            <Label :for="`uom_id_${index}`">UOM</Label>
-            <input type="text" :value="detail.uom_id" readonly class="w-full border rounded p-1 bg-gray-100 text-sm" />
-          </div>
+        <TableCell class="text-center">
+          <Input
+            type="number"
+            min="1"
+            step="1"
+            v-model="detail.qty"
+            class="w-full text-sm px-2 py-1 border rounded"
+          />
+        </TableCell>
 
-          <div>
-            <Label :for="`qty_${index}`">Qty</Label>
-            <Input type="number" min="1" step="1" v-model="detail.qty" :id="`qty_${index}`" class="p-1" />
-          </div>
-        </div>
-      </div>
+        <TableCell class="text-center">
+          <Button
+            variant="destructive"
+            size="sm"
+            class="text-xs"
+            @click="removeItem(index)"
+          >
+            <Trash class="h-4 w-4" />
+          </Button>
+        </TableCell>
+      </TableRow>
+    </TableBody>
+  </Table>
+</div>
 
       <!-- Submit -->
       <div class="flex justify-end gap-2">
@@ -142,6 +185,7 @@ import { useForm } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import axios from 'axios'
 import { useToast } from '@/composables/useToast'
 import { router } from '@inertiajs/vue3'
@@ -274,6 +318,10 @@ const submit = async () => {
       toast.error('Gagal menyimpan transfer')
     }
   }
+}
+
+function removeItem(index: number) {
+  form.transfer_detail.splice(index, 1)
 }
 
 const onLocationOrSlocChange = () => {
