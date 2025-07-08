@@ -65,7 +65,7 @@ class CustomerController extends Controller
                     'email' => ($customer->phone_number ?? $customer->name) . '@example.com', // Use phone number or name as email
                     'password' => bcrypt($customer->phone_number ?? $customer->name), // Set a default password
                     'phone_number' => $customer->phone_number,
-                    'is_active' => $customer->is_active === 'Y' ? true : false,
+                    'active' => $customer->is_active === 'Y' ? true : false,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
