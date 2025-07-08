@@ -200,7 +200,7 @@ const handleDelete = async (id: string) => {
               <Input v-model="form.id" placeholder="BCA" required />
             </div>
             <div class="mb-4">
-              <Input v-model="form.name" placeholder="Bank BCA" required />
+              <Input v-model="form.name" placeholder="Nama" required />
             </div>
             <div class="mb-4">
               <Input v-model="form.account_number" placeholder="1234498" required />
@@ -222,7 +222,7 @@ const handleDelete = async (id: string) => {
               <Input v-model="form.id" placeholder="BCA" required readonly/>
             </div>
             <div class="mb-4">
-              <Input v-model="form.name" placeholder="Bank BCA" required />
+              <Input v-model="form.name" placeholder="Nama" required />
             </div>
             <div class="mb-4">
               <Input v-model="form.account_number" placeholder="1234498" required />
