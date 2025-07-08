@@ -4,6 +4,8 @@ declare module '@inertiajs/core' {
       user: {
         id: number
         name: string
+        phone_number: string
+        address: string
         email: string
       } | null
     }
