@@ -43,7 +43,7 @@ class OrderController extends Controller
 
         // Handle CART status secara khusus
         if ($request->input('status') === 'cart') {
-            $cartItems = CartItem::with('product')
+            $cartItems = CartItem::with('creator','product')
                 ->get();
 
             // FILTER berdasarkan `name` atau lainnya
@@ -64,10 +64,10 @@ class OrderController extends Controller
 
                 return [
                     'id' => 'cart-temp-' . $item->id, // pakai ID CartItem agar bisa dibatalkan per item
-                    'customer_id' => $user->id,
+                    'customer_id' => $item->id,
                     'customer' => [
-                        'id' => $user->id,
-                        'name' => $user->name,
+                        'id' => $item->id,
+                        'name' => $item->creator->name ?? '-',
                     ],
                     'total_amount' => number_format($totalAmount, 2, '.', ''),
                     'status' => 1,

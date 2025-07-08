@@ -67,7 +67,7 @@ class ReportController extends Controller
         }
 
         $data = $query->get();
-
+        $pivot = [];
         $activityTotals = [];
 
         foreach ($data as $row) {
@@ -99,7 +99,9 @@ class ReportController extends Controller
             }
 
             $pivot[$modelId]['activities'][$activity]['qty'] += $qty;
+            
             $pivot[$modelId]['subtotal_qty'] += $qty;
+
 
             // Tambahkan ke total per activity type
             if (!isset($activityTotals[$activity])) {

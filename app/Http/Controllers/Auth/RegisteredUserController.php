@@ -62,6 +62,6 @@ class RegisteredUserController extends Controller
         
         event(new Registered($user));
         Auth::login($user);
-        return to_route('home');
+        return to_route('home.cart');
     }
 }

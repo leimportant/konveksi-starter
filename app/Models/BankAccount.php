@@ -15,7 +15,6 @@ class BankAccount extends Model
      * @var string
      */
     protected $table = 'mst_bank_account';
-    protected $primaryKey = 'id';
     protected $keyType = 'string';
     public $incrementing = false;
 
@@ -34,5 +33,4 @@ class BankAccount extends Model
         'updated_by',
         'deleted_by'
     ];
-
 }

@@ -47,49 +47,60 @@
         </div>
       </div>
 
-      <!-- Detail Barang -->
-      <div class="border rounded p-4">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Detail Barang</h2>
-          <Button variant="outline" @click="openDialog" :disabled="!form.location_id || !form.sloc_id">
-            Tambah Baris
-          </Button>
-        </div>
+     <!-- Detail Barang -->
+  <div class="border rounded-lg p-4 shadow-sm bg-white">
+    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+      <h2 class="text-lg font-semibold text-gray-800">Detail Barang</h2>
+      <Button
+        variant="outline"
+        @click="openDialog"
+        :disabled="!form.location_id || !form.sloc_id"
+        class="text-sm"
+      >
+        Tambah Baris
+      </Button>
+    </div>
 
-        <!-- Transfer Detail -->
+    <div class="overflow-x-auto">
+      <Table class="min-w-full text-sm">
+        <TableHeader>
+          <TableRow class="bg-gray-100">
+            <TableHead class="px-3 py-2">Produk</TableHead>
+            <TableHead class="px-3 py-2">Size</TableHead>
+            <TableHead class="px-3 py-2">UOM</TableHead>
+            <TableHead class="px-3 py-2">Qty</TableHead>
+            <TableHead class="px-3 py-2 text-center">Action</TableHead>
+          </TableRow>
+        </TableHeader>
 
-        <div class="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-4 items-end">
-          <Label>Produk</Label>
-          <Label>Size</Label>
-          <Label>UOM</Label>
-          <Label>Qty</Label>
-          <Label>Action</Label>
-        </div>
-
-        <div
-          v-for="(detail, index) in form.transfer_detail"
-          :key="index"
-          class="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-4 items-end"
-        >
-          <div>
-            <Input type="text" :value="getProductName(detail.product_id)" readonly />
-          </div>
-          <div>
-            <Input type="text" v-model="detail.size_id" readonly />
-          </div>
-          <div>
-            <Input type="text" v-model="detail.uom_id" readonly />
-          </div>
-          <div>
-            <Input type="number" min="1" v-model="detail.qty" />
-          </div>
-          <div class="pt-6 text-center">
-            <Button variant="destructive" size="sm" @click="removeItem(index)">
-              <Trash class="h-4 w-4"/>
-            </Button>
-          </div>
-        </div>
-      </div>
+        <TableBody>
+          <TableRow
+            v-for="(detail, index) in form.transfer_detail"
+            :key="index"
+            class="hover:bg-gray-50"
+          >
+            <TableCell class="px-3 py-2">
+              <Input type="text" :value="getProductName(detail.product_id)" readonly class="w-full" />
+            </TableCell>
+            <TableCell class="px-3 py-2">
+              <Input type="text" v-model="detail.size_id" readonly class="w-full" />
+            </TableCell>
+            <TableCell class="px-3 py-2">
+              <Input type="text" v-model="detail.uom_id" readonly class="w-full" />
+            </TableCell>
+            <TableCell class="px-3 py-2">
+              <Input type="number" min="1" v-model="detail.qty" class="w-full" />
+            </TableCell>
+            <TableCell class="px-3 py-2 text-center">
+              <Button variant="destructive" size="sm" @click="removeItem(index)">
+                <Trash class="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  </div>
 
       <!-- Aksi -->
       <div class="flex justify-end gap-2">

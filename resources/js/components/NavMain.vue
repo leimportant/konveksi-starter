@@ -27,6 +27,7 @@ const iconMap: Record<string, () => Promise<Component>> = {
   DollarSign: () => import('lucide-vue-next').then(m => m.DollarSign),
   Warehouse: () => import('lucide-vue-next').then(m => m.Warehouse),
   Settings: () => import('lucide-vue-next').then(m => m.Settings),
+  Boxes: () => import('lucide-vue-next').then(m => m.Boxes),
   UserPlus: () => import('lucide-vue-next').then(m => m.UserPlus),
   Users: () => import('lucide-vue-next').then(m => m.Users),
   Shield: () => import('lucide-vue-next').then(m => m.Shield),
