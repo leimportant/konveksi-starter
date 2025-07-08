@@ -12,6 +12,7 @@ class Customer extends Model
     public $incrementing = false; // Use custom ID generation
     protected $fillable = [
         'id',
+        'user_id',
         'name',
         'address', 
         'phone_number',
