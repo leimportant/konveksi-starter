@@ -57,7 +57,7 @@ class CustomerController extends Controller
             $customer = Customer::create($validated);
 
             // automatically insert into table users
-            $isExists = DB::table('users')->where('user_id', $customer->user_id)->exists();
+            $isExists = DB::table('users')->where('id', $customer->user_id)->exists();
             if (!$isExists) {
                 DB::table('users')->insert([
                     'id' => $customer->id,
