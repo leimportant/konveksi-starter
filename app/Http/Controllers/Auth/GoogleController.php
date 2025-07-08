@@ -17,9 +17,9 @@ class GoogleController extends Controller
     public function redirectToGoogle()
     {
         return Socialite::driver('google')->with([
-                'prompt' => 'select_account',
-                'access_type' => 'offline',
-            ])->redirect();
+            'prompt' => 'select_account',
+            'access_type' => 'offline',
+        ])->redirect();
     }
 
     public function handleGoogleCallback()
@@ -27,13 +27,12 @@ class GoogleController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
-            $existingUser = User::where('google_id', $googleUser->id)->first();
+            // 1. Cari user berdasarkan google_id
+            $user = User::where('google_id', $googleUser->id)->first();
 
-            if ($existingUser) {
-                Auth::login($existingUser);
-                return redirect()->intended('/home');
-            } else {
-                $newUser = User::create([
+            // 2. Jika tidak ada, buat user baru
+            if (!$user) {
+                $user = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'google_id' => $googleUser->id,
@@ -42,28 +41,34 @@ class GoogleController extends Controller
                     'password' => Hash::make('123456dummy')
                 ]);
 
+                // Assign role langsung
                 DB::table('user_role')->insert([
-                    'user_id' => $newUser->id,
-                    'role_id' => 7
+                    'user_id' => $user->id,
+                    'role_id' => 7,
                 ]);
+            }
 
+            // 3. Cek apakah Customer sudah ada
+            $customer = Customer::where('user_id', $user->id)->first();
+
+            if (!$customer) {
                 Customer::create([
-                    'id' => $newUser->id,
+                    'user_id' => $user->id,
                     'name' => $googleUser->name,
-                    'address' => "",
-                    'phone_number' => "",
+                    'address' => '',
+                    'phone_number' => '',
                     'saldo_kredit' => 0,
                     'is_active' => 'Y',
                 ]);
-
-                Auth::login($newUser);
-                return redirect()->intended('/home');
             }
+
+            // 4. Login dan redirect
+            Auth::login($user);
+            return redirect()->intended('/home');
+
         } catch (Exception $e) {
             Log::error('Google Login Error: ' . $e->getMessage());
             return redirect('/login')->withErrors(['msg' => 'Google login failed.']);
         }
     }
-
-
 }
