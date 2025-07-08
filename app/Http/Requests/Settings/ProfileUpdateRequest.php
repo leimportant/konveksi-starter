@@ -9,7 +9,15 @@ use Illuminate\Validation\Rule;
 class ProfileUpdateRequest extends FormRequest
 {
     /**
-     * Get the validation rules that apply to the request.
+     * Tentukan apakah pengguna diizinkan untuk melakukan request ini.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Aturan validasi.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
@@ -25,6 +33,23 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'phone_number' => ['required', 'string', 'max:20'],
+            'address' => ['required', 'string', 'max:500'],
+        ];
+    }
+
+    /**
+     * Pesan validasi kustom (opsional).
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Nama wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah digunakan.',
+            'phone_number.required' => 'Nomor telepon wajib diisi.',
+            'address.required' => 'Alamat wajib diisi.',
         ];
     }
 }

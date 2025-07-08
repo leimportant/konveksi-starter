@@ -22,10 +22,8 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        Log::info($user);
-
         // Ambil data customer jika ada
-        $customer = Customer::find($user->id);
+        $customer = Customer::where('user_id', $user->id)->first();
 
         return Inertia::render('settings/Profile', [
             'name' => $user->name,
@@ -52,11 +50,11 @@ class ProfileController extends Controller
 
         $user->save();
 
-        $isExist = Customer::where('id', $user->id)->first();
+        $isExist = Customer::where('user_id', $user->id)->first();
 
         if ($isExist) {
             // Sudah ada -> update
-            Customer::where('id', $user->id)->update([
+            Customer::where('user_id', $user->id)->update([
                 'name' => $request->input('name'),
                 'phone_number' => $request->input('phone_number'),
                 'address' => $request->input('address'),
@@ -64,7 +62,7 @@ class ProfileController extends Controller
         } else {
             // Belum ada -> create
             Customer::create([
-                'id' => $user->id,
+                'user_id' => $user->id,
                 'name' => $request->input('name'),
                 'phone_number' => $request->input('phone_number'),
                 'address' => $request->input('address'),
@@ -74,7 +72,7 @@ class ProfileController extends Controller
 
 
 
-        return to_route('profile.edit')->with('status', 'profile-updated');
+       return to_route('profile.edit')->with('status', 'profile-updated');
     }
 
 
