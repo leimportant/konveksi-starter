@@ -64,9 +64,9 @@ class OrderController extends Controller
 
                 return [
                     'id' => 'cart-temp-' . $item->id, // pakai ID CartItem agar bisa dibatalkan per item
-                    'customer_id' => $item->id,
+                    'customer_id' => $item->creator->id,
                     'customer' => [
-                        'id' => $item->id,
+                        'id' => $item->creator->id,
                         'name' => $item->creator->name ?? '-',
                     ],
                     'total_amount' => number_format($totalAmount, 2, '.', ''),
