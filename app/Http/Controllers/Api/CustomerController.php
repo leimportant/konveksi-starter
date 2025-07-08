@@ -44,7 +44,7 @@ class CustomerController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:100',
                 'address' => 'nullable|string|max:200',
-                'phone' => 'nullable|string|max:20',
+                'phone_number' => 'nullable|string|max:20',
                 'saldo_kredit' => 'numeric|min:0',
                 'is_active' => 'in:Y,N'
             ]);
@@ -53,16 +53,11 @@ class CustomerController extends Controller
             $validated['created_by'] = Auth::id();
             $validated['updated_by'] = Auth::id();
 
-            // Map 'phone' from request to 'phone_number' for the Customer model
-            if (isset($validated['phone'])) {
-                $validated['phone_number'] = $validated['phone'];
-                unset($validated['phone']); // Remove 'phone' as it's not a direct column
-            }
 
             $customer = Customer::create($validated);
 
             // automatically insert into table users
-            $isExists = DB::table('users')->where('id', $customer->id)->exists();
+            $isExists = DB::table('users')->where('user_id', $customer->user_id)->exists();
             if (!$isExists) {
                 DB::table('users')->insert([
                     'id' => $customer->id,

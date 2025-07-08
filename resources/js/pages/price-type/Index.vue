@@ -98,8 +98,14 @@
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" @click="showCreateModal = false">Cancel</Button>
-            <Button @click="handleCreate">Save</Button>
+
+            <div class="flex justify-end gap-2">
+              <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
+              <Button @click="handleCreate" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Save</Button>
+            </div>
+
+            <!-- <Button variant="outline" @click="showCreateModal = false">Cancel</Button>
+            <Button @click="handleCreate">Save</Button> -->
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -122,8 +128,13 @@
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" @click="showEditModal = false">Cancel</Button>
-            <Button @click="handleUpdate">Update</Button>
+            <div class="flex justify-end gap-2">
+              <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
+              <Button @click="handleUpdate" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Update</Button>
+            </div>
+
+            <!-- <Button variant="outline" @click="showEditModal = false">Cancel</Button>
+            <Button @click="handleUpdate">Update</Button> -->
           </DialogFooter>
         </DialogContent>
       </Dialog>

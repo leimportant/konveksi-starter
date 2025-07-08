@@ -56,7 +56,10 @@ class PaymentMethodController extends Controller
 
     public function destroy(PaymentMethod $payment)
     {
+        $payment->deleted_by = Auth::id();
+        $payment->save();
         $payment->delete();
         return response()->json(null, 204);
     }
+
 }
