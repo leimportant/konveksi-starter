@@ -82,7 +82,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/user-menus', [MenuController::class, 'getUserMenus']);
     Route::get('/all-menus', [MenuController::class, 'getAllMenus']);
 
-    Route::post('/roles/{role}/assign-menus', [RoleController::class, 'assignMenus']);
+
     Route::get('api/combo/{key}', [ComboController::class, 'getComboData']);
 
     Route::apiResource('api/transfer-stock', TransferStockController::class);
@@ -100,7 +100,8 @@ Route::middleware('auth')->group(function () {
 
     Route::apiResource('api/stock-opnames', StockOpnameController::class);
     Route::apiResource('api/roles', RoleController::class);
-   
+    Route::post('api/roles/assign-menus', [RoleController::class, 'assignMenus']);
+
     Route::apiResource('api/productions', ProductionController::class);
     Route::apiResource('api/uoms', UomController::class);
     Route::apiResource('api/slocs', SlocController::class);

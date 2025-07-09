@@ -38,6 +38,8 @@ const handleAssignMenu = async () => {
     await roleStore.assignMenusToRole(currentRole.value.id, selectedMenus.value);
     toast.success("Menus assigned successfully");
     showAssignMenuModal.value = false;
+    roleStore.loaded = false;
+    await roleStore.fetchRoles();
   } catch (error: any) {
     toast.error(error?.response?.data?.message ?? "Failed to assign menus");
   }
@@ -45,8 +47,18 @@ const handleAssignMenu = async () => {
 
 const openAssignMenuModal = async (role: Role) => {
   currentRole.value = role;
-  selectedMenus.value = currentRole.value.menus?.map(menu => menu.id) || [];
-  allMenus.value = await menuStore.fetchAllMenus(); // Must return children too
+  allMenus.value = await menuStore.fetchAllMenus(role.id); // Must return children too
+  selectedMenus.value = [];
+  allMenus.value.forEach((menu: any) => {
+    if (menu.checked) {
+      selectedMenus.value.push(menu.id);
+    }
+    menu.children?.forEach((child: any) => {
+      if (child.checked) {
+        selectedMenus.value.push(child.id);
+      }
+    });
+  });
   showAssignMenuModal.value = true;
 };
 
