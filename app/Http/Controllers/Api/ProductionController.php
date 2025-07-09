@@ -94,7 +94,7 @@ class ProductionController extends Controller
 
             // Validate all activity_role_ids exist
             $invalidRoles = array_filter($activityRoleIds, function ($roleId) {
-                return !\DB::table('mst_activity_role')->where('id', $roleId)->exists();
+                return !DB::table('mst_activity_role')->where('id', $roleId)->exists();
             });
             if (count($invalidRoles) > 0) {
                 return response()->json([
@@ -198,7 +198,7 @@ class ProductionController extends Controller
                     'activity_role_id' => $activityRoleId,
                     'remark' => $request->remark,
                     'status' => 'waiting',
-                    'created_by' => \Auth::id()
+                    'created_by' => Auth::id()
                 ]);
 
                 $production->items()->createMany(
@@ -207,7 +207,8 @@ class ProductionController extends Controller
                             'id' => 'PRI-' . uniqid(),
                             'size_id' => $item['size_id'],
                             'qty' => $item['qty'],
-                            'created_by' => \Auth::id()
+                            'variant' => $item['variant'],
+                            'created_by' => Auth::id()
                         ];
                     }, $validItems)
                 );

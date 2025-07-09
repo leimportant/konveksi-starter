@@ -18,6 +18,7 @@ class ProductionItem extends Model
         'id',
         'production_id',
         'size_id',
+        'variant',
         'qty',
         'created_by',
         'updated_by',
