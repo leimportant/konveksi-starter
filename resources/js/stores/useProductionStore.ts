@@ -5,6 +5,7 @@ interface ProductionItem {
   id?: string;
   production_id?: string;
   size_id: string;
+  variant: string;
   qty: number;
   
 }

@@ -293,7 +293,7 @@ async function submitShipping() {
                                                     class="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                     Batalkan Pesanan
                                                 </Button>
-                                                <Button variant="ghost" size="icon" v-if="activeTab = 'cart'"
+                                                <Button variant="ghost" size="icon" v-if="activeTab === 'cart'"
                                                     @click="handleDelete(order.id)"
                                                     class="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                     Delete Pesanan

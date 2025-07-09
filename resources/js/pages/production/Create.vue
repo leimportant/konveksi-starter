@@ -17,14 +17,14 @@ const props = defineProps<{
 }>();
 
 const selectedModelId = ref<number | null>(null);
-const modelSizes = ref<{ size_id: string; size_name: string; qty: number }[]>([]);
+const modelSizes = ref<{ size_id: string; size_name: string; qty: number, variant: string}[]>([]);
 const activityTasks = ref<any[]>([]);
 const selectedTasks = ref<number[]>([]);
 
 const form = useForm({
   model_id: null as number | null,
   activity_role_id: Number(props.activity_role),
-  items: [] as { size_id: string; qty: number }[],
+  items: [] as { size_id: string; qty: number, variant: string}[],
   remark: '', // <-- tambahkan properti remark di sini
 });
 
@@ -57,8 +57,10 @@ watch(selectedModelId, async (id) => {
     modelSizes.value = data.sizes;
 
     form.items = data.sizes.map((s: any) => ({
-      size_id: String(s.size_id), // Ensure string conversion
+      size_id: String(s.size_id),
+      size_name: s.size_name, // Add size_name field
       qty: 0,
+      variant: s.variant,
     }));
   } catch (err) {
     console.error('Failed to fetch model sizes', err);
@@ -142,6 +144,7 @@ const submit = async () => {
           <thead>
             <tr class="bg-gray-100">
               <th class="border px-3 text-sm py-2 text-left">Size</th>
+              <th class="border px-3 text-sm py-2 text-left">Variant</th>
               <th class="border px-3 text-sm py-2 text-left">Qty</th>
             </tr>
           </thead>
@@ -149,6 +152,9 @@ const submit = async () => {
             <tr v-for="(size, index) in form.items" :key="`size-${index}-${size.size_id}`">
               <td class="border px-3 py-2 text-sm">
                 {{modelSizes.find((ms) => ms.size_id === size.size_id)?.size_name || size.size_id}}
+              </td>
+              <td class="border px-3 py-2 text-sm">
+                {{ size.variant }}
               </td>
               <td class="border px-3 py-2 text-sm">
                 <input type="number" min="0" class="w-full rounded border px-2 py-1" v-model.number="size.qty" />

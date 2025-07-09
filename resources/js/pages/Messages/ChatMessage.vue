@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import ScrollArea from '@/components/ui/ScrollArea.vue';
 import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { useChatStore } from '@/stores/chatStore';
 import type { ChatMessage } from '@/stores/chatStore'; // ✅ konsisten
+import { useChatStore } from '@/stores/chatStore';
 import { Head, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
@@ -54,40 +54,38 @@ const fetchMessages = async () => {
     scrollToBottom();
 };
 const getMessageClasses = (msg: ChatMessage) => {
-  const isAdmin = msg.sender_type === 'admin';
-  return {
-    container: isAdmin ? 'justify-end' : 'justify-start',
-    row: isAdmin ? 'flex-row-reverse' : 'flex-row',
-    bubble: isAdmin
-      ? 'bg-indigo-600 text-white'
-      : 'border bg-white text-gray-800',
-  };
+    const isSender = msg.sender_id === user.id;
+    return {
+        container: isSender ? 'justify-end' : 'justify-start',
+        row: isSender ? 'flex-row-reverse' : 'flex-row',
+        bubble: isSender ? 'bg-indigo-600 text-white' : 'border bg-white text-gray-800',
+    };
 };
 
 const getSenderName = (msg: ChatMessage): string => {
-  return msg.sender_type === 'admin' ? 'AD' : getInitials(msg.sender?.name ?? 'User');
+    return msg.sender_type === 'admin' ? 'AD' : getInitials(msg.sender?.name ?? 'User');
 };
 
 const formatTimestamp = (dateStr: string): string => {
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) {
-    date.setTime(Date.now());
-  }
-  return date.toLocaleString('id-ID', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+        date.setTime(Date.now());
+    }
+    return date.toLocaleString('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 };
 
 const parseContentData = (data: string | any[]): any[] => {
-  try {
-    return Array.isArray(data) ? data : JSON.parse(data || '[]');
-  } catch {
-    return [];
-  }
+    try {
+        return Array.isArray(data) ? data : JSON.parse(data || '[]');
+    } catch {
+        return [];
+    }
 };
 
 const markAsRead = async (orderId: string) => {
@@ -133,36 +131,34 @@ onMounted(async () => {
 const intervalId = null;
 
 watch(selectedOrderId, (newOrderId, oldOrderId) => {
-  if (intervalId) {
-    clearInterval(intervalId);
-  }
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
 
-  if (newOrderId) {
-    chatStore.fetchMessages(newOrderId);
-    // Subscribe to Pusher channel
-    window.Echo.private(`chat.${newOrderId}`)
-      .listen('ChatMessageSent', (e: any) => {
-        chatStore.addMessage(e.chatMessage as ChatMessage);
-      });
+    if (newOrderId) {
+        chatStore.fetchMessages(newOrderId);
+        // Subscribe to Pusher channel
+        window.Echo.private(`chat.${newOrderId}`).listen('ChatMessageSent', (e: any) => {
+            chatStore.addMessage(e.chatMessage as ChatMessage);
+        });
 
-    // Optional: Set up interval for periodic historical data retrieval
-    // intervalId = setInterval(() => {
-    //   chatStore.fetchMessages(newOrderId);
-    // }, 30000); // Fetch every 30 seconds
-
-  } else if (oldOrderId) {
-    // Unsubscribe from old channel when orderId changes to null or newOrderId
-    window.Echo.leave(`chat.${oldOrderId}`);
-  }
+        // Optional: Set up interval for periodic historical data retrieval
+        // intervalId = setInterval(() => {
+        //   chatStore.fetchMessages(newOrderId);
+        // }, 30000); // Fetch every 30 seconds
+    } else if (oldOrderId) {
+        // Unsubscribe from old channel when orderId changes to null or newOrderId
+        window.Echo.leave(`chat.${oldOrderId}`);
+    }
 });
 
 onUnmounted(() => {
-  if (selectedOrderId.value) {
-    window.Echo.leave(`chat.${selectedOrderId.value}`);
-  }
-  if (intervalId) {
-    clearInterval(intervalId);
-  }
+    if (selectedOrderId.value) {
+        window.Echo.leave(`chat.${selectedOrderId.value}`);
+    }
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
 });
 </script>
 
@@ -183,7 +179,7 @@ onUnmounted(() => {
                             <div class="font-semibold">Order #{{ conv.order_id }}</div>
                             <span
                                 v-if="conv.unread_count > 0"
-                                class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-semibold text-white"
+                                class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white"
                             >
                                 {{ conv.unread_count }}
                             </span>
@@ -203,61 +199,45 @@ onUnmounted(() => {
 
                 <!-- Chat Messages -->
                 <div class="flex-1 overflow-hidden bg-gray-50 p-4">
-  <ScrollArea ref="chatContainer" class="h-full pr-4">
-    <div class="space-y-4">
-      <div
-        v-for="msg in chatStore.messages"
-        :key="msg.id"
-        :class="['flex', getMessageClasses(msg).container]"
-      >
-        <div
-          :class="[
-            'flex max-w-full items-start gap-3',
-            getMessageClasses(msg).row,
-          ]"
-        >
-          <!-- Avatar -->
-          <Avatar class="size-10 shrink-0">
-            <AvatarImage
-              v-if="msg.sender_id === props.currentUserId && props.currentUserAvatar"
-              :src="props.currentUserAvatar"
-              :alt="msg.sender_name"
-            />
-            <AvatarFallback>
-            {{ getSenderName(msg) }}
-          </AvatarFallback>
-          </Avatar>
+                    <ScrollArea ref="chatContainer" class="h-full pr-4">
+                        <div class="space-y-4">
+                            <div v-for="msg in chatStore.messages" :key="msg.id" :class="['flex', getMessageClasses(msg).container]">
+                                <div :class="['flex max-w-full items-start gap-3', getMessageClasses(msg).row]">
+                                    <!-- Avatar -->
+                                    <Avatar class="size-10 shrink-0">
+                                        <AvatarImage
+                                            v-if="msg.sender_id === props.currentUserId && props.currentUserAvatar"
+                                            :src="props.currentUserAvatar"
+                                            :alt="msg.sender_name"
+                                        />
+                                        <AvatarFallback>
+                                            {{ getSenderName(msg) }}
+                                        </AvatarFallback>
+                                    </Avatar>
 
-          <!-- Bubble -->
-          <div class="max-w-[75%] space-y-1">
-            <div
-              :class="['rounded-lg p-3 text-sm shadow', getMessageClasses(msg).bubble]"
-            >
-              <p class="whitespace-pre-wrap break-words">{{ msg.message }}</p>
-            </div>
+                                    <!-- Bubble -->
+                                    <div class="max-w-[75%] space-y-1">
+                                        <div :class="['rounded-lg p-3 text-sm shadow', getMessageClasses(msg).bubble]">
+                                            <p class="whitespace-pre-wrap break-words">{{ msg.message }}</p>
+                                        </div>
 
-            <!-- Content Data -->
-            <div v-if="msg.content_data?.length" class="mt-1 flex flex-wrap gap-2">
-              <span
-                v-for="item in parseContentData(msg.content_data)"
-                :key="item"
-                class="..."
-              >
-                {{ item }}
-              </span>
-            </div>
+                                        <!-- Content Data -->
+                                        <div v-if="msg.content_data?.length" class="mt-1 flex flex-wrap gap-2">
+                                            <span v-for="item in parseContentData(msg.content_data)" :key="item" class="...">
+                                                {{ item }}
+                                            </span>
+                                        </div>
 
-            <!-- Timestamp -->
-            <div class="text-xs text-gray-500">
-              {{ formatTimestamp(msg.created_at) }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </ScrollArea>
-</div>
-
+                                        <!-- Timestamp -->
+                                        <div class="text-xs text-gray-500">
+                                            {{ formatTimestamp(msg.created_at) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ScrollArea>
+                </div>
 
                 <!-- Input Area -->
                 <div class="border-t bg-white p-4">
