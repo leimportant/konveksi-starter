@@ -53,14 +53,7 @@
             </div>
           </div>
 
-          <!-- Pagination -->
-          <div class="flex justify-center items-center gap-2 pt-4">
-            <button @click="prevPage" :disabled="currentPage === 1"
-              class="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
-            <span class="px-3 py-1 border rounded bg-white">Page {{ currentPage }} of {{ lastPage }}</span>
-            <button @click="nextPage" :disabled="currentPage === lastPage"
-              class="px-3 py-1 border rounded disabled:opacity-50">Next</button>
-          </div>
+ 
         </section>
       </div>
     </section>
@@ -485,19 +478,7 @@ const cartTotalDiscount = computed(() => {
   }, 0);
 });
 
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    fetchProducts();
-  }
-};
 
-const nextPage = () => {
-  if (currentPage.value < lastPage.value) {
-    currentPage.value++;
-    fetchProducts();
-  }
-};
 
 
 const proceedToCheckout = () => {

@@ -92,7 +92,8 @@
         </div>
 
         <!-- Tab: Document -->
-        <div v-if="activeTab === 'document'">
+        <div v-if="activeTab === 'gambar'">
+
           <DocumentList :reference-id="generatedDocId" :reference-type="referenceType" />
         </div>
 
@@ -158,7 +159,7 @@ const props = defineProps<{
 }>();
 
 // Tabs setup
-const tabs = ['model', 'size', 'activity', 'document', 'bahan_dan_biaya', 'hpp'] as const;
+const tabs = ['model', 'size', 'activity', 'gambar', 'bahan_dan_biaya', 'hpp'] as const;
 type Tab = typeof tabs[number];
 const activeTab = ref<Tab>('model');
 
@@ -200,7 +201,7 @@ const form = useForm({
 const errors = ref<Record<string, string[]>>({});
 
 // Size items
-const sizeItems = ref<{ size_id: string; qty: number }[]>([]);
+const sizeItems = ref<{ size_id: string; qty: number, variant: string }[]>([]);
 
 // Total production quantity from size items
 const totalProduction = ref<number>(0);

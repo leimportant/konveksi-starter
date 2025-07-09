@@ -69,7 +69,7 @@
 
         <!-- Document Tab -->
 
-        <div v-if="activeTab === 'document'" class="space-y-6">
+        <div v-if="activeTab === 'gambar'" class="space-y-6">
           <DocumentList :reference-id="currentProductIdForUpload" :reference-type="referenceType" />
         </div>
 
@@ -133,7 +133,7 @@ const props = defineProps<{
 const modelId = ref(Number(props.modelId));  // Pastikan tipe data diubah ke Number
 const currentProductIdForUpload =  (modelId.value ?? '');
 // Tabs setup
-const tabs = ['model', 'size', 'activity', 'document', 'bahan dan biaya', 'hpp'] as const;
+const tabs = ['model', 'size', 'activity', 'gambar', 'bahan dan biaya', 'hpp'] as const;
 type Tab = typeof tabs[number];
 const activeTab = ref<Tab>(tabs[0]);
 const errors = ref<Record<string, string[]>>({});
@@ -170,7 +170,7 @@ const form = useForm({
 const uploadedDocuments = ref<{ id: string; url: string; filename: string }[]>([]);
 
 // Size items
-const sizeItems = ref<{ size_id: string; qty: number }[]>([]);
+const sizeItems = ref<{ size_id: string; qty: number, variant: string }[]>([]);
 
 // Total production quantity from size items
 const totalProduction = ref<number>(0);

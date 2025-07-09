@@ -5,6 +5,7 @@
       <thead>
         <tr>
           <th class="px-6 py-5 text-left text-xs bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase">Size</th>
+          <th class="px-6 py-5 text-left text-xs bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase">Variant</th>
           <th class="px-6 py-5 text-left text-xs bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase">Quantity</th>
           <th class="px-6 py-5 text-left text-xs bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring uppercase w-16">Action</th>
         </tr>
@@ -29,6 +30,9 @@
             <small v-if="sizeStore.error" class="text-destructive">
               {{ sizeStore.error }}
             </small>
+          </td>
+           <td class="px-6 py-4 whitespace-nowrap bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <Input type="text" v-model="item.variant" class="w-full" />
           </td>
           <td class="px-6 py-4 whitespace-nowrap bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <Input type="number" v-model="item.qty" class="w-full" min="0" />
@@ -56,7 +60,7 @@ import { useSizeStore } from '@/stores/useSizeStore';
 import { Trash } from 'lucide-vue-next';
 
 const props = defineProps<{ 
-  modelValue: { size_id: string; qty: number }[] 
+  modelValue: { size_id: string; qty: number, variant: string }[] 
 }>(); 
 
 const emit = defineEmits<{ 
@@ -92,7 +96,7 @@ onMounted(() => {
 }); 
 
 const addItem = () => { 
-  modelItems.value.push({ size_id: "", qty: 0 }); 
+  modelItems.value.push({ size_id: "", qty: 0, variant: "" }); 
 }; 
 
 const removeItem = (i: number) => { 

@@ -15,6 +15,7 @@ class ModelSize extends Model
     protected $fillable = [
         'model_id',
         'size_id',
+        'variant',
         'qty',
         'created_by',
         'updated_by',

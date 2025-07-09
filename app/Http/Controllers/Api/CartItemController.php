@@ -94,27 +94,6 @@ class CartItemController extends Controller
                 ]);
             }
 
-            // langsung update inventory
-             $inventory = Inventory::where('product_id', $validated['product_id'])
-                        ->where('location_id', $validated['location_id'])
-                        ->where('uom_id', $validated['uom_id'])
-                        ->where('sloc_id', $validated['sloc_id'])
-                        ->where('size_id', $validated['size_id'])
-                        ->first();
-            $qty = $inventory ? $inventory->qty : 0;
-            $qty_reserved = $inventory ? $inventory->qty_reserved : 0;
-            // update inventory for the transfer
-            app(InventoryService::class)->updateOrCreateInventory([
-                'product_id' => $validated['product_id'],
-                'location_id' => $validated['location_id'],
-                'uom_id' => $validated['uom_id'],
-                'sloc_id' => $validated['sloc_id'],
-            ], [
-                'size_id' => $validated['size_id'],
-                'qty' => $qty, // Reduce stock from source location
-                'qty_reserved' => $validated['quantity'] +  $qty_reserved, // Reduce stock from source location
-            ], 'IN');
-
             return response()->json([
                 'success' => true,
                 'data' => $cartItem,

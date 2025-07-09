@@ -19,10 +19,11 @@ class ModelRefController extends Controller
             'description' => 'required|string|max:255',
             'remark' => 'nullable|string',
             'estimation_price_pcs' => 'required|numeric|min:0',
-            'estimation_qty' => 'required|integer|min:1',
+            'estimation_qty' => 'required|integer|min:0',
             'start_date' => 'required|date',
             'sizes' => 'required|array',
             'sizes.*.size_id' => 'required|exists:mst_size,id',
+            'sizes.*.variant' => 'required|string|max:100',
             'sizes.*.qty' => 'required|integer|min:1',
             'activity' => 'required|array',
             'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
@@ -52,6 +53,7 @@ class ModelRefController extends Controller
             foreach ($validated['sizes'] as $size) {
                 $model->sizes()->create([
                     'size_id' => $size['size_id'],
+                    'variant' => $size['variant'],
                     'qty' => $size['qty'],
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id()
@@ -125,8 +127,7 @@ class ModelRefController extends Controller
     {
         try {
 
-
-            $models = ModelRef::with('sizes')->latest()->paginate(10);
+            $models = ModelRef::with(['sizes', 'activities', 'modelMaterial'])->latest()->paginate(10);
 
             return response()->json([
                 'data' => $models

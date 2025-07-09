@@ -91,7 +91,7 @@ const formatDate = (date: string | null | undefined) => {
                     class="rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
                 >
                     <Plus class="h-4 w-4" />
-                    Tambah
+                    Add
                 </Button>
 
                 <Input
@@ -105,9 +105,40 @@ const formatDate = (date: string | null | undefined) => {
                 />
             </div>
 
+            <!-- Filter & Action -->
+            <!-- <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"> -->
+                <!-- Tombol Tambah + Search di 1 baris -->
+                <!-- <div class="flex w-full flex-col justify-between gap-2 sm:w-auto sm:flex-row sm:items-center">
+                    <Button
+                        @click="router.visit('/konveksi/model/create')"
+                        class="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                    >
+                        <Plus class="h-4 w-4" /> Tambah
+                    </Button>
+
+                    <Input :value="filters.search" placeholder="Cari data" class="w-full sm:w-64" @input="handleSearchInput" />
+                </div> -->
+
+                <!-- Date Range di baris berikutnya -->
+                <!-- <div class="flex w-full items-center gap-2 sm:w-auto">
+                    <DateInput
+                        :model-value="filters.start_date"
+                        @update:model-value="handleStartDateChange"
+                        placeholder="Start"
+                        class="w-full sm:w-[8rem]"
+                    />
+                    <span class="text-gray-500">–</span>
+                    <DateInput
+                        :model-value="filters.end_date"
+                        @update:model-value="handleEndDateChange"
+                        placeholder="End"
+                        class="w-full sm:w-[8rem]"
+                    />
+                </div> -->
+            <!-- </div> -->
             <!-- Table -->
             <div class="overflow-x-auto rounded-md border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <Table class="w-full text-sm md:table-auto">
+                <Table class="w-full min-w-[600px] text-sm">
                     <TableHeader>
                         <TableRow class="bg-gray-100 dark:bg-gray-800">
                             <TableHead class="px-3 py-2 text-left">Nama Model</TableHead>
@@ -133,7 +164,7 @@ const formatDate = (date: string | null | undefined) => {
                                     <div class="flex flex-col text-xs">
                                         <span v-for="(size, index) in item.sizes" :key="index">
                                             {{ size.size_id }} {{ size.variant }} ({{ size.qty }})
-                                            <template v-if="index !== item.sizes.length - 1"><br /> </template>
+                                            <template v-if="index !== item.sizes.length - 1"> ,<br /> </template>
                                         </span>
                                     </div>
                                 </template>
