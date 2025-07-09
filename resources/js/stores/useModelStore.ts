@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
+
 export interface SizeItem {
     size_id: string;
+    variant: string;
     qty: number;
   }
 
@@ -53,6 +55,7 @@ interface FetchParams {
     sort_field?: string;
     sort_order?: 'asc' | 'desc';
     per_page?: number;
+    page?: number;
 }
 
 export const useModelStore = defineStore('model', {
@@ -63,6 +66,11 @@ export const useModelStore = defineStore('model', {
         total: 0,
         currentPage: 1,
         lastPage: 1,
+        filters: {
+            search: '',
+            start_date: null,
+            end_date: null,
+        } as FetchParams,
     }),
 
     actions: {
@@ -85,9 +93,10 @@ export const useModelStore = defineStore('model', {
             }
         },
 
-        async fetchModels(params: FetchParams = {}) {
+        async fetchModels(page: number = 1) {
             try {
                 this.loading = true;
+                const params = { ...this.filters, page };
                 const response = await axios.get('/api/models/list', { params });
                 this.models = response.data.data.data;
                 this.total = response.data.data.total;
@@ -99,6 +108,28 @@ export const useModelStore = defineStore('model', {
                 throw error;
             } finally {
                 this.loading = false;
+            }
+        },
+
+        setFilter(key: keyof FetchParams, value: any) {
+            this.filters[key] = value;
+            this.fetchModels(1); // Reset to first page on filter change
+        },
+
+        goToPage(page: number) {
+            if (page < 1 || page > this.lastPage) return;
+            this.fetchModels(page);
+        },
+
+        nextPage() {
+            if (this.currentPage < this.lastPage) {
+                this.fetchModels(this.currentPage + 1);
+            }
+        },
+
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.fetchModels(this.currentPage - 1);
             }
         },
 

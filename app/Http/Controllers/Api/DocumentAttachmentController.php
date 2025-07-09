@@ -188,7 +188,7 @@ class DocumentAttachmentController extends Controller
                 return response()->json(['message' => 'Attachment not found'], 404);
             }
             $filePath = $attachment->first()->path;
-            $fileUrl = Storage::disk('public')->url($filePath);
+            $fileUrl = asset('storage/' . $filePath);
             return response()->json(['url' => $fileUrl], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to retrieve attachment', 'error' => $e->getMessage()], 500);

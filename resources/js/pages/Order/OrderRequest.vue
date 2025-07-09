@@ -86,7 +86,6 @@ const debouncedSetFilter = debounce((field: string, value: string) => {
 
 const handleFilter = (e: Event) => {
     const target = e.target as HTMLInputElement;
-    filterName.value = target.value; // Update filterName
     debouncedSetFilter('name', target.value);
 };
 
@@ -95,7 +94,6 @@ const handleFilter = (e: Event) => {
     });
 
 const openMessageModal = (ids: string[], targetReceiverId: number) => {
-    console.log(targetReceiverId);
     receiverId.value = targetReceiverId;
     selectedOrders.value = ids;
     showMessageModal.value = true;
@@ -286,7 +284,7 @@ async function submitShipping() {
                                             class="absolute left-0 top-full z-50 mt-2 w-44 rounded-md bg-white dark:bg-gray-800 text-black dark:text-white shadow-lg ring-1 ring-black ring-opacity-5">
                                             <div class="py-1 text-left text-sm">
                                                 <Button variant="ghost" size="icon"
-                                                    @click="openMessageModal([order.id], order.customer?.id)"
+                                                    @click="openMessageModal([order.id], order.customer_id)"
                                                     class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                     Kirim Pesan
                                                 </Button>
