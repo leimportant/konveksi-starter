@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Menu;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use \Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class MenuController extends Controller
 {
@@ -55,29 +57,43 @@ class MenuController extends Controller
         return response()->json($menus);
     }
 
-    public function getAllMenus(): JsonResponse
+    public function getAllMenus(Request $request): JsonResponse
     {
+        $role_id = $request->role_id;
+
+        $checkedMenuIds = collect();
+        if ($role_id) {
+            $checkedMenuIds = DB::table('menus_role')
+                ->where('role_id', $role_id)
+                ->pluck('menu_id');
+        }
+
         $menus = Menu::whereNull('parent_id')
             ->with(['children' => function ($query) {
                 $query->orderBy('order');
             }])
             ->orderBy('order')
             ->get()
-            ->map(function ($menu) {
-                return [
+            ->map(function ($menu) use ($checkedMenuIds) {
+                $menuArray = [
                     'id' => $menu->id,
+                    'checked' => $checkedMenuIds->contains($menu->id),
                     'title' => $menu->title,
                     'href' => $menu->href,
                     'icon' => $menu->icon,
-                    'children' => $menu->children->map(function ($child) {
-                        return [
-                            'id' => $child->id,
-                            'title' => $child->title,
-                            'href' => $child->href,
-                            'icon' => $child->icon,
-                        ];
-                    })->values(),
                 ];
+
+                $menuArray['children'] = $menu->children->map(function ($child) use ($checkedMenuIds) {
+                    return [
+                        'id' => $child->id,
+                        'checked' => $checkedMenuIds->contains($child->id),
+                        'title' => $child->title,
+                        'href' => $child->href,
+                        'icon' => $child->icon,
+                    ];
+                })->values();
+
+                return $menuArray;
             });
 
         return response()->json($menus);

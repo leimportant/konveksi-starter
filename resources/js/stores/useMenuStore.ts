@@ -23,9 +23,9 @@ export const useMenuStore = defineStore('menu', {
       }
     },
 
-    async fetchAllMenus() {
+    async fetchAllMenus(roleId: number | null = null) {
       try {
-        const response = await axios.get('/all-menus');
+        const response = await axios.get('/all-menus', { params: { role_id: roleId } });
         return response.data;
       } catch (error) {
         console.error('Failed to fetch all menus', error);

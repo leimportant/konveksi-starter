@@ -56,7 +56,8 @@ export const useRoleStore = defineStore('role', {
 
         async assignMenusToRole(roleId: number, menuIds: number[]) {
             try {
-                await axios.post(`/api/roles/${roleId}/assign-menus`, { menus: menuIds });
+                await axios.post(`/api/roles/assign-menus`, { role_id: roleId, menus: menuIds });
+                //  await this.fetchRoles();
             } catch (error) {
                 throw error;
             }
