@@ -35,6 +35,9 @@ const iconMap: Record<string, () => Promise<Component>> = {
    Repeat: () => import('lucide-vue-next').then(m => m.Repeat),
    FileText: () => import('lucide-vue-next').then(m => m.FileText),
    FileSearch: () => import('lucide-vue-next').then(m => m.FileSearch),
+   BadgeCent: () => import('lucide-vue-next').then(m => m.BadgeCent),
+   BookCheck: () => import('lucide-vue-next').then(m => m.BookCheck),
+   BookOpen: () => import('lucide-vue-next').then(m => m.BookOpen),
    BadgeCentIcon: () => import('lucide-vue-next').then(m => m.BadgeCentIcon),
 };
 

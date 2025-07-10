@@ -43,7 +43,7 @@ class OrderController extends Controller
 
         // Handle CART status secara khusus
         if ($request->input('status') === 'cart') {
-            $cartItems = CartItem::with('creator','product')
+            $cartItems = CartItem::with('creator', 'product')
                 ->get();
 
             // FILTER berdasarkan `name` atau lainnya
@@ -81,7 +81,7 @@ class OrderController extends Controller
                             'price_sell' => $item->price_sell_grosir > 0 ? $item->price_sell_grosir : $item->price_sell,
                             'size_id' => $item->size_id,
                             'uom_id' => $item->uom_id,
-                            'discount' => $item->discount_grosir > 0 ? $item->discount_grosir :  $item->discount,
+                            'discount' => $item->discount_grosir > 0 ? $item->discount_grosir : $item->discount,
                             'price_final' => $item->quantity * ($item->price_sell_grosir > 0 ? $item->price_sell_grosir : $item->price_sell),
                         ]
                     ],
@@ -307,35 +307,80 @@ class OrderController extends Controller
 
     public function approve(Request $request)
     {
-        $order = Order::find($request->order_id);
-        if (!$order) {
+        $order = Order::with('customer', 'details')->find($request->order_id); // pastikan relasi tersedia
+
+        if (!$order || $order->status != "1") {
             return Inertia::render('Order/Approve', [
-                'message' => 'Order Tidak di temukan atau sudah di proses',
+                'message' => 'Order Tidak ditemukan atau sudah diproses',
                 'order' => (object) [],
             ]);
         }
-        if ($order->status != "1") {
-            return Inertia::render('Order/Approve', [
-                'message' => 'Order Tidak di temukan atau sudah di proses',
-                'order' => [],
-            ]);
-        }
+
+        // Update order status
         $order->status = "2";
         $order->is_paid = 'Y';
         $order->updated_by = Auth::id();
         $order->save();
 
-        // Notify customer
-        $customerEmail = $order->customer->email;
-        if ($customerEmail) {
-            Mail::to($customerEmail)->send(new OrderStatusUpdated($order));
+        // Kirim email ke customer
+        if ($order->customer && $order->customer->email) {
+            Mail::to($order->customer->email)->send(new OrderStatusUpdated($order));
         }
 
-        return response()->json([
-            'message' => 'Pesanan berhasil disetujui',
-            'order' => $order,
-        ]);
+        // Simpan ke pos_transaction
+        $userId = Auth::id();
+        $transactionNumber = 'TRX-' . strtoupper(uniqid()); // generate nomor unik
+        $totalAmount = $order->total_amount;
+        $paidAmount = $order->paid_amount ?? $totalAmount;
+        $changeAmount = max(0, $paidAmount - $totalAmount);
+        $customerId = $order->customer_id ?? 0;
+
+        DB::beginTransaction();
+        try {
+            $transactionId = DB::table('pos_transaction')->insertGetId([
+                'transaction_number' => $transactionNumber,
+                'transaction_date' => Carbon::now(),
+                'total_amount' => $totalAmount,
+                'paid_amount' => $paidAmount,
+                'change_amount' => $changeAmount,
+                'payment_method' => 'transfer', // bisa ambil dari order jika ada
+                'customer_id' => $customerId,
+                'status' => 'completed',
+                'notes' => 'ONLINE',
+                'source_type' => 'online', // info tambahan agar bisa bedakan transaksi
+                'created_by' => $userId,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+
+            foreach ($order->details as $detail) {
+                DB::table('pos_transaction_detail')->insert([
+                    'transaction_id' => $transactionId,
+                    'product_id' => $detail->product_id,
+                    'quantity' => $detail->quantity,
+                    'price' => $detail->price,
+                    'uom_id' => $detail->uom_id ?? null,
+                    'size_id' => $detail->size_id ?? null,
+                    'subtotal' => $detail->price * $detail->quantity,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Pesanan berhasil disetujui dan dicatat sebagai transaksi',
+                'order' => $order,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal menyimpan transaksi: ' . $e->getMessage(),
+            ], 500);
+        }
     }
+
 
     private function handlePaymentProof(Request $request): ?string
     {

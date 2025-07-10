@@ -19,11 +19,12 @@
                         <div
                             v-for="product in products"
                             :key="product.id"
-                            @click="addToCart(product)"
+                            @click="viewProductDetail(product)"
                             class="flex cursor-pointer flex-row items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm transition hover:shadow-md md:gap-3 md:p-3"
                         >
                             <!-- Column 1: Image -->
                             <div class="flex-shrink-0">
+                              
                                 <img
                                     v-if="product.image_path"
                                     :src="getImageUrl(product.image_path)"
@@ -47,7 +48,36 @@
                                         </span>
                                     </template>
                                 </div>
-                                <p class="text-[10px] text-gray-400 md:text-xs">Stok: {{ product.qty_stock }} / {{ product.uom_id }}</p>
+                                <p class="text-[10px] text-gray-400 md:text-xs">Stok: {{ product.qty_available }} / {{ product.uom_id }}</p>
+
+                                <!-- Pilih Varian -->
+    
+
+    <!-- Pilih Ukuran -->
+    <div v-if="product.variant" class="mt-2">
+      <p class="text-xs text-gray-500">Tersedia Ukuran:</p>
+      <div class="mt-1 flex flex-wrap gap-2">
+        <div class="rounded-full border px-3 py-1 text-xs font-medium" v-for="size in getSizesForVariant(product.sizes, product.variant)"  :key="size.size_id">
+            {{ size.size_id }}
+        </div>
+        
+ 
+        <!-- <button
+          v-for="size in getSizesForVariant(product.sizes, product.variant)"
+          :key="size.size_id"
+          @click="selectSize(product, size)"
+          :class="[
+            'rounded-full border px-3 py-1 text-xs font-medium',
+            product.sizes.some(s => s.size_id === size.size_id && s.qty_stock > 0)
+              ? 'border-green-600 bg-green-600 text-white'
+              : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+          ]"
+        >
+          {{ size.size_id }}
+        </button> -->
+      </div>
+    </div>
+
                                 <div>
                                     <template v-if="product.discount && product.discount > 0">
                                         <p class="text-[10px] text-gray-400 line-through md:text-xs">{{ formatRupiah(product.price) }}</p>
@@ -126,6 +156,7 @@
                                     </TableCell>
                                     <TableCell class="text-xs">
                                         <div class="max-w-[140px] truncate font-semibold text-gray-900">{{ item.product_name }}</div>
+                                                                                <div class="max-w-[140px] truncate font-semibold text-gray-900">Ukuran : {{ item.size_id }}</div>
                                         <span v-if="item.discount && item.discount > 0" class="text-[10px] text-gray-400 line-through">
                                             {{ formatRupiah(item.price) }}
                                         </span>
@@ -243,13 +274,108 @@
                 </div>
             </Modal>
 
+            <!-- Product Detail Modal -->
+            <Modal :show="showDetailModal" @close="showDetailModal = false" title="Detail Produk">
+                <div v-if="selectedProduct" class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <img
+                            v-if="selectedProduct.image_path"
+                            :src="getImageUrl(selectedProduct.image_path)"
+                            alt="Gambar produk"
+                            class="h-24 w-24 rounded object-cover"
+                        />
+                        <div v-else class="flex h-24 w-24 select-none items-center justify-center rounded bg-gray-200 text-xs text-gray-400">
+                            Tidak Ada Gambar
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold">{{ selectedProduct.product_name }}</h3>
+                          
+                            
+                            <p class="text-sm text-gray-600">
+                                
+                                <span v-if="!selectedProduct.price || selectedProduct.price <= 0">
+                                    Harga Belum di Setting
+                                </span>
+                                <template v-else>
+                                    <span v-if="(selectedProduct.discount ?? 0) > 0" class="mr-2 text-gray-400 line-through">
+                                       {{ formatRupiah(selectedProduct.price) }}
+                                    </span>
+                                    <span class="font-bold block">
+                                      Harga  {{ formatRupiah(selectedProduct.price_sell || selectedProduct.price) }}
+                                    </span> 
+                                    <span v-if="(selectedProduct.discount ?? 0) > 0" class="text-green-600 text-xs">
+                                        (Diskon: {{ formatRupiah(selectedProduct.discount ?? 0) }})
+                                    </span>
+                                </template>
+                            </p>
+                           
+                        </div>
+                    </div>
+
+                        <!-- Variant -->
+                        <div v-if="selectedProduct?.variant !== 'all'" class="mb-4">
+                            <h4 class="mb-1 text-sm font-semibold text-gray-700">Variant</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="variant in uniqueVariants"
+                                    :key="variant"
+                                    @click="
+                                        () => {
+                                            selectedVariant = variant;
+                                            selectedSize = null;
+                                        }
+                                    "
+                                    :class="[
+                                        'rounded-full border px-3 py-1 text-sm font-semibold transition',
+                                        selectedVariant === variant
+                                            ? 'border-indigo-600 bg-indigo-600 text-white'
+                                            : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
+                                    ]"
+                                >
+                                    {{ variant }}
+                                </button>
+                            </div>
+
+                         
+                        </div>
+                           <!-- Size -->
+                        <div class="mb-4">
+                            <h4 class="mb-1 text-sm font-semibold text-gray-700">Pilih Ukuran</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="size in sizesForSelectedVariant"
+                                    :key="size.size_id"
+                                    @click="selectedSize = size.size_id"
+                                    
+                                    :class="[
+                                        'rounded-full border px-3 py-1 text-sm font-semibold transition',
+                                        selectedSize === size.size_id
+                                            ? 'border-green-600 bg-green-600 text-white'
+                                            : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
+                                    ]"
+                                >
+                                 <div @click="selectSize(selectedProduct, size)">  {{ size.size_id }}</div>
+                                </button>
+                                </div>
+                            <div v-if="getSelectedItemDetail" class="mb-4 text-sm text-gray-700">
+      
+                        </div>
+                        </div>
+
+                    <div class="flex justify-end gap-2">
+                        <Button variant="outline" @click="showDetailModal = false">Batal</Button>
+                        <Button @click="addToCart(selectedProduct)" :disabled="!selectedSize || (!selectedVariant && selectedProduct?.variant !== 'all')">Tambah ke Keranjang</Button>
+                    </div>
+                </div>
+            </Modal>
+
             <Modal :show="showReturnDialog" @close="closeReturnDialog" title="Retur Barang">
     <div class="space-y-2">
         <label class="block text-xs font-medium">Produk</label>
         <select v-model="returnProductId" class="w-full border rounded p-1 text-xs">
             <option value="">Pilih Produk</option>
             <option v-for="product in products" :key="product.id" :value="product.id">
-                {{ product.product_name }} (Stok: {{ product.qty_stock }})
+                {{ product.product_name }} (Stok: {{ product.qty_available }})
             </option>
         </select>
         <label class="block text-xs font-medium">Qty</label>
@@ -361,6 +487,18 @@ import CustomerDialog from '@/components/CustomerDialog.vue';
 import Modal from '@/components/Modal.vue';
 import { QrcodeStream } from 'vue-qrcode-reader';
 
+interface ProductSize {
+    size_id: string;
+    variant: string;
+    qty_stock: number;
+    qty_in_cart: number;
+    qty_available?: number;
+    price: number;
+    price_sell?: number;
+    discount?: number;
+}
+
+
 interface Product {
     id: number;
     product_id?: number;
@@ -368,11 +506,14 @@ interface Product {
     uom_id: string;
     size_id: string;
     qty_stock: number;
+    qty_available?: number;
     image_path: string;
     price: number;
     discount?: number;
     price_sell?: number;
     quantity: number;
+    sizes: ProductSize[];
+    variant: string | null;
     isReturn?: boolean;
 }
 
@@ -388,8 +529,9 @@ interface OrderItem {
     price: number;
     discount: number;
     price_sell: number;
+    variant: string;
     uom_id: string;
-    size_id: string; // Optional size ID
+    size_id: string | null; // Optional size ID
     qty_stock: number;
     image_path: string;
 }
@@ -422,6 +564,20 @@ const lastPage = ref(1);
 const discountInput = ref<number>(0);
 const selectedForDiscount = ref<number[]>([]); // Stores selected product IDs
 
+const showDetailModal = ref(false);
+const selectedProduct = ref<Product | null>(null);
+// const selectedVariant = ref<ProductVariant | null>(null);
+
+function viewProductDetail(product: Product) {
+    selectedProduct.value = product;
+    selectedVariant.value = null; // Reset selected variant
+    selectedSize.value = null; // Reset selected size
+
+    if (selectedProduct.value.variant === 'all' && selectedProduct.value.sizes && selectedProduct.value.sizes.length > 0) {
+        selectedSize.value = selectedProduct.value.sizes[0].size_id; // Automatically select the first size
+    }
+    showDetailModal.value = true;
+}
 const showPrintPreview = ref(false);
 const showCustomerDialog = ref(false);
 const selectedCustomerId = ref<number | null>(null);
@@ -441,6 +597,8 @@ const returnQty = ref<number>(1);
 const returnPrice = ref<number>(0);
 const returnError = ref('');
 const returnSuccess = ref(false);
+const selectedVariant = ref<string | null>(null);
+const selectedSize = ref<string | null>(null);
 
 const paidAmount = ref<number | null>(null);
 const changeAmount = computed(() => {
@@ -448,9 +606,50 @@ const changeAmount = computed(() => {
     return paidAmount.value - totalAmount.value > 0 ? paidAmount.value - totalAmount.value : 0;
 });
 
+
+const uniqueVariants = computed(() => {
+    if (!selectedProduct.value?.sizes) return [];
+    const variants = selectedProduct.value.sizes.map((item) => item.variant);
+    return [...new Set(variants)];
+});
+
+
+function getSizesForVariant(sizes: ProductSize[], variant: string): ProductSize[] {
+  if (!sizes) return [];
+  return sizes.filter(size => size.variant === variant);
+}
+
+
+
+function selectSize(product: Product, size: ProductSize) {
+  if (product) {
+    product.size_id = size.size_id;
+    selectedSize.value = size.size_id;
+  }
+  if (selectedProduct.value) {
+    selectedProduct.value.price = size.price;
+    selectedProduct.value.price_sell = size.price_sell;
+    
+  }
+}
+
+
+
+
+
 function applyReturn() {
     showReturnDialog.value = true;
 }
+
+const sizesForSelectedVariant = computed(() => {
+    if (!selectedProduct.value) return [];
+    if (selectedProduct.value.variant === 'all') {
+        return selectedProduct.value.sizes.map((item) => item);
+    }
+    if (!selectedVariant.value) return [];
+    return selectedProduct.value.sizes.filter((item) => item.variant === selectedVariant.value);
+});
+
 
 function closeReturnDialog() {
     showReturnDialog.value = false;
@@ -549,6 +748,14 @@ const toggleProductSelection = (productId: number) => {
         selectedForDiscount.value.splice(index, 1);
     }
 };
+const getSelectedItemDetail = computed(() => {
+    if (!selectedSize.value || !selectedProduct.value) return null;
+    if (selectedProduct.value.variant === 'all') {
+        return selectedProduct.value.sizes.find((item) => item.size_id === selectedSize.value);
+    }
+    if (!selectedVariant.value) return null;
+    return selectedProduct.value.sizes.find((item) => item.variant === selectedVariant.value && item.size_id === selectedSize.value);
+});
 
 async function fetchProducts() {
     try {
@@ -586,23 +793,54 @@ const addToCart = (product: Product) => {
         toast.error('Harga produk belum ditentukan');
         return;
     }
-    const existing = selectedProducts.value.find((item) => item.id === product.product_id);
+    
+    // Check if product has sizes
+    let currentSelectedSize: ProductSize | undefined;
+    if (product.sizes && product.sizes.length > 0) {
+        if (!selectedSize.value) {
+            toast.error('Silakan pilih ukuran terlebih dahulu');
+            return;
+        }
+        currentSelectedSize = product.sizes.find(s => s.size_id === selectedSize.value && (selectedVariant.value === null || s.variant === selectedVariant.value));
+        if (!currentSelectedSize || currentSelectedSize.qty_stock <= 0) {
+            toast.error('Stok ukuran ini tidak tersedia');
+            return;
+        }
+    }
+    
+    const itemToAdd = {
+        id: product.product_id || product.id,
+        product_name: product.product_name,
+        uom_id: product.uom_id,
+        size_id: currentSelectedSize ? currentSelectedSize.size_id : '',
+        qty_stock: product.qty_stock,
+        image_path: product.image_path,
+        price: product.price,
+        discount: product.discount,
+        price_sell: product.price_sell,
+        quantity: 1,
+        variant: currentSelectedSize ? currentSelectedSize.variant : product.variant, // Include variants data
+        sizes: currentSelectedSize ? [{
+             size_id: currentSelectedSize.size_id,
+             variant: currentSelectedSize.variant || 'all',
+             qty_stock: currentSelectedSize.qty_stock,
+             qty_in_cart: 1,
+             qty_available: currentSelectedSize.qty_stock - 1,
+             price: currentSelectedSize.price_sell || product.price,
+             price_sell: currentSelectedSize.price_sell || product.price_sell,
+             discount: currentSelectedSize.discount,
+         }] : [], // Add the selected size as a SizeVariant array
+    
+    };
+
+    const existing = selectedProducts.value.find((item) => item.id === itemToAdd.id && item.size_id === itemToAdd.size_id && item.variant === itemToAdd.variant);
     if (existing) {
         existing.quantity++;
     } else {
-        selectedProducts.value.push({
-            id: product.product_id || product.id,
-            product_name: product.product_name,
-            uom_id: product.uom_id,
-            size_id: product.size_id || '',
-            qty_stock: product.qty_stock,
-            image_path: product.image_path,
-            price: product.price,
-            discount: product.discount,
-            price_sell: product.price_sell,
-            quantity: 1,
-        });
+        selectedProducts.value.push(itemToAdd);
     }
+
+    showDetailModal.value = false; // Close the modal after adding to cart
     nextTick(() => {
         if (orderList.value) orderList.value.scrollTop = orderList.value.scrollHeight;
     });
@@ -739,11 +977,12 @@ async function placeOrder() {
                 quantity: p.quantity,
                 price: p.price,
                 uom_id: p.uom_id,
-                size_id: p.size_id || 'PCS', 
-                qty_stock: 0,
-                image_path: '',
+                size_id: p.size_id || null, // Ensure size_id is passed, can be null
+                qty_stock: 0, // This will be calculated on backend
+                image_path: '', // Not needed for order payload
                 discount,
                 price_sell: p.price_sell ?? p.price - discount,
+                variant: p.variant || 'all',
             };
         });
 
@@ -824,6 +1063,8 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
             price_sell: item.price_sell,
             discount: item.discount,
             quantity: item.quantity ?? 1,
+            variant: item.variant || 'all',
+            sizes: item.size_id ? [{ size_id: item.size_id, variant: item.variant || 'all', qty_stock: item.qty_stock, qty_in_cart: item.quantity ?? 1, qty_available: item.qty_stock, price: item.price, price_sell: item.price_sell, discount: item.discount }] : [],
         }));
 
         console.log('Produk dalam pesanan:', products);

@@ -126,8 +126,8 @@
 
     <p>
         Untuk mengubah status pesanan:
-        <a href="{{ config('app.url') }}/api/orders/{{ $order->id }}/status/approved">Approve</a> |
-        <a href="{{ config('app.url') }}/api/orders/{{ $order->id }}/status/rejected">Reject</a>
+       <a href="{{ route('order.approve', ['order' => $order->id]) }}">Approve</a> |
+        <a href="{{ route('order.reject', ['order' => $order->id]) }}">Reject</a>
     </p>
 </body>
 

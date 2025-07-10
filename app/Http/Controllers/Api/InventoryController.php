@@ -106,11 +106,15 @@ class InventoryController extends Controller
                     ])
                     ->where('a.product_id', $item->product_id)
                     ->where('b.size_id', $item->size_id)
-                    ->where('a.variant', $item->variant)
                     ->whereDate('a.effective_date', '<=', $today)
                     ->where(function ($query) use ($today) {
                         $query->whereNull('a.end_date')
                             ->orWhereDate('a.end_date', '>=', $today);
+                    })
+                    ->where(function ($query) use ($item) {
+                        $query->whereNull('a.variant')
+                            ->orWhere('a.variant', $item->variant)
+                            ->orWhere('a.variant', 'all');
                     })
                     ->where('a.is_active', 1)
                     ->where('b.price_type_id', $price_type_id)
@@ -140,9 +144,9 @@ class InventoryController extends Controller
                 'product_description' => $firstItem->product_description,
                 'category_name' => $firstItem->category_name,
                 'qty_available' => $firstItem->qty,
-                'price' => $price ? floatval($price->price) : null,
-                'price_sell' => $price ? floatval($price->price_sell) : null,
-                'discount' => $price ? floatval($price->discount) : null,
+                'price' => isset($sizes[0]['price']) ? floatval($sizes[0]['price']) : null,
+                'price_sell' => isset($sizes[0]['price_sell']) ? floatval($sizes[0]['price_sell']) : null,
+                'discount' => isset($sizes[0]['discount']) ? floatval($sizes[0]['discount']) : null,
                 'image_path' => $imageGallery->isNotEmpty() ? ($imageGallery->first()->path ?? "not_available.png") : "not_available.png",
                 'gallery_images' => $imageGallery,
                 'sizes' => $sizes,
@@ -166,7 +170,11 @@ class InventoryController extends Controller
     {
         $perPage = $request->input('perPage', 10);
         $page = $request->input('page', 1);
-        $search = $request->input('productName', '');
+
+        $locationParam = $request->input('location');
+        $sloc = $request->input('sloc');
+        $product = $request->input('product');
+
 
         $bindings = [];
         $location = Auth::user()->location_id ?? null;
@@ -174,13 +182,22 @@ class InventoryController extends Controller
         $where .= " AND a.location_id = ?";
         $bindings[] = $location;
 
-        if ($search) {
-            $search = '%' . $search . '%';
-            $where .= " AND (b.name LIKE ? OR a.product_id LIKE ? OR d.name LIKE ? OR c.name LIKE ?)";
-            $bindings[] = $search;
-            $bindings[] = $search;
-            $bindings[] = $search;
-            $bindings[] = $search;
+        if ($locationParam) {
+            $where .= " AND a.location_id = ?";
+            $bindings[] = $locationParam;
+        } else {
+            $where .= " AND a.location_id = ?";
+            $bindings[] = $location; // dari Auth::user()
+        }
+
+        if ($sloc) {
+            $where .= " AND a.sloc_id = ?";
+            $bindings[] = $sloc;
+        }
+
+        if ($product) {
+            $where .= " AND a.product_id = ?";
+            $bindings[] = $product;
         }
 
 
@@ -204,11 +221,16 @@ class InventoryController extends Controller
         LEFT JOIN mst_location d ON a.location_id = d.id
         LEFT JOIN (
             SELECT 
-                product_id, location_id, uom_id, sloc_id, size_id, 
+                product_id,
+                location_id,
+                uom_id,
+                sloc_id,
+                size_id,
+                variant,
                 SUM(qty) AS qty_in
             FROM tr_inventory
             WHERE status = 'IN'
-            GROUP BY product_id, location_id, uom_id, sloc_id, size_id
+            GROUP BY product_id, location_id, uom_id, sloc_id, size_id, variant
         ) qty_in_data
             ON a.product_id = qty_in_data.product_id
             AND a.location_id = qty_in_data.location_id
@@ -217,12 +239,19 @@ class InventoryController extends Controller
             AND a.size_id = qty_in_data.size_id
             AND a.variant = qty_in_data.variant
         LEFT JOIN (
-            SELECT a.location_id, a.sloc_id, b.product_id, b.uom_id, b.size_id, b.variant, SUM(b.qty) AS qty_out FROM tr_transfer_stock a
-                JOIN tr_transfer_stock_detail b
+            SELECT 
+                a.location_id, 
+                a.sloc_id, 
+                b.product_id, 
+                b.uom_id, 
+                b.size_id, 
+                b.variant, 
+                SUM(b.qty) AS qty_out
+            FROM tr_transfer_stock a
+            JOIN tr_transfer_stock_detail b
                 ON a.id = b.transfer_id
-                WHERE a.`status` = 'Pending'
-                GROUP BY b.product_id, a.location_id, b.uom_id, a.sloc_id, b.size_id, b.variant
-
+            WHERE a.status = 'Pending'
+            GROUP BY b.product_id, a.location_id, b.uom_id, a.sloc_id, b.size_id, b.variant
         ) qty_out_data
             ON a.product_id = qty_out_data.product_id
             AND a.location_id = qty_out_data.location_id
@@ -230,28 +259,28 @@ class InventoryController extends Controller
             AND a.sloc_id = qty_out_data.sloc_id
             AND a.size_id = qty_out_data.size_id
             AND a.variant = qty_out_data.variant
-
         $where
-       GROUP BY 
-        a.product_id,
-        b.name,
-        a.location_id,
-        d.name,
-        a.uom_id,
-        a.sloc_id,
-        a.variant,
-        c.name,
-        a.size_id,
-        qty_in_data.qty_in,
-        qty_out_data.qty_out";
+        GROUP BY 
+            a.product_id,
+            b.name,
+            a.location_id,
+            d.name,
+            a.uom_id,
+            a.sloc_id,
+            a.variant,
+            c.name,
+            a.size_id,
+            qty_in_data.qty_in,
+            qty_out_data.qty_out
+    ";
 
-        // Execute the query
+        // Jalankan query
         $results = DB::select($sql, $bindings);
 
-        // Convert to collection
+        // Buat koleksi
         $collection = collect($results);
 
-        // Manual pagination
+        // Pagination manual
         $paginated = new LengthAwarePaginator(
             $collection->forPage($page, $perPage),
             $collection->count(),
@@ -262,6 +291,7 @@ class InventoryController extends Controller
 
         return response()->json($paginated);
     }
+
 
 
     /**
