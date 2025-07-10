@@ -32,16 +32,23 @@ class CartItemController extends Controller
                 'product_id' => 'required|exists:mst_product,id',
                 'size_id' => 'required',
                 'uom_id' => 'required',
+                'location_id' => 'required',
+                'variant' => 'required',
                 'price' => 'required',
                 'discount' => 'numeric',
                 'quantity' => 'required|numeric',
             ]);
 
             $location_id = Auth::user()->location_id;
-            $validated['location_id'] = $location_id;
+            $validated['location_id'] = $validated['location_id'] ? $validated['location_id'] : $validated['location_id'] ?? $location_id;
             $validated['sloc_id'] = 'GS00';
             // Check if the product already exists in the cart
             $cartItem = CartItem::where('product_id', $validated['product_id'])
+                ->where('size_id', $validated['size_id'])
+                ->where('sloc_id', $validated['sloc_id'])
+                ->where('variant', $validated['variant'])
+                ->where('uom_id', $validated['uom_id'])
+                ->where('location_id', $validated['location_id'])
                 ->where('created_by', Auth::id())
                 ->first();
 
@@ -83,6 +90,9 @@ class CartItemController extends Controller
                     'product_id' => $validated['product_id'],
                     'quantity' => $validated['quantity'],
                     'size_id' => $validated['size_id'],
+                    'location_id' => $validated['location_id'],
+                    'variant' => $validated['variant'],
+                    'sloc_id' => $validated['sloc_id'],
                     'uom_id' => $validated['uom_id'],
                     'price' => $validated['price'],
                     'discount' => $validated['discount'],

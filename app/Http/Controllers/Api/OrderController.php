@@ -249,38 +249,39 @@ class OrderController extends Controller
 
             $calculatedTotalAmount += ($priceAfterDiscountPerItem * $quantity);
 
-            $status = "IN";
-            if ($paymentMethod == "bank_transfer") {
-                $status = "OUT";
-            }
+            // ganti ke inventory_booking
+            // $status = "IN";
+            // if ($paymentMethod == "bank_transfer") {
+            //     $status = "OUT";
+            // }
             // langsung update inventory
-            $inventory = Inventory::where('product_id', $itemData['product_id'])
-                ->where('location_id', $locationId)
-                ->where('uom_id', $itemData['uom_id'])
-                ->where('sloc_id', 'GS00')
-                ->where('size_id', $itemData['size_id'])
-                ->where('status', $status)
-                ->first();
-            $qty = $inventory ? $inventory->qty : 0;
-            $qty_rese = $inventory ? $inventory->qty_reserved : 0;
+            // $inventory = Inventory::where('product_id', $itemData['product_id'])
+            //     ->where('location_id', $locationId)
+            //     ->where('uom_id', $itemData['uom_id'])
+            //     ->where('sloc_id', 'GS00')
+            //     ->where('size_id', $itemData['size_id'])
+            //     ->where('status', $status)
+            //     ->first();
+            // $qty = $inventory ? $inventory->qty : 0;
+            // $qty_rese = $inventory ? $inventory->qty_reserved : 0;
 
-            $qty_reserved = intval($qty_rese + $quantity);
-            if ($paymentMethod == "bank_transfer") {
-                $qty = $quantity;
-                $qty_reserved = 0;
-            }
+            // $qty_reserved = intval($qty_rese + $quantity);
+            // if ($paymentMethod == "bank_transfer") {
+            //     $qty = $quantity;
+            //     $qty_reserved = 0;
+            // }
 
             // update stock
-            app(InventoryService::class)->updateOrCreateInventory([
-                'product_id' => $itemData['product_id'],
-                'location_id' => $locationId,
-                'uom_id' => $itemData['uom_id'],
-                'sloc_id' => 'GS00',
-            ], [
-                'size_id' => $itemData['size_id'],
-                'qty' => $qty, // Reduce stock from source location
-                'qty_reserved' => $qty_reserved, // Reduce stock from source location
-            ], $status);
+            // app(InventoryService::class)->updateOrCreateInventory([
+            //     'product_id' => $itemData['product_id'],
+            //     'location_id' => $locationId,
+            //     'uom_id' => $itemData['uom_id'],
+            //     'sloc_id' => 'GS00',
+            // ], [
+            //     'size_id' => $itemData['size_id'],
+            //     'qty' => $qty, // Reduce stock from source location
+            //     'qty_reserved' => $qty_reserved, // Reduce stock from source location
+            // ], $status);
         }
         return $calculatedTotalAmount;
     }
@@ -367,39 +368,42 @@ class OrderController extends Controller
             $order->updated_by = Auth::id();
             $order->save();
 
+            // ganti ke inventory_booking
+            // tinggal delete saja
+
             // Kembalikan stok dari setiap item dalam pesanan
-            foreach ($order->orderItems as $item) {
-                // langsung update inventory
-                $inventory = Inventory::where('product_id', $item->product_id)
-                    ->where('location_id', $locationId)
-                    ->where('uom_id', $item->uom_id)
-                    ->where('sloc_id', 'GS00')
-                    ->where('size_id', $item->size_id)
-                    ->first();
-                $qty = $inventory ? $inventory->qty : 0;
-                $qty_rese = $inventory ? $inventory->qty_reserved : 0;
-                $quantity = $item['qty'] ?? 0;
+            // foreach ($order->orderItems as $item) {
+            //     // langsung update inventory
+            //     $inventory = Inventory::where('product_id', $item->product_id)
+            //         ->where('location_id', $locationId)
+            //         ->where('uom_id', $item->uom_id)
+            //         ->where('sloc_id', 'GS00')
+            //         ->where('size_id', $item->size_id)
+            //         ->first();
+            //     $qty = $inventory ? $inventory->qty : 0;
+            //     $qty_rese = $inventory ? $inventory->qty_reserved : 0;
+            //     $quantity = $item['qty'] ?? 0;
 
-                $status = "IN";
-                $qty_reserved = intval($qty_rese + $quantity);
-                if ($order['payment_method'] == "bank_transfer") {
-                    $status = "OUT";
-                    $qty = $quantity;
-                    $qty_reserved = 0;
-                }
+            //     $status = "IN";
+            //     $qty_reserved = intval($qty_rese + $quantity);
+            //     if ($order['payment_method'] == "bank_transfer") {
+            //         $status = "OUT";
+            //         $qty = $quantity;
+            //         $qty_reserved = 0;
+            //     }
 
-                // update stock
-                app(InventoryService::class)->updateOrCreateInventory([
-                    'product_id' => $item->product_id,
-                    'location_id' => $locationId,
-                    'uom_id' => $item->uom_id,
-                    'sloc_id' => 'GS00',
-                ], [
-                    'size_id' => $item->size_id,
-                    'qty' => $qty, // Reduce stock from source location
-                    'qty_reserved' => $qty_reserved, // Reduce stock from source location
-                ], $status);
-            }
+            //     // update stock
+            //     app(InventoryService::class)->updateOrCreateInventory([
+            //         'product_id' => $item->product_id,
+            //         'location_id' => $locationId,
+            //         'uom_id' => $item->uom_id,
+            //         'sloc_id' => 'GS00',
+            //     ], [
+            //         'size_id' => $item->size_id,
+            //         'qty' => $qty, // Reduce stock from source location
+            //         'qty_reserved' => $qty_reserved, // Reduce stock from source location
+            //     ], $status);
+            // }
 
             DB::commit();
 

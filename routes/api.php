@@ -42,8 +42,9 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
 Route::get('api/orders/{order}/status/approved', [OrderController::class, 'approve']);
 Route::get('api/orders/{order}/status/rejected', [OrderController::class, 'reject']);
-Route::post('/order/reject', [OrderController::class, 'reject']);
-Route::post('/order/{order}/upload-payment-proof', [OrderController::class, 'uploadPaymentProof']);
+Route::post('api/orders/{order}/reject', [OrderController::class, 'reject']);
+
+Route::post('api/orders/{order}/upload-payment-proof', [OrderController::class, 'uploadPaymentProof']);
 
 Route::middleware('auth')->group(function () {
     Route::get('api/orders/request', [OrderController::class, 'index']);

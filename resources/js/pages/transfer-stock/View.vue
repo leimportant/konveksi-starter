@@ -19,10 +19,10 @@ const store = useTransferStockStore();
 const toast = useToast();
 const { acceptTransfer, rejectTransfer, loading } = useTransferActions(); // Use the composable
 
-const getProductName = (product_id: number | null) => {
-  const prod = store.products.find(p => p.id === product_id)
-  return prod ? prod.name : ''
-}
+// const getProductName = (product_id: number | null) => {
+//   const prod = store.products.find(p => p.id === product_id)
+//   return prod ? prod.name : ''
+// }
 
 onMounted(async () => {
   try {
@@ -77,7 +77,7 @@ onMounted(async () => {
             </TableHeader>
             <TableBody>
               <TableRow v-for="item in store.transfer.transfer_detail" :key="item.id">
-                <TableCell>{{ getProductName(item.product_id) }}</TableCell>
+                <TableCell> {{item.product?.name}}</TableCell>
                 <TableCell>{{ item.size_id }}</TableCell>
                 <TableCell>{{ item.uom_id }}</TableCell>
                 <TableCell class="text-right">{{ item.qty }}</TableCell>

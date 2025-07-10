@@ -26,6 +26,9 @@ interface CartItem {
   price_grosir?: number;
   discount_grosir?: number;
   size_id?: string;
+  variant?: string;
+  sloc_id?: string;
+  location_id?: number;
   uom_id?: string;
   created_by: number;
   updated_by?: number;
@@ -73,15 +76,16 @@ export const useCartStore = defineStore('cart', {
         this.loading = false
       }
     },
-    
-
-    async addToCart(productId: number, quantity: number, sizeId: string, uomId: string, price: number, discount: number, price_sell: number) {
+    async addToCart(productId: number, quantity: number, sizeId: string, uomId: string, price: number, discount: number, price_sell: number, location_id: number, variant: string, sloc_id: string) {
       this.loading = true
       try {
         const response = await axios.post('/api/cart-items/add', {
           product_id: productId,
           quantity: quantity,
           price: price,
+          location_id: location_id,
+          variant: variant,
+          sloc_id: sloc_id,
           discount: discount,
           price_sell: price_sell, // Assuming price_sell is the same as price for now
           size_id: sizeId,
