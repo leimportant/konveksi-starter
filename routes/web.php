@@ -13,20 +13,50 @@ Route::get('/', function () {
 /**
  * Untuk user yang sudah login
  */
+
+ Route::get('/', function () {
+    $user = Auth::user();
+
+    if ($user->employee_status === 'customer') {
+        return Inertia::render('Home/Cart', [
+            'customers' => Customer::all(['id', 'name']),
+        ]);
+    }
+
+    if ($user->employee_status === 'staff') {
+        return Inertia::render('Home/Staff', [
+        ]);
+    }
+
+    // Default fallback jika status tidak dikenali
+    abort(403, 'Unauthorized');
+})->middleware(['auth'])->name('home');
+
 Route::get('/home', function () {
-    return Inertia::render('Home/Cart', [
-        'customers' => Customer::all(['id', 'name']),
-    ]);
-})->middleware(['auth', 'verified'])->name('home.cart');
+    $user = Auth::user();
+
+    if ($user->employee_status === 'customer') {
+        return Inertia::render('Home/Cart', [
+            'customers' => Customer::all(['id', 'name']),
+        ]);
+    }
+
+    if ($user->employee_status === 'staff') {
+        return Inertia::render('Home/Staff', [
+        ]);
+    }
+
+    // Default fallback jika status tidak dikenali
+    abort(403, 'Unauthorized');
+})->middleware(['auth', 'verified'])->name('home');
 
 Route::get('/welcome', function () {
         return Inertia::render('Welcome');
-    
 });
 
-Route::get('/home', function () {
-    return Inertia::render('Home/Cart');
-})->middleware(['auth', 'verified'])->name('home.cart');
+// Route::get('/home', function () {
+//     return Inertia::render('Home/Cart');
+// })->middleware(['auth', 'verified'])->name('home.cart');
 
 // message route
 Route::get('/messages', function () {
@@ -78,9 +108,9 @@ Route::get('/customers', function () {
     return Inertia::render('customer/Index');
 })->middleware(['auth'])->name('customer.getIndex');
 
-Route::get('/home', function () {
-    return Inertia::render('home/Cart');
-})->middleware(['auth'])->name('home.cart');
+// Route::get('/home', function () {
+//     return Inertia::render('home/Cart');
+// })->middleware(['auth'])->name('home.cart');
 
 Route::get('/price-types', function () {
     return Inertia::render('price-type/Index');
@@ -108,15 +138,15 @@ Route::get('/notification', function () {
     return Inertia::render('notification/notification');
 })->middleware(['auth'])->name('notification');
 
-Route::get('/cash-balance', function () {
+Route::get('/cash-balances', function () {
     return Inertia::render('cash-balance/Index');
-})->middleware(['auth'])->name('cash-balance.getIndex');
+})->middleware(['auth'])->name('cash-balance.index');
 
-Route::get('/cash-balance/open-shift', function () {
+Route::get('/cash-balances/open-shift', function () {
     return Inertia::render('cash-balance/OpenShift');
 })->middleware(['auth'])->name('cash-balance.openshift');
 
-Route::get('/cash-balance/closing', function () {
+Route::get('/cash-balances/closing', function () {
     return Inertia::render('cash-balance/Closing');
 })->middleware(['auth'])->name('cash-balance.closing');
 
@@ -225,9 +255,17 @@ Route::get('/production/{activity_role}', function ($activity_role) {
     ]);
 })->middleware(['auth'])->name('production.getIndex');
 
-Route::get('/order/approve', function () {
-    return Inertia::render('order/Approve');
+Route::get('/order/{order}/approve', function ($order) {
+    return Inertia::render('order/Approve', [
+        'order' => $order,
+    ]);
 })->name('order.approve');
+
+Route::get('/order/{order}/reject', function ($order) {
+    return Inertia::render('order/Reject', [
+        'order' => $order,
+    ]);
+})->name('order.reject');
 
 // list order untuk admin
 Route::get('/order-request', function () {

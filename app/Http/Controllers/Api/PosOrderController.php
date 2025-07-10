@@ -70,7 +70,7 @@ class PosOrderController extends Controller
                 'payment_method' => $paymentMethod,
                 'customer_id' => $customerId ?: 0, // ensure null if not set
                 'status' => 'completed',
-                'notes' => null,
+                'notes' => 'OFFLINE-TOKO',
                 'created_by' => $userId,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),

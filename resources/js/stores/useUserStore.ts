@@ -6,9 +6,10 @@ interface User {
   name: string;
   email: string;
   phone_number: string;
-  location_id?: string;
+  employee_status?: string;
+  location_id?: number | null;
   location?: Location;
-  role?: string;
+  roles?: Role[];
   active: boolean;
 }
 
@@ -17,12 +18,17 @@ interface Location {
   name: string;
 }
 
+interface Role {
+  id: number;
+  name: string;
+}
+
 interface UserForm {
   name: string;
   email: string;
   phone_number?: string;
-  location_id?: string;
-  role: string;
+  location_id?: number | null;
+  role?: number | null;
   active: boolean;
 }
 

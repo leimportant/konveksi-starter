@@ -22,7 +22,6 @@ class InventoryService
             'sloc_id' => $validated['sloc_id'],
             'size_id' => $sizeId,
             'qty' => $item['qty'],
-            'qty_reserved' => $item['qty_reserved'] ?? 0,
             'status' => $status,
             'created_by' => Auth::id(),
             'updated_by' => Auth::id()
@@ -39,7 +38,6 @@ class InventoryService
             ->first();
 
             if ($inventory) {
-                $qty_reserved = $item['qty_reserved'] ?? 0;
                 Inventory::where('product_id', $data['product_id'])
                 ->where('location_id', $data['location_id'])
                 ->where('uom_id', $data['uom_id'])
@@ -48,7 +46,6 @@ class InventoryService
                 ->where('status', $status)
                 ->update([
                     'qty' => $inventory['qty'] + $data['qty'],
-                    'qty_reserved' => $inventory['qty_reserved'] + $qty_reserved,
                     'status' => $status,
                     'updated_by' => Auth::id()
                 ]);
@@ -70,7 +67,6 @@ class InventoryService
             'sloc_id' => $validated['sloc_id'],
             'size_id' => $sizeId,
             'qty' => $item['qty'],
-            'qty_reserved' => $item['qty_reserved'] ?? 0,
             'status' => $status,
             'created_by' => Auth::id(),
             'updated_by' => Auth::id()
@@ -86,7 +82,6 @@ class InventoryService
             ->first();
 
             if ($inventory) {
-                $qty_reserved = $item['qty_reserved'] ?? 0;
                 Inventory::where('product_id', $data['product_id'])
                 ->where('location_id', $data['location_id'])
                 ->where('uom_id', $data['uom_id'])

@@ -98,12 +98,12 @@ class LocationController extends Controller
     }
 
     
-    public function getLocations(Request $request)
+    public function getLocations()
     {
         $user = Auth::user();
         $locationId = $user ? $user->location_id : null;
 
-        $query = $locationId ? Location::where('id', $locationId)->first() : null;
+        $query = $locationId ? Location::find($locationId) : null;
 
         return response()->json($query);
     }

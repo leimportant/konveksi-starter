@@ -11,7 +11,7 @@ class Inventory extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'tr_inventory';
-    protected $primaryKey = ['product_id', 'location_id', 'uom_id', 'sloc_id', 'status'];
+    protected $primaryKey = ['product_id', 'location_id', 'uom_id', 'sloc_id', 'status', 'variant'];
     public $incrementing = false;
     protected $keyType = 'string';
     protected $fillable = [
@@ -20,9 +20,9 @@ class Inventory extends Model
         'uom_id',
         'sloc_id',
         'size_id',
+        'variant',
         'qty',
         'status',
-        'qty_reserved',
         'created_by',
         'updated_by',
         'deleted_by'

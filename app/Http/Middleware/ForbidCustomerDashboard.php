@@ -12,7 +12,7 @@ class ForbidCustomerDashboard
     {
         if (Auth::check() && Auth::user()->employee_status === 'customer') {
             // Redirect ke halaman lain, misal home
-            return redirect()->route('home.cart');
+            return redirect()->route('home');
         }
         return $next($request);
     }

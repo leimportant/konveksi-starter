@@ -7,6 +7,7 @@ declare module '@inertiajs/core' {
         phone_number: string
         address: string
         email: string
+        location_id: number | null
       } | null
     }
   }

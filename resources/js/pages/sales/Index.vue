@@ -14,7 +14,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const handleClosing = () => {
-  router.visit(`/closing`);
+  router.visit(`/cash-balances/closing`);
 };
 const handlePOS = () => {
   router.visit(`/pos`);

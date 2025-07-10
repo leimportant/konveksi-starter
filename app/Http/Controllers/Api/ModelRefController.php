@@ -201,6 +201,7 @@ class ModelRefController extends Controller
             foreach ($request->sizes as $size) {
                 $model->sizes()->create([
                     'size_id' => $size['size_id'],
+                    'variant' => $size['variant'],
                     'qty' => $size['qty'],
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id()

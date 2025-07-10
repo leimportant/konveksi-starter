@@ -30,57 +30,36 @@ class TransferStockController extends Controller
     {
         try {
 
-        $validated = $request->validate([
-            'location_id' => 'required|exists:mst_location,id',
-            'location_destination_id' => 'required|exists:mst_location,id',
-            'sloc_id' => 'required|exists:mst_sloc,id',
-            'transfer_detail' => 'required|array',
-            'transfer_detail.*.uom_id' => 'required|exists:mst_uom,id',
-            'transfer_detail.*.size_id' => 'required|exists:mst_size,id',
-            'transfer_detail.*.product_id' => 'required|exists:mst_product,id',
-            'transfer_detail.*.qty' => 'required|numeric|min:0.01',
-        ]);
-
-        $validated['id'] = uniqid('transfer_');
-        $validated['status'] = 'Pending'; // Default status
-        $validated['transfer_date'] = now();
-        $validated['deleted_by'] = null; // Soft delete field
-        $validated['created_by'] = Auth::id();
-        $validated['updated_by'] = Auth::id();
-
-        $data = TransferStock::create($validated);
-
-        foreach ($validated['transfer_detail'] as $detail) {
-            TransferStockDetail::create([
-                'transfer_id' => $data->id,
-                'uom_id' => $detail['uom_id'],
-                'size_id' => $detail['size_id'],
-                'product_id' => $detail['product_id'],
-                'qty' => $detail['qty'],
+            $validated = $request->validate([
+                'location_id' => 'required|exists:mst_location,id',
+                'location_destination_id' => 'required|exists:mst_location,id',
+                'sloc_id' => 'required|exists:mst_sloc,id',
+                'transfer_detail' => 'required|array',
+                'transfer_detail.*.uom_id' => 'required|exists:mst_uom,id',
+                'transfer_detail.*.size_id' => 'required|exists:mst_size,id',
+                'transfer_detail.*.product_id' => 'required|exists:mst_product,id',
+                'transfer_detail.*.qty' => 'required|numeric|min:0.01',
             ]);
 
-            $inventory = Inventory::where('product_id', $detail['product_id'])
-            ->where('location_id', $validated['location_id'])
-            ->where('uom_id', $detail['uom_id'])
-            ->where('sloc_id', $validated['sloc_id'])
-            ->where('size_id', $detail['size_id'])
-            ->first();
-            $qty = $inventory ? $inventory->qty : 0;
-            $qty_reserved = $inventory ? $inventory->qty_reserved : 0;
-            // update inventory for the transfer
-            app(InventoryService::class)->updateOrCreateInventory([
-                'product_id' => $detail['product_id'],
-                'location_id' => $validated['location_id'],
-                'uom_id' => $detail['uom_id'],
-                'sloc_id' => $validated['sloc_id'],
-            ], [
-                'size_id' => $detail['size_id'],
-                'qty' => $qty, // Reduce stock from source location
-                'qty_reserved' => $detail['qty'] +  $qty_reserved, // Reduce stock from source location
-            ], 'IN');
-           
-        }
-        DB::commit();
+            $validated['id'] = uniqid('transfer_');
+            $validated['status'] = 'Pending'; // Default status
+            $validated['transfer_date'] = now();
+            $validated['deleted_by'] = null; // Soft delete field
+            $validated['created_by'] = Auth::id();
+            $validated['updated_by'] = Auth::id();
+
+            $data = TransferStock::create($validated);
+
+            foreach ($validated['transfer_detail'] as $detail) {
+                TransferStockDetail::create([
+                    'transfer_id' => $data->id,
+                    'uom_id' => $detail['uom_id'],
+                    'size_id' => $detail['size_id'],
+                    'product_id' => $detail['product_id'],
+                    'qty' => $detail['qty'],
+                ]);
+            }
+            DB::commit();
         } catch (\Exception $e) {
             Log::error('Store transfer error: ' . $e->getMessage());
             return response()->json(['message' => 'Gagal membuat transfer'], 500);
@@ -92,7 +71,7 @@ class TransferStockController extends Controller
     public function show($id)
     {
 
-        $transfer = TransferStock::with(['location', 'location_destination', 'sloc', 'transfer_detail'])
+        $transfer = TransferStock::with(['location', 'location_destination', 'sloc', 'transfer_detail.product'])
             ->where('id', $id)
             ->firstOrFail();
 
@@ -100,7 +79,7 @@ class TransferStockController extends Controller
             return response()->json(['message' => 'Transfer tidak ditemukan'], 404);
         }
 
-        return response()->json($transfer->load(['location', 'location_destination', 'transfer_detail']));
+        return response()->json($transfer->load(['location', 'location_destination', 'transfer_detail.product']));
     }
 
     public function update(Request $request, TransferStock $transfer)
@@ -166,92 +145,61 @@ class TransferStockController extends Controller
         return response()->json(['message' => 'Transfer berhasil dihapus']);
     }
 
-
-
     public function accept($id)
     {
         try {
-            $transfer = TransferStock::with('details')->where('id', $id)->firstOrFail();
+            if (!Auth::check()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            $transfer = TransferStock::with('transfer_detail')->where('id', $id)->firstOrFail();
 
             if ($transfer->status !== 'Pending') {
                 return response()->json(['error' => 'Transfer sudah diproses'], 400);
             }
+
+            DB::beginTransaction();
+
             $transfer->status = 'Accepted';
             $transfer->updated_by = Auth::id();
             $transfer->save();
 
-            foreach ($transfer->details as $detail) {
-                     // ====== INVENTORY - OUT (lokasi asal)
+            foreach ($transfer->transfer_detail as $detail) {
+                $qty = $detail['qty'] ?? 0;
+
+                // 🔻 Kurangi stok dari lokasi asal
                 app(InventoryService::class)->updateOrCreateInventory([
                     'product_id' => $detail['product_id'],
-                    'location_id' => $transfer->location_id,
+                    'location_id' => $transfer['location_id'], // lokasi asal
                     'uom_id' => $detail['uom_id'],
-                    'sloc_id' => $transfer->sloc_id,
+                    'sloc_id' => $transfer['sloc_id'],
                 ], [
                     'size_id' => $detail['size_id'],
-                    'qty' => $detail['qty'],
-                    'qty_reserved' => 0,
+                    'qty' => $qty,
                 ], 'OUT');
 
-                // ====== INVENTORY - IN (lokasi tujuan)
+                // 🔺 Tambah stok ke lokasi tujuan
                 app(InventoryService::class)->updateOrCreateInventory([
                     'product_id' => $detail['product_id'],
-                    'location_id' => $transfer->location_destination_id,
+                    'location_id' => $transfer['location_destination_id'], // lokasi tujuan
                     'uom_id' => $detail['uom_id'],
-                    'sloc_id' => $transfer->sloc_id,
+                    'sloc_id' => $transfer['sloc_id'],
                 ], [
                     'size_id' => $detail['size_id'],
-                    'qty' => $detail['qty'],
-                     'qty_reserved' => 0,
+                    'qty' => $qty,
                 ], 'IN');
-             }
+            }
 
-            $user = $transfer->creator();
-
-            // if ($user && $user->pushSubscription) {
-            //     $payload = json_encode([
-            //         'title' => 'Transfer Diterima',
-            //         'body' => "Transfer dengan ID {$transfer->id} telah diterima",
-            //         'icon' => '/icon.png',
-            //         'badge' => '/badge.png',
-            //         'data' => [
-            //             'url' => route('transfer-stock.view', $transfer->id)
-            //         ]
-            //     ]);
-
-            //     $webPush = new \Minishlink\WebPush\WebPush([
-            //         'VAPID' => [
-            //             'subject' => config('app.url'),
-            //             'publicKey' => config('webpush.vapid.public_key'),
-            //             'privateKey' => config('webpush.vapid.private_key'),
-            //         ]
-            //     ]);
-
-                // $subscription = \Minishlink\WebPush\Subscription::create([
-                //     'endpoint' => $user->pushSubscription->endpoint,
-                //     'keys' => [
-                //         'p256dh' => $user->pushSubscription->p256dh_key,
-                //         'auth' => $user->pushSubscription->auth_token
-                //     ]
-                // ]);
-
-                // $webPush->queueNotification($subscription, $payload);
-
-                // Kirim semua notifikasi yg ada di queue
-                // foreach ($webPush->flush() as $report) {
-                //     if (!$report->isSuccess()) {
-                //         Log::error('Push failed: ' . $report->getReason());
-                //     }
-                // }
-
-            // }
+            DB::commit();
 
             return response()->json(['message' => 'Transfer diterima']);
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Accept transfer error: ' . $e->getMessage());
             return response()->json(['message' => 'Gagal menerima transfer'], 500);
         }
     }
+
 
     public function reject($id)
     {
