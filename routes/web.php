@@ -30,7 +30,7 @@ Route::get('/', function () {
 
     // Default fallback jika status tidak dikenali
     abort(403, 'Unauthorized');
-})->middleware(['auth'])->name('home.root');
+})->middleware(['auth'])->name('home');
 
 Route::get('/home', function () {
     $user = Auth::user();
@@ -69,7 +69,7 @@ Route::get('/checkout', function () {
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified', 'forbid.customer.dashboard'])->name('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/shopping', function () {
     return Inertia::render('sales/Shopping');
@@ -198,23 +198,8 @@ Route::get('/stock-opnames/create', function () {
 
 Route::get('/stock-opnames/{id}/view', function ($id) {
     return Inertia::render('stock-opnames/View', [
+        'id' => (string) $id,
     ]);
-})->middleware(['auth'])->name('stock-opnames.view');
-
-Route::get('/order/{order}/approve', function ($order) {
-    return Inertia::render('order/Approve', [
-        'order' => $order,
-    ]);
-})->name('order.approve');
-
-Route::get('/order/{order}/reject', function ($order) {
-    return Inertia::render('order/Reject', [
-        'order' => $order,
-    ]);
-})->name('order.reject');
-
-Route::get('/stock-opnames/{id}/view', function ($id) {
-    return response()->json(['id' => (int) $id]);
 })->middleware(['auth'])->name('stock-opnames.view');
 
 Route::get('/good-receive', function () {

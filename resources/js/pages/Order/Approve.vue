@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { ref } from 'vue';
 
 interface Order {
     id: string;
@@ -41,27 +40,6 @@ const props = defineProps({
 
 const message = ref<string>(props.message);
 const order = ref<Order | null>(props.order);
-
-const fetchOrderDetails = async () => {
-    if (props.order && props.order.id) {
-        try {
-            const response = await axios.post(`/api/orders/${props.order.id}/status/approved`);
-            order.value = response.data.order; // Assuming the API returns order data under 'order' key
-            message.value = response.data.message || 'Order approved successfully!';
-        } catch (error) {
-            console.error('Error fetching order details:', error);
-            message.value = 'Failed to fetch order details.';
-            order.value = null;
-        }
-    } else {
-        message.value = 'No order ID provided for approval.';
-        order.value = null;
-    }
-};
-
-onMounted(() => {
-    fetchOrderDetails();
-});
 </script>
 
 <template>
