@@ -19,7 +19,7 @@
       <!-- Mobile Menu -->
       <nav v-if="showMobileMenu" class="md:hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-md px-6 py-4">
         <div class="flex flex-col space-y-3  font-medium">
-          <Link :href="route('home')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Home</Link>
+          <Link :href="route('home.root')" class="text-gray-600 hover:text-pink-600 dark:text-gray-300 dark:hover:text-pink-400 transition duration-300">Home</Link>
           <Link :href="route('login')" class="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg transition duration-300 hover:from-blue-600 hover:to-blue-800">Login</Link>
           <Link :href="route('register')" class="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg transition duration-300 hover:from-blue-600 hover:to-blue-800">Register</Link>
         </div>

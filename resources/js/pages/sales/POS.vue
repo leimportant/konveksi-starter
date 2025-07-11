@@ -289,25 +289,26 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-semibold">{{ selectedProduct.product_name }}</h3>
-                          
-                            
-                            <p class="text-sm text-gray-600">
+                             <span class="mb-1 text-sm font-semibold text-gray-700">Pilih Ukuran </span> 
+                            <div class="flex flex-wrap gap-2">
+                               
                                 
-                                <span v-if="!selectedProduct.price || selectedProduct.price <= 0">
-                                    Harga Belum di Setting
-                                </span>
-                                <template v-else>
-                                    <span v-if="(selectedProduct.discount ?? 0) > 0" class="mr-2 text-gray-400 line-through">
-                                       {{ formatRupiah(selectedProduct.price) }}
-                                    </span>
-                                    <span class="font-bold block">
-                                      Harga  {{ formatRupiah(selectedProduct.price_sell || selectedProduct.price) }}
-                                    </span> 
-                                    <span v-if="(selectedProduct.discount ?? 0) > 0" class="text-green-600 text-xs">
-                                        (Diskon: {{ formatRupiah(selectedProduct.discount ?? 0) }})
-                                    </span>
-                                </template>
-                            </p>
+                                <br />
+                                <button
+                                    v-for="size in sizesForSelectedVariant"
+                                    :key="size.size_id"
+                                    @click="selectedSize = size.size_id"
+                                    
+                                    :class="[
+                                        'rounded-full border px-3 py-1 text-sm font-semibold transition',
+                                        selectedSize === size.size_id
+                                            ? 'border-green-600 bg-green-600 text-white'
+                                            : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
+                                    ]"
+                                >
+                                 <div @click="selectSize(selectedProduct, size)">  {{ size.size_id }}</div>
+                                </button>
+                                </div>
                            
                         </div>
                     </div>
@@ -340,25 +341,19 @@
                         </div>
                            <!-- Size -->
                         <div class="mb-4">
-                            <h4 class="mb-1 text-sm font-semibold text-gray-700">Pilih Ukuran</h4>
-                            <div class="flex flex-wrap gap-2">
-                                <button
-                                    v-for="size in sizesForSelectedVariant"
-                                    :key="size.size_id"
-                                    @click="selectedSize = size.size_id"
-                                    
-                                    :class="[
-                                        'rounded-full border px-3 py-1 text-sm font-semibold transition',
-                                        selectedSize === size.size_id
-                                            ? 'border-green-600 bg-green-600 text-white'
-                                            : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
-                                    ]"
-                                >
-                                 <div @click="selectSize(selectedProduct, size)">  {{ size.size_id }}</div>
-                                </button>
-                                </div>
+                           
+                           
                             <div v-if="getSelectedItemDetail" class="mb-4 text-sm text-gray-700">
-      
+                              
+                                <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="mr-2 text-gray-400 line-through">
+                                       Harga {{ formatRupiah(getSelectedItemDetail.price) }}
+                                    </span> <br />
+                                    <span class="font-bold">
+                                     Harga Diskon   {{ formatRupiah(getSelectedItemDetail.price_sell || getSelectedItemDetail.price) }}
+                                    </span><br />
+                                    <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="text-green-600 text-xs">
+                                        (Diskon: {{ formatRupiah(getSelectedItemDetail.discount ?? 0) }})
+                                    </span>
                         </div>
                         </div>
 
@@ -412,7 +407,8 @@
 
                     <!-- Items -->
                     <div v-for="(item, index) in lastOrderItems" :key="item.product_id" class="mb-1">
-                        <p>{{ index + 1 }}. {{ item.product_name }}</p>
+                        <p>{{ index + 1 }}. {{ item.product_name }} &nbsp; - {{ item.size_id }}</p>
+                     
                         <div class="flex justify-between">
                             <span>{{ item.quantity }} x {{ formatRupiah(item.price) }}</span>
                             <span>&nbsp;&nbsp;{{ formatRupiah(item.price * item.quantity) }}</span>
@@ -1110,7 +1106,7 @@ function doPrintKasir80mm() {
         lines.push(`Customer: ${selectedCustomerName.value || '-'}`);
         lines.push('--------------------------------------');
         lastOrderItems.value.forEach(item => {
-            lines.push(`${item.product_name}`);
+            lines.push(`${item.product_name}${item.size_id ? ' - ' + item.size_id : ''}`);
             lines.push(`${item.quantity} x ${formatRupiah(item.price)}${' '.repeat(20 - (item.quantity + '').length - formatRupiah(item.price).length)}${formatRupiah(item.quantity * item.price)}`);
         });
         lines.push('--------------------------------');
@@ -1165,7 +1161,7 @@ function doPrintKasir80mm() {
       ${lastOrderItems.value
           .map(
               (item) => `
-          <div>${item.product_name}</div>
+          <div>${item.product_name} - ${item.size_id}</div>
           <div style="display:flex; justify-content:space-between;">
             <span>${item.quantity} x ${formatRupiah(item.price)}</span>
             <span>${formatRupiah(item.quantity * item.price)}</span>
@@ -1248,7 +1244,7 @@ function printToRawBT() {
         `Customer: ${selectedCustomerName.value || '-'}`,
         separator,
         ...lastOrderItems.value.flatMap(item => {
-            const name = item.product_name;
+            const name = item.product_name + ' - ' + item.size_id;
             const qtyPrice = `${item.quantity} x ${formatRupiah(item.price)}`;
             const total = formatRupiah(item.quantity * item.price);
 

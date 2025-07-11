@@ -213,7 +213,7 @@
                         </p>
 
                         <!-- Price -->
-                        <p class="mb-3 font-semibold text-gray-500 text-gray-800 sm:text-lg">
+                        <!-- <p class="mb-3 font-semibold text-gray-500 text-gray-800 sm:text-lg">
                             <span v-if="selectedProduct?.discount && selectedProduct.discount > 0" class="mr-2 text-gray-400 line-through">
                                 {{ formatRupiah(selectedProduct.price) }}
                             </span>
@@ -227,7 +227,7 @@
                             <span v-if="selectedProduct?.discount && selectedProduct.discount > 0" class="ml-1 text-green-500">
                                 (Diskon {{ formatRupiah(selectedProduct.discount ?? 0) }})
                             </span>
-                        </p>
+                        </p> -->
                         <!-- Pilihan Varian (misal: Merah, Kuning, Hijau) -->
                         <!-- Variant -->
                         <div v-if="selectedProduct?.variant !== 'all'" class="mb-4">
@@ -279,17 +279,17 @@
                                 Stok: <strong>{{ getSelectedItemDetail.qty_available }}</strong>
                             </p>
                             <p>
-                                Harga:
+                               
                                 <span v-if="!getSelectedItemDetail.price || getSelectedItemDetail.price <= 0">
                                     Harga Belum di Setting
                                 </span>
                                 <template v-else>
                                     <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="mr-2 text-gray-400 line-through">
-                                        {{ formatRupiah(getSelectedItemDetail.price) }}
-                                    </span>
+                                       Harga {{ formatRupiah(getSelectedItemDetail.price) }}
+                                    </span> <br />
                                     <span class="font-bold">
-                                        {{ formatRupiah(getSelectedItemDetail.price_sell || getSelectedItemDetail.price) }}
-                                    </span>
+                                     Harga Diskon   {{ formatRupiah(getSelectedItemDetail.price_sell || getSelectedItemDetail.price) }}
+                                    </span><br />
                                     <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="text-green-600 text-xs">
                                         (Diskon: {{ formatRupiah(getSelectedItemDetail.discount ?? 0) }})
                                     </span>
