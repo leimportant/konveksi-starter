@@ -61,8 +61,8 @@ const prevPage = () => goToPage(currentPage.value - 1);
 
             <!-- Inventory Table -->
             <div class="rounded-md border">
-                <Table class="w-full text-left text-sm">
-                    <TableHeader class="hidden bg-gray-100 tracking-wider text-gray-700 md:table-header-group">
+                <Table>
+                    <TableHeader class="bg-gray-100">
                         <TableRow>
                             <TableHead>Produk</TableHead>
                             <TableHead>Lokasi</TableHead>
