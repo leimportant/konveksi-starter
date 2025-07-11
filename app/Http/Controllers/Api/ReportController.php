@@ -99,7 +99,7 @@ class ReportController extends Controller
             }
 
             $pivot[$modelId]['activities'][$activity]['qty'] += $qty;
-            
+
             $pivot[$modelId]['subtotal_qty'] += $qty;
 
 
@@ -186,92 +186,239 @@ class ReportController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $searchKey = $request->input('search_key');
+        $page = $request->input('page', 1);
+        $perPage = $request->input('per_page', 10);
 
-        $query = DB::table('tr_model as a')
-            ->join('tr_production as b', 'a.id', '=', 'b.model_id')
-            ->leftJoin('tr_production_item as c', 'b.id', '=', 'c.production_id')
-            ->leftJoin('mst_activity_role as d', 'b.activity_role_id', '=', 'd.id')
-            ->leftJoin('users as u', 'b.created_by', '=', 'u.id') // join ke users
-            ->select(
-                'a.id',
-                'a.description',
-                'a.estimation_price_pcs',
-                'a.estimation_qty',
-                'a.start_date',
-                'a.end_date',
-                'b.created_by',
-                'u.name as created_by_name', // nama staff
-                'b.activity_role_id',
-                'd.name as activity_role_name',
-                'c.size_id',
-                'c.qty',
-                'b.remark' // include remark
-            )
-            ->whereNull('b.deleted_at')
-            ->whereNull('c.deleted_at')
-            ->whereNull('a.deleted_at')
-            ->whereBetween('a.created_at', [$startDate, $endDate]);
+        // Query dasar
+        $rawData = DB::table('tr_production as a')
+            ->join('tr_production_item as b', 'a.id', '=', 'b.production_id')
+            ->join('tr_model as c', 'a.model_id', '=', 'c.id')
+            ->join('users as d', 'a.created_by', '=', 'd.id')
+            ->leftJoin('tr_model_activity as e', function ($join) {
+                $join->on('a.model_id', '=', 'e.model_id')
+                    ->on('a.activity_role_id', '=', 'e.activity_role_id');
+            })
+            ->leftJoin('mst_activity_role as f', 'a.activity_role_id', '=', 'f.id')
+            ->select([
+                'a.created_at',
+                'a.model_id',
+                'c.description as model_name',
+                'a.activity_role_id',
+                'f.name as activity_role_name',
+                'a.created_by',
+                'd.name as staff_name',
+                'b.size_id',
+                'b.variant',
+                'b.qty',
+                'e.price as unit_price',
+            ])
+            ->when($startDate && $endDate, function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('a.created_at', [$startDate, $endDate]);
+            })
+            ->when($searchKey, function ($q) use ($searchKey) {
+                $q->where('c.description', 'like', '%' . $searchKey . '%')
+                    ->orWhere('d.name', 'like', '%' . $searchKey . '%')
+                    ->orWhere('f.name', 'like', '%' . $searchKey . '%')
+                    ->orWhere('b.variant', 'like', '%' . $searchKey . '%');
+            })
+            ->get();
 
-        if ($searchKey) {
-            $query->where(function ($q) use ($searchKey) {
-                $q->where('a.description', 'like', '%' . $searchKey . '%')
-                    ->orWhere('b.activity_role_id', 'like', '%' . $searchKey . '%')
-                    ->orWhere('c.size_id', 'like', '%' . $searchKey . '%');
-            });
+        // Hitung total per row
+        foreach ($rawData as $row) {
+            $row->total = ($row->qty ?? 0) * ($row->unit_price ?? 0);
         }
 
-        $data = $query->get();
-
-        $pivot = [];
-        $activityTotals = [];
-
-        foreach ($data as $row) {
-            $modelId = $row->id;
-
-            if (!isset($pivot[$modelId])) {
-                $pivot[$modelId] = [
-                    'model_id' => $row->id,
-                    'description' => $row->description,
-                    'created_by' => $row->created_by_name ?? 'Unknown',
-                    'estimation_price_pcs' => $row->estimation_price_pcs,
-                    'estimation_qty' => $row->estimation_qty,
-                    'start_date' => Carbon::parse($row->start_date)->format('d/m/Y'),
-                    'end_date' => $row->end_date ? Carbon::parse($row->end_date)->format('d/m/Y') : null,
-                    'activities' => [],
-                    'subtotal_qty' => 0,
-                ];
-            }
-
-            $activityId = $row->activity_role_id ?? 'unknown';
-            $activityName = $row->activity_role_name ?? 'Unknown';
-            $qty = $row->qty ?? 0;
-
-            if (!isset($pivot[$modelId]['activities'][$activityId])) {
-                $pivot[$modelId]['activities'][$activityId] = [
-                    'role_id' => $activityId,
-                    'name' => $activityName,
-                    'qty' => 0,
-                    'remark' => $row->remark ?? null
-                ];
-            }
-
-            $pivot[$modelId]['activities'][$activityId]['qty'] += $qty;
-            $pivot[$modelId]['subtotal_qty'] += $qty;
-
-            // Global activity total
-            if (!isset($activityTotals[$activityId])) {
-                $activityTotals[$activityId] = 0;
-            }
-            $activityTotals[$activityId] += $qty;
+        // Grouping untuk subtotal: staff_name
+        $grouped = [];
+        foreach ($rawData as $row) {
+            $key = $row->staff_name;
+            $grouped[$key][] = $row;
         }
 
-        $productionSummary = array_values($pivot);
+        // Format hasil akhir dengan subtotal dan total
+        $result = [];
+        $grandTotal = 0;
+
+        foreach ($grouped as $key => $rows) {
+            $subtotal = 0;
+            foreach ($rows as $row) {
+                $result[] = [
+                    'created_at' => $row->created_at,
+                    'staff_name' => $row->staff_name,
+                    'activity_role_name' => $row->activity_role_name,
+                    'model_name' => $row->model_name,
+                    'variant' => $row->variant,
+                    'qty' => $row->qty,
+                    'unit_price' => floatval($row->unit_price),
+                    'total' => floatval($row->total),
+                ];
+                $subtotal += floatval($row->total);
+                $grandTotal += floatval($row->total);
+
+            }
+
+            $staff_name = $key;
+
+            $result[] = [
+                'created_at' => null,
+                'staff_name' => null,
+                'activity_role_name' => null,
+                'model_name' => 'SUBTOTAL ',
+                'variant' => null,
+                'qty' => null,
+                'unit_price' => null,
+                'total' => $subtotal,
+            ];
+        }
+
+        // Baris TOTAL
+        $result[] = [
+            'created_at' => null,
+            'staff_name' => null,
+            'activity_role_name' => null,
+            'model_name' => 'TOTAL',
+            'variant' => null,
+            'qty' => null,
+            'unit_price' => null,
+            'total' => floatval($grandTotal),
+        ];
+
+        // Pagination manual
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            collect($result)->forPage($page, $perPage),
+            count($result),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return response()->json([
-            'data' => $productionSummary,
-            'activity_totals' => $activityTotals,
+            'data' => $paginated->items(),
+            'pagination' => [
+                'current_page' => $paginated->currentPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+                'last_page' => $paginated->lastPage(),
+            ]
         ]);
     }
+
+    public function reportOmsetPerCustomer(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $searchKey = $request->input('search_key');
+        $page = $request->input('page', 1);
+        $perPage = $request->input('per_page', 10);
+
+        $rawData = DB::table('pos_transaction as a')
+            ->join('pos_transaction_detail as b', 'a.id', '=', 'b.transaction_id')
+            ->leftJoin('mst_customer as c', 'a.customer_id', '=', 'c.id')
+            ->leftJoin('mst_product as d', 'b.product_id', '=', 'd.id')
+            ->select(
+                DB::raw("DATE_FORMAT(a.transaction_date, '%d/%m/%Y') as tanggal"),
+                'a.customer_id',
+                'c.name as customer',
+                'b.product_id',
+                'd.name as product',
+                'b.quantity as qty',
+                'b.price',
+                'a.notes',
+                'b.subtotal as total'
+            )
+            ->whereBetween(DB::raw('DATE(a.transaction_date)'), [$startDate, $endDate])
+            ->when($searchKey, function ($query, $searchKey) {
+                $query->where(function ($q) use ($searchKey) {
+                    $q->where('c.name', 'like', "%{$searchKey}%")
+                        ->orWhere('d.name', 'like', "%{$searchKey}%");
+                });
+            })
+            ->orderBy('c.name')
+            ->orderBy('a.transaction_date')
+            ->get();
+
+        // Grouping berdasarkan Customer
+        $grouped = [];
+        foreach ($rawData as $row) {
+            $key = $row->customer ?? 'Unknown';
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [];
+            }
+            $grouped[$key][] = $row;
+        }
+
+        // Format data akhir dengan SUBTOTAL per customer
+        $result = [];
+        $grandTotal = 0;
+
+        foreach ($grouped as $customer => $items) {
+            $subtotalQty = 0;
+            $subtotalPrice = 0;
+            $subtotalTotal = 0;
+
+            foreach ($items as $row) {
+                $result[] = [
+                    'tanggal' => $row->tanggal,
+                    'customer' => $row->customer,
+                    'product' => $row->product,
+                    'qty' => $row->qty,
+                    'price' => $row->price,
+                    'total' => $row->total,
+                    'is_summary' => false,
+                ];
+
+                $subtotalQty += $row->qty;
+                $subtotalPrice += $row->price;
+                $subtotalTotal += $row->total;
+            }
+
+            $result[] = [
+                'tanggal' => null,
+                'customer' => null,
+                'product' => 'SUBTOTAL',
+                'qty' => $subtotalQty,
+                'price' => $subtotalPrice,
+                'total' => $subtotalTotal,
+                'is_summary' => true,
+            ];
+
+            $grandTotal += $subtotalTotal;
+        }
+
+        // Tambahkan TOTAL seluruh transaksi
+        $result[] = [
+            'tanggal' => null,
+            'customer' => null,
+            'product' => 'TOTAL',
+            'qty' => null,
+            'price' => null,
+            'total' => $grandTotal,
+            'is_summary' => true,
+        ];
+
+        // Pagination
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            collect($result)->forPage($page, $perPage),
+            count($result),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return response()->json([
+            'data' => $paginated->items(),
+            'pagination' => [
+                'current_page' => $paginated->currentPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+                'last_page' => $paginated->lastPage(),
+            ]
+        ]);
+    }
+
+
+
+
 
 
 }

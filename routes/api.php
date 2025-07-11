@@ -40,8 +40,8 @@ use App\Http\Controllers\Api\BankAccountController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
-Route::get('api/orders/{order}/status/approved', [OrderController::class, 'approve']);
-Route::get('api/orders/{order}/status/rejected', [OrderController::class, 'reject']);
+Route::post('api/orders/{order}/status/approved', [OrderController::class, 'approve']);
+Route::post('api/orders/{order}/status/rejected', [OrderController::class, 'reject']);
 Route::post('api/orders/{order}/reject', [OrderController::class, 'reject']);
 
 Route::post('api/orders/{order}/upload-payment-proof', [OrderController::class, 'uploadPaymentProof']);
@@ -150,7 +150,8 @@ Route::middleware('auth')->group(function () {
     Route::get('api/reports/sales-summary', [ReportController::class, 'reportSalesSummary']);
     Route::get('api/reports/production-summary', [ReportController::class, 'reportProductionSummary']);
     Route::get('api/reports/omset-per-payment', [ReportController::class, 'reportOmsetPerPayment']);
-    Route::get('api/reports/omset-per-customer', [ReportController::class, 'reportOmsetPerPayment']);
+    Route::get('api/reports/omset-per-customer', [ReportController::class, 'reportOmsetPerCustomer']);
+    Route::get('api/reports/production-detail', [ReportController::class, 'reportProductionDetail']);
     Route::get('api/setting/{key}', [SettingController::class, 'getData']);
 
 });
