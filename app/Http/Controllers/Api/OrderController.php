@@ -298,32 +298,12 @@ class OrderController extends Controller
 
         // Notify customer
         $customerEmail = $order->customer->email; // Assuming customer model has an email attribute
+        if ($customerEmail) {
+            Mail::to($customerEmail)->send(new OrderStatusUpdated($order));
+        }
 
-        return response()->json(['message' => 'Order status updated successfully', 'order' => $order->load('orderItems.product', 'customer')], 200);
+        return response()->json(['message' => 'Status pesanan berhasil diperbarui', 'order' => $order]);
     }
-
-    // public function approve(Order $order)
-    // {
-    //     $order->status = OrderStatusEnum::APPROVED; // Assuming 2 is the APPROVED status
-    //     $order->updated_by = Auth::id();
-    //     $order->save();
-
-    //     Mail::to($order->customer->email)->send(new OrderStatusUpdated($order->load('orderItems.product', 'customer')));
-
-    //     return response()->json(['message' => 'Order approved successfully', 'order' => $order->load('orderItems.product', 'customer')], 200);
-    // }
-
-    // public function reject(Order $order)
-    // {
-    //     $order->status = OrderStatusEnum::REJECTED; // Assuming 3 is the REJECTED status
-    //     $order->updated_by = Auth::id();
-    //     $order->save();
-
-    //     Mail::to($order->customer->email)->send(new OrderStatusUpdated($order->load('orderItems.product', 'customer')));
-
-    //     return response()->json(['message' => 'Order rejected successfully', 'order' => $order->load('orderItems.product', 'customer')], 200);
-    
-    // }
 
     public function approve(Request $request)
     {
