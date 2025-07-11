@@ -76,30 +76,24 @@ const prevPage = () => goToPage(currentPage.value - 1);
                         <TableRow
                             v-for="item in inventoryRpt"
                             :key="`${item.product_id}-${item.location_id}-${item.sloc_id}-${item.size_id}`"
-                            class="block border-b md:table-row md:border-none"
+                            
                         >
-                            <TableCell class="block p-2 text-xs md:table-cell md:p-4">
-                                <span class="font-semibold md:hidden">Product:</span>
+                            <TableCell>
                                 {{ item.product_name }}
                             </TableCell>
-                            <TableCell class="block p-2 text-xs md:table-cell md:p-4">
-                                <span class="font-semibold md:hidden">Location:</span>
+                            <TableCell>
                                 {{ item.location_name }}
                             </TableCell>
-                            <TableCell class="block p-2 text-xs md:table-cell md:p-4">
-                                <span class="font-semibold md:hidden">SLoc:</span>
+                            <TableCell>
                                 {{ item.sloc_name }}
                             </TableCell>
-                            <TableCell class="block p-2 text-xs md:table-cell md:p-4">
-                                <span class="font-semibold md:hidden">UOM:</span>
+                            <TableCell>
                                 {{ item.uom_id }}
                             </TableCell>
-                            <TableCell class="block p-2 text-xs md:table-cell md:p-4">
-                                <span class="font-semibold md:hidden">Size:</span>
+                            <TableCell>
                                 {{ item.size_id }}
                             </TableCell>
-                            <TableCell class="block p-2 text-xs md:table-cell md:p-4">
-                                <span class="font-semibold md:hidden">Qty:</span>
+                            <TableCell>
                                 {{ item.qty_in }}
                             </TableCell>
                         </TableRow>
