@@ -114,7 +114,8 @@ class InventoryController extends Controller
                     ->where(function ($query) use ($item) {
                         $query->whereNull('a.variant')
                             ->orWhere('a.variant', $item->variant)
-                            ->orWhere('a.variant', 'all');
+                            ->orWhere('a.variant', 'all')
+                            ->orWhere('a.variant', '');
                     })
                     ->where('a.is_active', 1)
                     ->where('b.price_type_id', $price_type_id)
@@ -130,6 +131,10 @@ class InventoryController extends Controller
                     'price' => $price ? floatval($price->price) : null,
                     'price_sell' => $price ? floatval($price->price_sell) : null,
                     'discount' => $price ? floatval($price->discount) : null,
+
+                    'price_grosir' => $price ? floatval($price->price) : null,
+                    'price_sell_grosir' => $price ? floatval($price->price_sell) : null,
+                    'discount_grosir' => $price ? floatval($price->discount) : null,
                 ];
             }
 
