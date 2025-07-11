@@ -6,146 +6,126 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { useReportStore } from '@/stores/useReportStore';
 import { Head } from '@inertiajs/vue3';
 import { onMounted, ref, computed } from 'vue';
+
 const reportStore = useReportStore();
 
-const breadcrumbs = [{ title: 'Report Omset', href: '/reports/omzet' }];
 
 const startDate = ref('');
 const endDate = ref('');
+const searchKey = ref('');
 
 const currentPage = computed(() => reportStore.currentPage);
-const lastPage = computed(() => reportStore.lastPage);
-// const totalOmsetRecords = computed(() => reportStore.totalOmsetRecords);
-const customerId = ref<number>(0);
 const perPage = computed(() => reportStore.perPage);
 
+
 const fetchReport = async (page: number = 1, perPage: number = 10) => {
-    await reportStore.fetchOmsetPerCustomer(customerId.value, startDate.value, endDate.value, page, perPage);
-    console.log('Current Page:', reportStore.currentPage);
-    console.log('Last Page:', reportStore.lastPage);
-    console.log('Total Omset Records:', reportStore.totalOmsetRecords);
-};
-
-const totalPages = computed(() => Math.ceil(reportStore.totalOmsetRecords / reportStore.perPage));
-
-const prevPage = () => {
-    goToPage(currentPage.value - 1);
-};
-
-const nextPage = () => {
-    goToPage(currentPage.value + 1);
+  // The first argument should be customerId (number), but searchKey is string, so we need to handle this properly
+  // For now, pass 0 or parseInt if searchKey is a number string
+  const customerId = parseInt(searchKey.value) || 0;
+  await reportStore.fetchOmsetPerCustomer(customerId, startDate.value, endDate.value, page, perPage);
 };
 
 const goToPage = (page: number) => {
-    console.log('Attempting to go to page:', page);
-    console.log('Current Page (before check):', currentPage.value);
-    console.log('Last Page (before check):', lastPage.value);
-    fetchReport(page, perPage.value);
+  reportStore.currentPage = page;
+  fetchReport(page, perPage.value);
 };
 
 const formatRupiah = (value: string): string => {
-    const number = parseFloat(value);
-    if (isNaN(number)) return 'Rp0,00';
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 2,
-    }).format(number);
+  const number = parseFloat(value);
+  if (isNaN(number)) return 'Rp0,00';
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 2,
+  }).format(number);
 };
 
-// const omsetSummary = computed(() => reportStore.omsetSummary);
-
-// const totalOmset = computed(() => {
-//   return omsetSummary.value
-//     .filter((item: OmsetPerPayment) => item.payment_method !== 'SUBTOTAL')
-//     .reduce((sum: number, item) => sum + Number(item.total_omset), 0);
-// });
-
-
 onMounted(() => {
-    // Set default dates for demonstration or initial load
-    const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    startDate.value = firstDayOfMonth.toISOString().split('T')[0];
-    endDate.value = today.toISOString().split('T')[0];
-    customerId.value = 0;
-    fetchReport(currentPage.value, perPage.value);
+  const today = new Date();
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  startDate.value = firstDayOfMonth.toISOString().split('T')[0];
+  endDate.value = today.toISOString().split('T')[0];
+  fetchReport(currentPage.value, perPage.value);
 });
 </script>
+
 <template>
+  <Head title="Omset Report Per Customer" />
+  <AppLayout>
+    <template #header>
+      <h2 class="text-lg font-semibold text-gray-800">Omset Report Per Customer</h2>
+    </template>
 
-    <Head title="Omset Report" />
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="py-2">
-            <div class="mx-auto max-w-7xl sm:px-2 lg:px-2">
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <div class="mb-4 flex space-x-4">
-                        <!-- <Vue3Select v-model="customerId" :options="[{ value: 0, label: 'Semua Customer' }, ...reportStore.customers]" label="Customer" option-label="customer_name" option-value="id" /> -->
-                        <Input type="date" v-model="startDate" />
-                        <Input type="date" v-model="endDate" />
-                        <Button @click="fetchReport(1, perPage)" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Tampilkan</Button>
-                    </div>
+    <div class="p-4 space-y-4">
+      <!-- Filter -->
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+        <Input type="date" v-model="startDate" class="w-full sm:w-auto" />
+        <Input type="date" v-model="endDate" class="w-full sm:w-auto" />
+        <Input
+          type="text"
+          v-model="searchKey"
+          placeholder="Cari produk..."
+          class="flex-1"
+        />
+        <Button
+          @click="fetchReport(1, 10)"
+          class="bg-indigo-600 text-white hover:bg-indigo-700 transition"
+        >
+          Tampilkan
+        </Button>
+      </div>
 
-                    <div v-if="reportStore.loading">Loading...</div>
-                    <div v-else-if="reportStore.error" class="text-red-500">Error: {{ reportStore.error.message }}</div>
-                    <div v-else>
-                        <Table>
-                            <TableHeader>
-                                <TableRow class="bg-gray-100">
-                                    <TableHead>Tanggal</TableHead>
-                                    <TableHead>Customer</TableHead>
-                                    <TableHead>Payment Method</TableHead>
-                                    <TableHead>Omset</TableHead>
-                                    
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="item in reportStore.omsetSummaryPerCustomer" :key="item.tanggal"
-                                    :class="item.payment_method === 'SUBTOTAL' ? 'bg-green-100 font-semibold' : ''">
-                                    <TableCell>{{ item.tanggal }}</TableCell>
-                                    <TableCell>{{ item.customer_name }}</TableCell>
-                                    <TableCell>{{ item.payment_method }}</TableCell>
-                                    <TableCell>{{ formatRupiah(item.total_omset.toString()) }}</TableCell>
-                                    
-                                </TableRow>
-                                <!-- <TableFooter>
-                                    <TableRow class="bg-blue-100 font-bold">
-                                        <TableCell colspan="2">TOTAL</TableCell>
-                                        <TableCell>{{ formatRupiah(totalOmset.toString()) }}</TableCell>
-                                        <TableCell></TableCell>
-                                    </TableRow>
-                                </TableFooter> -->
+      <div v-if="reportStore.loading">Loading...</div>
+      <div v-else-if="reportStore.error" class="text-red-500">Error: {{ reportStore.error.message }}</div>
+      <div v-else-if="reportStore.productionDetailItem.length === 0" class="text-gray-500">Tidak ada data ditampilkan.</div>
+      <div v-else class="overflow-auto">
+  
+            <Table>
+              <TableHeader>
+                <TableRow class="bg-gray-100 text-sm font-bold">
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Produk</TableHead>
+                  <TableHead>Qty</TableHead>
+                  <TableHead>Harga</TableHead>
+                  <TableHead>Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="(item, index) in reportStore.omsetSummaryPerCustomer"
+                  :key="index"
+                  :class="'text-sm ' + ((item.customer_name === 'SUBTOTAL' || item.customer_name === 'TOTAL') ? 'bg-green-100 font-semibold' : '')"
+                >
+                  <TableCell>{{ item.tanggal || '' }}</TableCell>
+                  <TableCell>{{ item.customer_name || '' }}</TableCell>
+                  <TableCell></TableCell>
+                  <TableCell></TableCell>
+                  <TableCell></TableCell>
+                  <TableCell>{{ item.total_omset ? formatRupiah(item.total_omset.toString()) : '' }}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
 
-                            </TableBody>
-                        </Table>
-
-                        <div class="mt-4 flex items-center justify-between">
-
-                            <!-- Pagination -->
-                            <div class="mt-4 flex justify-end space-x-2">
-                                      <button @click="prevPage" :disabled="currentPage === 1"
-                                    class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50">
-                                    Previous
-                                </button>
-
-                                <template v-for="page in totalPages" :key="page">
-                                    <button @click="goToPage(page)" :class="[
-                                        'rounded border px-3 py-1 text-sm',
-                                        page === currentPage ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100',
-                                    ]">
-                                        {{ page }}
-                                    </button>
-                                </template>
-
-                                <button @click="nextPage" :disabled="currentPage === totalPages"
-                                    class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50">
-                                    Next
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           <!-- Pagination -->
+        <div class="mt-4 flex justify-end space-x-2">
+          <button
+            @click="goToPage(reportStore.currentPage - 1)"
+            :disabled="reportStore.currentPage <= 1"
+            class="px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span class="py-1">Page {{ reportStore.currentPage }} of {{ reportStore.lastPage }}</span>
+          <button
+            @click="goToPage(reportStore.currentPage + 1)"
+            :disabled="reportStore.currentPage >= reportStore.lastPage"
+            class="px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
-    </AppLayout>
+      </div>
+    </div>
+  </AppLayout>
 </template>
