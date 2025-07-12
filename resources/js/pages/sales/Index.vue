@@ -16,6 +16,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 const handleClosing = () => {
   router.visit(`/cash-balances/closing`);
 };
+
+const handleOpenShift = () => {
+  router.visit(`/cash-balances/open-shift`);
+};
+
 const handlePOS = () => {
   router.visit(`/pos`);
 };
@@ -65,6 +70,26 @@ const handleOpname = () => {
           <FileArchive class="h-12 w-12 text-green-600 dark:text-green-400 transition-transform group-hover:scale-110" />
           <div class="absolute bottom-0 w-full bg-green-100 dark:bg-green-800 py-2 text-center font-semibold text-green-700 dark:text-green-300 text-sm sm: md:text-sm">
             CLOSING
+          </div>
+        </div>
+
+         <!-- CUTTING -->
+        <div
+          class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
+          @click="handleClosing()"
+        >
+          <FileArchive class="h-12 w-12 text-green-600 dark:text-green-400 transition-transform group-hover:scale-110" />
+          <div class="absolute bottom-0 w-full bg-green-100 dark:bg-green-800 py-2 text-center font-semibold text-green-700 dark:text-green-300 text-sm sm: md:text-sm">
+            KAS AKHIR
+          </div>
+        </div>
+         <div
+          class="group relative aspect-video rounded-2xl border border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900 p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col items-center justify-center"
+          @click="handleOpenShift()"
+        >
+          <FileArchive class="h-12 w-12 text-green-600 dark:text-green-400 transition-transform group-hover:scale-110" />
+          <div class="absolute bottom-0 w-full bg-green-100 dark:bg-green-800 py-2 text-center font-semibold text-green-700 dark:text-green-300 text-sm sm: md:text-sm">
+            KAS AWAL
           </div>
         </div>
 
