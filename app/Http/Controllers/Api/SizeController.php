@@ -27,15 +27,36 @@ class SizeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:mst_size',
+            'name' => 'required|string|max:100',
         ]);
-        $validated['id'] = trim($request->name);
+
+        $name = trim($validated['name']);
+        $id = $name;
+
+        // Cek apakah nama sudah pernah ada (termasuk soft deleted)
+        $existing = Size::withTrashed()->where('name', $name)->first();
+
+        if ($existing) {
+            if ($existing->trashed()) {
+                // Jika soft deleted, restore dan update kolom
+                $existing->restore();
+                $existing->updated_by = Auth::id();
+                $existing->save();
+
+                return response()->json($existing, 200);
+            } 
+        }
+
+        // Data baru
+        $validated['id'] = $id;
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
         $size = Size::create($validated);
+
         return response()->json($size, 201);
     }
+
 
     public function show(Size $size)
     {
