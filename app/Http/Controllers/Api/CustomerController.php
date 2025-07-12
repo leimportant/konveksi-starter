@@ -19,7 +19,7 @@ class CustomerController extends Controller
         }
 
         $perPage = $request->input('perPage', 10);
-        $data = $query->orderBy('created_at')->paginate($perPage);
+        $data = $query->orderBy('created_at', 'DESC')->paginate($perPage);
 
         return response()->json($data);
     }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { Button } from '@/components/ui/button';
