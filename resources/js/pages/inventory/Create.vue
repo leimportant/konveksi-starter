@@ -196,7 +196,7 @@ watch(() => formData.value.product_id, (newProduct) => {
             </div>
             <div>
               <label for="qty" class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-              <Input id="qty" v-model="formData.qty" type="number" min="0" placeholder="Enter quantity"
+              <Input id="qty" v-model="formData.qty" type="number" placeholder="Enter quantity"
                 class="w-full" />
 
             </div>
