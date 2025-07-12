@@ -19,7 +19,7 @@ interface PurchaseOrderItem {
 
 interface PurchaseOrder {
   id: string;
-  date: string;
+  purchase_date: string;
   supplier: string;
   nota_number: string;
   status?: string | "Draft";

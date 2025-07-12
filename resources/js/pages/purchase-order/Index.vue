@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { Button } from '@/components/ui/button';
@@ -24,22 +24,29 @@ interface PurchaseOrderItem {
 
 interface PurchaseOrder {
   id: string;
-  date: string;
+  purchase_date: string;
   supplier: string;
   nota_number: string;
   status?: string | "Draft";
   items: PurchaseOrderItem[];
 }
 
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return 'N/A';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    const now = new Date();
+    return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  }
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+};
 // UI state
 const showCreateModal = ref(false);
-const showEditModal = ref(false);
-const selectedOrder = ref<PurchaseOrder | null>(null);
 
 // Form
 const form = useForm({
   id: '',
-  date: '',
+  purchase_date: '',
   supplier: '',
   nota_number: '',
   status: '',
@@ -59,7 +66,6 @@ const {
 const {
   fetchPurchaseOrders,
   createPurchaseOrder,
-  updatePurchaseOrder,
   deletePurchaseOrder,
   setFilter,
 } = purchaseOrder;
@@ -100,35 +106,13 @@ const handleCreate = async () => {
 };
 
 const handleEdit = (order: PurchaseOrder) => {
-  selectedOrder.value = order;
-  form.id = order.id;
-  form.date = order.date;
-  form.supplier = order.supplier;
-  form.nota_number = String(order.nota_number);
-  form.status = order.status || 'Draft';
-  form.items = order.items.map((item): PurchaseOrderItem => ({
-  id: item.id ?? 0, // fallback jika undefined
-  purchase_order_id: item.purchase_order_id || '',
-  product_id: item.product_id,
-  qty: item.qty,
-  price: item.price,
-  uom_id: item.uom_id,
-  total: item.total,
-}));
-  showEditModal.value = true;
+  router.push({
+    name: 'purchase-order.edit',
+    params: { id: order.id },
+  });
 };
 
-const handleUpdate = async () => {
-  if (!selectedOrder.value) return;
-  try {
-    await updatePurchaseOrder(selectedOrder.value.id, form);
-    toast.success('Purchase Order updated successfully');
-    form.reset();
-    showEditModal.value = false;
-  } catch (error: any) {
-    toast.error(error?.response?.data?.message || 'Failed to update Purchase Order');
-  }
-};
+
 
 const handleDelete = async (id: string) => {
   if (!confirm('Are you sure you want to delete this Purchase Order?')) return;
@@ -150,7 +134,7 @@ const breadcrumbs = [
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
       <div class="flex justify-between items-center mb-6">
-        <Button @click="showCreateModal = true" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+        <Button @click="router.push('/purchase-order/create')" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4" />
           Add
         </Button>
@@ -179,7 +163,7 @@ const breadcrumbs = [
           <TableBody>
             <TableRow v-for="order in purchaseOrders" :key="order.id">
               <TableCell>{{ order.id }}</TableCell>
-              <TableCell>{{ order.date }}</TableCell>
+              <TableCell>{{ formatDate(order.purchase_date) }}</TableCell>
               <TableCell>{{ order.supplier }}</TableCell>
               <TableCell>{{ order.nota_number }}</TableCell>
               <TableCell>{{ order.status }}</TableCell>
@@ -225,7 +209,7 @@ const breadcrumbs = [
           <h2 class="text-lg font-semibold mb-4">Create Purchase Order</h2>
           <form @submit.prevent="handleCreate">
             <div class="mb-4">
-              <Input v-model="form.date" type="date" placeholder="Date" required />
+              <Input v-model="form.purchase_date" type="date" placeholder="Date" required />
             </div>
             <div class="mb-4">
               <Input v-model="form.supplier" placeholder="Supplier" required />
@@ -241,27 +225,7 @@ const breadcrumbs = [
         </div>
       </div>
 
-      <!-- Edit Modal -->
-      <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg w-96">
-          <h2 class="text-lg font-semibold mb-4">Edit Purchase Order</h2>
-          <form @submit.prevent="handleUpdate">
-            <div class="mb-4">
-              <Input v-model="form.date" type="date" required />
-            </div>
-            <div class="mb-4">
-              <Input v-model="form.supplier" placeholder="Supplier ID" required />
-            </div>
-            <div class="mb-4">
-              <Input v-model="form.status" placeholder="Status" required />
-            </div>
-            <div class="flex justify-end gap-2">
-              <Button type="button" variant="outline" @click="showEditModal = false">Cancel</Button>
-              <Button type="submit" class="bg-indigo-600 text-white">Update</Button>
-            </div>
-          </form>
-        </div>
-      </div>
+
     </div>
   </AppLayout>
 </template>

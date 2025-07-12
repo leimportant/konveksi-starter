@@ -19,14 +19,11 @@ class PurchaseOrderController extends Controller
     {
         try {
             $purchaseOrders = PurchaseOrder::with('items.product', 'items.uom')
-                ->orderBy('date', 'desc')
+                ->orderBy('purchase_date', 'desc')
                 ->orderBy('created_at', 'desc')
                 ->paginate($request->limit);
 
-            return response()->json([
-                'status' => 'success',
-                'data' => $purchaseOrders
-            ]);
+            return response()->json($purchaseOrders, 201);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -41,8 +38,11 @@ class PurchaseOrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'date' => 'required|date',
-            'nota_number' => 'required|string|max:100|unique:purchase_order,nota_number',
+            'purchase_date' => 'required|date',
+            'supplier' => 'required|string|max:100',
+            'status' => 'string|max:100',
+            'notes' => 'string|max:100',
+            'nota_number' => 'required|string|max:100',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:mst_product,id',
             'items.*.qty' => 'required|numeric|min:0.01',
@@ -55,7 +55,10 @@ class PurchaseOrderController extends Controller
         try {
             $purchaseOrder = PurchaseOrder::create([
                 'id' => Str::uuid(),
-                'date' => $request->date,
+                'purchase_date' => $request->purchase_date,
+                'supplier' => $request->supplier,
+                'notes' => $request->notes,
+                'status' => $request->status ?? "Draft",
                 'nota_number' => $request->nota_number,
                 'created_by' => Auth::id(),
             ]);
@@ -118,7 +121,10 @@ class PurchaseOrderController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'date' => 'required|date',
+            'purchase_date' => 'requirqed|date',
+            'supplier' => 'required|string|max:100',
+            'status' => 'string|max:100',
+            'notes' => 'string|max:100',
             'nota_number' => 'required|string|max:100|unique:purchase_order,nota_number,' . $id . ',id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:mst_product,id',
@@ -140,7 +146,10 @@ class PurchaseOrderController extends Controller
             }
 
             $purchaseOrder->update([
-                'date' => $request->date,
+                'purchase_date' => $request->purchase_date,
+                'supplier' => $request->supplier,
+                'status' => $request->status,
+                'notes' => $request->notes,
                 'nota_number' => $request->nota_number,
                 'updated_by' => Auth::id(),
             ]);

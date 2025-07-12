@@ -16,23 +16,35 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'id',
-        'date',
+        'purchase_date',
         "supplier",
         'nota_number',
+        'status',
+        'notes',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
-        'date' => 'datetime',
+        'purchase_date' => 'datetime',
     ];
 
+     public static function generateUniqueShortId()
+    {
+        do {
+            $numbers = str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            $letters = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(4));
+            $id = $numbers . $letters;
+        } while (self::where('id', $id)->exists());
+
+        return $id;
+    }
     public static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
-            $model->id = (string) \Illuminate\Support\Str::uuid();
+            $model->id = self::generateUniqueShortId();
         });
     }
 

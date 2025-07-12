@@ -27,7 +27,9 @@ Route::get('/', function () {
 Route::get('/home', function () {
     $user = Auth::user();
 
-    if ($user->employee_status === 'customer') {
+    $status = strtolower(trim($user->employee_status ?? 'customer'));
+
+    if ($status === 'customer') {
         return Inertia::render('Home/Cart', [
             'customers' => Customer::all(['id', 'name']),
         ]);
