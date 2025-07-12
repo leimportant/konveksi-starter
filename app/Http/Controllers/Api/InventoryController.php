@@ -50,6 +50,8 @@ class InventoryController extends Controller
             ->join('mst_product as b', 'a.product_id', '=', 'b.id')
             ->leftJoin('mst_category as c', 'b.category_id', '=', 'c.id')
             ->where('a.location_id', $locationId)
+            ->whereNull('b.deleted_at')
+            ->where('a.qty', '>', 0)
             ->where('a.status', 'IN');
 
         if ($request->filled('search')) {
@@ -61,7 +63,7 @@ class InventoryController extends Controller
             });
         }
 
-        $inventories = $query->get();
+        $inventories = $query->orderBy('b.updated_at')->get();
 
         // Group inventories by product_id
         $grouped = $inventories->groupBy('product_id');
