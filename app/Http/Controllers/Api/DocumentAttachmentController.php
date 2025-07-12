@@ -16,7 +16,7 @@ class DocumentAttachmentController extends Controller
     {
         // Validasi input
        $request->validate([
-            'file' => 'required|file|mimetypes:video/mp4,image/jpeg,image/png|max:20480',
+           'file' => 'required|file|mimetypes:video/mp4,image/jpeg,image/png,image/avif|max:20480',
             'doc_id' => 'string',
             'reference_id' => 'required',
             'reference_type' => 'required|string',
