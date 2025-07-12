@@ -42,7 +42,6 @@ class GoogleController extends Controller
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'google_id' => $googleUser->id,
-                    'location_id' => 1,
                     'employee_status' => 'customer',
                     'password' => Hash::make('123456dummy')
                 ]);

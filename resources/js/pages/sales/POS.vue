@@ -141,8 +141,8 @@
                                         <div class="md-grid-cols-2 relative flex grid-cols-1 items-center justify-center">
                                             <input
                                                 type="checkbox"
-                                                :checked="selectedForDiscount.includes(item.id)"
-                                                @change="toggleProductSelection(item.id)"
+                                                :checked="selectedForDiscount.includes(item.id+item.size_id)"
+                                                @change="toggleProductSelection(item.id+item.size_id)"
                                                 class="text-primary-600 focus:ring-primary-500 absolute left-0 top-0 rounded border-gray-300"
                                                 :title="'Pilih untuk diskon'"
                                             />
@@ -559,7 +559,7 @@ const searchText = ref('');
 const currentPage = ref(1);
 const lastPage = ref(1);
 const discountInput = ref<number>(0);
-const selectedForDiscount = ref<number[]>([]); // Stores selected product IDs
+const selectedForDiscount = ref<string[]>([]); // Stores selected product IDs
 
 const showDetailModal = ref(false);
 const selectedProduct = ref<Product | null>(null);
@@ -737,10 +737,10 @@ const formatRupiah = (value: number): string => {
     }).format(value);
 };
 
-const toggleProductSelection = (productId: number) => {
-    const index = selectedForDiscount.value.indexOf(productId);
+const toggleProductSelection = (productKey: string) => {
+    const index = selectedForDiscount.value.indexOf(productKey);
     if (index === -1) {
-        selectedForDiscount.value.push(productId);
+        selectedForDiscount.value.push(productKey);
     } else {
         selectedForDiscount.value.splice(index, 1);
     }
@@ -885,7 +885,7 @@ function openDiscountDialog() {
 function saveDiscount() {
     selectedProducts.value = selectedProducts.value.map((product) => {
         // Only update discount if product is selected
-        if (selectedForDiscount.value.includes(product.id)) {
+        if (selectedForDiscount.value.includes(product.id+product.size_id)) {
             return {
                 ...product,
                 discount: discountInput.value,

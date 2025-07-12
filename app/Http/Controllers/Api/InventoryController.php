@@ -114,6 +114,7 @@ class InventoryController extends Controller
                         $query->whereNull('a.end_date')
                             ->orWhereDate('a.end_date', '>=', $today);
                     })
+                    ->whereIn('price_type_id', [1,2])
                     ->where(function ($query) use ($item) {
                         $query->whereNull('a.variant')
                             ->orWhere('a.variant', $item->variant)
@@ -123,7 +124,11 @@ class InventoryController extends Controller
                     ->where('a.is_active', 1)
                     ->where('b.price_type_id', $price_type_id)
                     ->orderByDesc('a.effective_date')
-                    ->first();
+                    ->get();
+
+                $grouped = $price->groupBy('price_type_id');
+                $retailPrice = $grouped[1][0] ?? null;
+                $grosirPrice = $grouped[2][0] ?? null;
 
                 $sizes[] = [
                     'size_id' => $item->size_id,
@@ -131,13 +136,17 @@ class InventoryController extends Controller
                     'qty_stock' => intval($item->qty),
                     'qty_in_cart' => intval($inCart),
                     'qty_available' => intval($availableQty),
-                    'price' => $price ? floatval($price->price) : null,
-                    'price_sell' => $price ? floatval($price->price_sell) : null,
-                    'discount' => $price ? floatval($price->discount) : null,
+                    'price' => $grosirPrice ? floatval($retailPrice->price) : null,
+                    'price_sell' => $grosirPrice ? floatval($retailPrice->price_sell) : null,
+                    'discount' => $grosirPrice ? floatval($retailPrice->discount) : null,
 
-                    'price_grosir' => $price ? floatval($price->price) : null,
-                    'price_sell_grosir' => $price ? floatval($price->price_sell) : null,
-                    'discount_grosir' => $price ? floatval($price->discount) : null,
+                    'price_retail' => $retailPrice ? floatval($retailPrice->price) : null,
+                    'price_sell_retail' => $retailPrice ? floatval($retailPrice->price_sell) : null,
+                    'discount_retail' => $retailPrice ? floatval($retailPrice->discount) : null,
+
+                    'price_grosir' => $grosirPrice ? floatval($grosirPrice->price) : null,
+                    'price_sell_grosir' => $grosirPrice ? floatval($grosirPrice->price_sell) : null,
+                    'discount_grosir' => $grosirPrice ? floatval($grosirPrice->discount) : null,
                 ];
             }
 
@@ -155,6 +164,13 @@ class InventoryController extends Controller
                 'price' => isset($sizes[0]['price']) ? floatval($sizes[0]['price']) : null,
                 'price_sell' => isset($sizes[0]['price_sell']) ? floatval($sizes[0]['price_sell']) : null,
                 'discount' => isset($sizes[0]['discount']) ? floatval($sizes[0]['discount']) : null,
+                'price_retail' => isset($sizes[0]['price_retail']) ? floatval($sizes[0]['price_retail']) : null,
+                'price_sell_retail' => isset($sizes[0]['price_sell_retail']) ? floatval($sizes[0]['price_sell_retail']) : null,
+                'discount_retail' => isset($sizes[0]['discount_retail']) ? floatval($sizes[0]['discount_retail']) : null,
+                'price_grosir' => isset($sizes[0]['price_grosir']) ? floatval($sizes[0]['price_grosir']) : null,
+                'price_sell_grosir' => isset($sizes[0]['price_sell_grosir']) ? floatval($sizes[0]['price_sell_grosir']) : null,
+                'discount_grosir' => isset($sizes[0]['discount_grosir']) ? floatval($sizes[0]['discount_grosir']) : null,
+                
                 'image_path' => $imageGallery->isNotEmpty() ? ($imageGallery->first()->path ?? "not_available.png") : "not_available.png",
                 'gallery_images' => $imageGallery,
                 'sizes' => $sizes,
