@@ -208,10 +208,7 @@
                         </h3>
 
                         <!-- Stock & Info -->
-                        <p class="mb-2 text-xs text-gray-600 sm:text-sm">
-                            Stock: {{ selectedProduct?.qty_stock }} {{ selectedProduct?.uom_id }} - Ukuran {{ selectedProduct?.size_id }}
-                        </p>
-
+                        
                         <!-- Price -->
                         <!-- <p class="mb-3 font-semibold text-gray-500 text-gray-800 sm:text-lg">
                             <span v-if="selectedProduct?.discount && selectedProduct.discount > 0" class="mr-2 text-gray-400 line-through">
