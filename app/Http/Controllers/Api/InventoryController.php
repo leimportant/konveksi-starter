@@ -136,9 +136,9 @@ class InventoryController extends Controller
                     'qty_stock' => intval($item->qty),
                     'qty_in_cart' => intval($inCart),
                     'qty_available' => intval($availableQty),
-                    'price' => $grosirPrice ? floatval($retailPrice->price) : null,
-                    'price_sell' => $grosirPrice ? floatval($retailPrice->price_sell) : null,
-                    'discount' => $grosirPrice ? floatval($retailPrice->discount) : null,
+                    'price' => $retailPrice ? floatval($retailPrice->price) : null,
+                    'price_sell' => $retailPrice ? floatval($retailPrice->price_sell) : null,
+                    'discount' => $retailPrice ? floatval($retailPrice->discount) : null,
 
                     'price_retail' => $retailPrice ? floatval($retailPrice->price) : null,
                     'price_sell_retail' => $retailPrice ? floatval($retailPrice->price_sell) : null,

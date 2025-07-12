@@ -29,6 +29,7 @@ use Inertia\Inertia;
 use App\Services\InventoryService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Inventory;
+use App\Models\PosTransaction;
 use App\Models\CartItem;
 
 class OrderController extends Controller
@@ -41,6 +42,15 @@ class OrderController extends Controller
             return response()->json(['message' => 'Tidak terautentikasi.'], 401);
         }
 
+        if ($request->input('status') === 'storecart') {
+            $storeCartItems = PosTransaction::with('orderItems.product')
+            ->where(function ($q) use ($user) {
+                $q->where('customer_id', $user->id)
+                    ->orWhere('created_by', $user->id);
+            })
+            ->get();
+        }
+        
         // Handle CART status secara khusus
         if ($request->input('status') === 'cart') {
             $cartItems = CartItem::with('creator', 'product')
@@ -527,6 +537,14 @@ class OrderController extends Controller
         }
 
         $statusParam = $request->input('status');
+
+        if ($statusParam === 'storecart') {
+            $query = PosTransaction::with('orderItems.product')
+            ->where(function ($q) use ($user) {
+                $q->where('customer_id', $user->id)
+                    ->orWhere('created_by', $user->id);
+            });
+        }
 
         if ($statusParam === 'done') {
             $status = [6];
