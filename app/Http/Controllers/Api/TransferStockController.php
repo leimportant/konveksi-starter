@@ -175,8 +175,8 @@ class TransferStockController extends Controller
                     'sloc_id' => $transfer['sloc_id'],
                 ], [
                     'size_id' => $detail['size_id'],
-                    'qty' => $qty,
-                ], 'OUT');
+                    'qty' => -abs($qty),
+                ], 'IN');
 
                 // 🔺 Tambah stok ke lokasi tujuan
                 app(InventoryService::class)->updateOrCreateInventory([
