@@ -30,6 +30,12 @@ class GoogleController extends Controller
             // 1. Cari user berdasarkan google_id
             $user = User::where('google_id', $googleUser->id)->first();
 
+            if ($user) {
+                if (!$user->active) {
+                    return redirect('/login')->withErrors(['msg' => 'User anda tidak aktif, silakan hubungi admin.']);
+                }
+            }
+
             // 2. Jika tidak ada, buat user baru
             if (!$user) {
                 $user = User::create([

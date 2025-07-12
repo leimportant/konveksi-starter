@@ -27,7 +27,7 @@ class UserController extends Controller
         }
 
         $perPage = $request->input('perPage', 10);
-        $users = $query->paginate($perPage);
+        $users = $query->orderBy('created_at')->paginate($perPage);
 
         return response()->json($users);
     }
