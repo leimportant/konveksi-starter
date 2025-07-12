@@ -218,7 +218,7 @@ watch(() => formData.value.product_id, (newProduct) => {
           <div class="flex justify-end">
             <Button type="submit" :loading="loading"
               class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md shadow-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-              Create Inventory
+              Simpan
             </Button>
           </div>
         </form>

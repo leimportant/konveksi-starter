@@ -24,7 +24,7 @@ const handleListModelClick = () => {
   router.visit(`/konveksi/model/list`);
 };
 const handleListGoodReceiveClick = () => {
-  router.visit(`/good-receive`);
+  router.visit(`/purchase-order`);
 };
 </script>
 <template>
@@ -40,7 +40,7 @@ const handleListGoodReceiveClick = () => {
           @click="handleListModelClick"
         >
           <ShirtIcon class="h-10 w-10 sm:h-12 sm:w-12 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
-          <div class="absolute bottom-0 w-full bg-sky-100 dark:bg-sky-800 py-1.5 text-center font-semibold text-sky-700 dark:text-sky-300 text-xs sm:text-sm">
+          <div class="absolute bottom-0 w-full bg-sky-100 dark:bg-sky-800 py-1.5 text-center font-semibold text-sky-700 dark:text-sky-300 text-xs sm:text-xs">
             BUAT DESIGN
           </div>
         </div>

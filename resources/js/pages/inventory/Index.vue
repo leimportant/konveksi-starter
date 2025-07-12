@@ -5,6 +5,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { useInventoryStore } from '@/stores/useInventoryStore';
 import { Head } from '@inertiajs/vue3';
 import { Plus } from 'lucide-vue-next';
+import { Input } from '@/components/ui/input'
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, watch } from 'vue';
 

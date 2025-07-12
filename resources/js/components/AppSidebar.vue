@@ -15,6 +15,12 @@ const mainNavItems: NavItem[] = [
         href: '/dashboard',
         icon: LayoutGrid as unknown as string, // Cast to string to resolve type error
     },
+    {
+        id: 2,
+        title: 'Purchase Orders',
+        href: '/purchase-order',
+        icon: 'Receipt' as unknown as string,
+    },
 ];
 
 const footerNavItems: NavItem[] = [];

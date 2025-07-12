@@ -5,13 +5,12 @@ import { cn } from '@/lib/utils';
 interface Props {
   modelValue?: string;
   class?: string;
-  rows?: number;
   placeholder?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
-  rows: 3
+  rows: 2
 });
 
 const emit = defineEmits<{
@@ -32,7 +31,6 @@ const value = computed({
       'flex min-h-[80px] w-full rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
       props.class
     )"
-    :rows="rows"
     :placeholder="placeholder"
   />
 </template>

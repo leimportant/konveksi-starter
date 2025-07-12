@@ -39,6 +39,7 @@ const iconMap: Record<string, () => Promise<Component>> = {
    BookCheck: () => import('lucide-vue-next').then(m => m.BookCheck),
    BookOpen: () => import('lucide-vue-next').then(m => m.BookOpen),
    BadgeCentIcon: () => import('lucide-vue-next').then(m => m.BadgeCentIcon),
+   Receipt: () => import('lucide-vue-next').then(m => m.Receipt),
 };
 
 const iconCache: Record<string, Component> = {};
