@@ -116,14 +116,15 @@ const handleCreate = async () => {
   }
 };
 
-const handleEdit = (product: { id: number; name: string; descriptions: string, category_id: number; uom_id: string }) => {
+const handleEdit = (product: { id: number; name: string; descriptions: string; category_id: number; uom_id: string }) => {
   currentProduct.value = product;
   form.name = product.name;
-  form.descriptions = form.descriptions;
+  form.descriptions = product.descriptions; // ✅ FIXED
   form.category_id = product.category_id;
   form.uom_id = product.uom_id;
   showEditModal.value = true;
 };
+
 
 const handleUpdate = async () => {
   if (!currentProduct.value || !form.name) return toast.error("Name is required");
