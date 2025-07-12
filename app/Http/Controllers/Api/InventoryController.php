@@ -316,24 +316,13 @@ class InventoryController extends Controller
                 'uom_id' => 'required|exists:mst_uom,id',
                 'sloc_id' => 'required|exists:mst_sloc,id',
                 'size_id' => 'required|exists:mst_size,id',
-                'qty' => 'required|numeric|min:0'
+                'qty' => 'required|numeric'
             ]);
 
             $validated['created_by'] = Auth::id();
             $validated['updated_by'] = Auth::id();
 
             $inventory = Inventory::create($validated);
-
-            // ====== INVENTORY - IN (lokasi tujuan)
-            app(InventoryService::class)->updateOrCreateInventory([
-                'product_id' => $validated['product_id'],
-                'location_id' => $validated['location_id'],
-                'uom_id' => $validated['uom_id'],
-                'sloc_id' => $validated['sloc_id'],
-            ], [
-                'size_id' => $validated['size_id'],
-                'qty' => $validated['qty'],
-            ], 'IN');
 
             return response()->json([
                 'status' => 'success',
