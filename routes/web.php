@@ -315,6 +315,26 @@ Route::get('/production/{activity_role}/view/{id}', function ($activity_role, $i
     ]);
 })->middleware(['auth'])->name('production.view');
 
+Route::get('/purchase-order', function () {
+    return Inertia::render('purchase-order/Index');
+})->middleware(['auth'])->name('purchase-order.getIndex');
+
+Route::get('/purchase-order/create', function () {
+    return Inertia::render('purchase-order/Create');
+})->middleware(['auth'])->name('purchase-order.create');
+
+Route::get('/purchase-order/{id}/edit', function ($id) {
+    return Inertia::render('purchase-order/Update', [
+        'id' => $id,
+    ]);
+})->middleware(['auth'])->name('purchase-order.edit');
+
+Route::get('/purchase-order/{id}/view', function ($id) {
+    return Inertia::render('purchase-order/View', [
+        'id' => $id,
+    ]);
+})->middleware(['auth'])->name('purchase-order.view');
+
 Route::get('/reports/omset-per-payment', function () {
     return Inertia::render('reports/OmsetReport');
 })->middleware(['auth'])->name('reports.omset-per-payment');
@@ -337,6 +357,7 @@ Route::get('/reports/production-summary', function () {
 Route::get('/reports/production-detail', function () {
         return Inertia::render('reports/ProductionDetailReport');
     })->middleware(['auth'])->name('reports.production-detail');
+
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

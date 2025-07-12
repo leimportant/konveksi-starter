@@ -191,6 +191,7 @@ import { useToast } from '@/composables/useToast'
 import { router } from '@inertiajs/vue3'
 import { useTransferStockStore } from '@/stores/useTransferStockStore'
 import { useInventoryStore } from '@/stores/useInventoryStore'
+import { Trash } from 'lucide-vue-next';
 
 const toast = useToast()
 const store = useTransferStockStore()

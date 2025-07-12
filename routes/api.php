@@ -37,6 +37,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ChatMessageController;
 use App\Http\Controllers\Api\BankAccountController;
+use App\Http\Controllers\Api\PurchaseOrderController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -146,6 +147,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('api/cart-items/clear', [CartItemController::class, 'clearCart']); // Clear cart
 
     Route::apiResource('api/settings', SettingController::class)->only(['index', 'update']);
+    Route::apiResource('api/purchase-order', PurchaseOrderController::class);
 
     Route::get('api/reports/sales-summary', [ReportController::class, 'reportSalesSummary']);
     Route::get('api/reports/production-summary', [ReportController::class, 'reportProductionSummary']);
