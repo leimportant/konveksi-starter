@@ -63,7 +63,8 @@ class InventoryController extends Controller
             });
         }
 
-        $inventories = $query->orderBy('b.updated_at')->get();
+        $inventories = $query->orderBy('b.created_at', 'DESC')
+        ->orderBy('a.created_at', 'DESC')->get();
 
         // Group inventories by product_id
         $grouped = $inventories->groupBy('product_id');
