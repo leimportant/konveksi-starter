@@ -24,7 +24,7 @@ const handleListModelClick = () => {
   router.visit(`/konveksi/model/list`);
 };
 const handleListGoodReceiveClick = () => {
-  router.visit(`/good-receive`);
+  router.visit(`/purchase-order`);
 };
 </script>
 <template>
