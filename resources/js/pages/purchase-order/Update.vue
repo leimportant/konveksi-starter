@@ -24,8 +24,32 @@ import {
 import { Plus, Trash2 } from 'lucide-vue-next';
 
 const toast = useToast();
-const { products, createPurchaseOrder } = usePurchaseOrder();
+const { products, createPurchaseOrder, fetchPurchaseOrder, updatePurchaseOrder } = usePurchaseOrder();
 const uoms = ref<{ id: number; name: string }[]>([])
+
+type PurchaseOrderItemPayload = {
+  product_id: number;
+  qty: number;
+  uom_id: string;
+  price: number;
+  total: number;
+};
+
+type PurchaseOrderPayload = {
+  nota_number: string;
+  purchase_date: string;
+  supplier: string;
+  notes: string;
+  items: PurchaseOrderItemPayload[];
+};
+
+const props = defineProps({
+  purchaseOrderId: {
+    type: String,
+    required: true,
+  },
+});
+
 const form = useForm({
   nota_number: '',
   purchase_date: new Date().toISOString().slice(0, 10),
@@ -103,31 +127,63 @@ const searchProducts = async (search: string) => {
 //   return form.items.reduce((sum, item) => sum + item.total, 0);
 // });
 
-onMounted(() => {
-  fetchDropdowns()
-})
+onMounted(async () => {
+  await fetchDropdowns();
+  if (props.purchaseOrderId) {
+    try {
+      const order = await fetchPurchaseOrder(props.purchaseOrderId);
+      if (order) {
+        form.nota_number = order.nota_number;
+        form.purchase_date = order.purchase_date;
+        form.supplier = order.supplier;
+        form.notes = order.notes;
+        form.items = order.items.map((item: any) => ({
+          product_id: item.product_id,
+          qty: item.qty,
+          uom_id: item.uom_id,
+          price: item.price,
+          total: item.total,
+        }));
+      }
+    } catch (error) {
+      toast.error('Failed to fetch purchase order details.');
+      console.error(error);
+    }
+  }
+});
 const submit = async () => {
   if (form.processing) return;
   form.processing = true;
 
   try {
-    const payload = {
-      ...form,
+    const payload: PurchaseOrderPayload = {
+      nota_number: form.nota_number,
+      purchase_date: form.purchase_date,
+      supplier: form.supplier,
+      notes: form.notes,
       items: form.items.map(item => ({
-        ...item,
         product_id: (item.product_id as any)?.id ?? item.product_id,
+        qty: item.qty,
         uom_id: item.uom_id || "",
+        price: item.price,
+        total: item.total,
       })),
     };
 
-    await createPurchaseOrder(payload);
-    toast.success('Purchase Order has been created successfully.');
+    if (props.purchaseOrderId) {
+      await updatePurchaseOrder(props.purchaseOrderId, payload);
+      toast.success('Purchase Order has been updated successfully.');
+    } else {
+      await createPurchaseOrder(payload);
+      toast.success('Purchase Order has been created successfully.');
+    }
+
     form.reset();
-    router.visit('/purchase-order');
     form.items = [];
+    router.visit('/purchase-order');
   } catch (error) {
-    console.error('Error creating purchase order:', error);
-    toast.error('Failed to create purchase order.');
+    console.error('Error processing purchase order:', error);
+    toast.error('Failed to process purchase order.');
   } finally {
     form.processing = false;
   }
@@ -136,11 +192,11 @@ const submit = async () => {
 </script>
 
 <template>
-  <Head title="Create Purchase Order" />
-  <AppLayout title="Create Purchase Order">
+  <Head title="Update Purchase Order" />
+  <AppLayout>
     <template #header>
       <h2 class="font-semibold text-lg sm:text-xl text-gray-800 leading-tight">
-        Create Purchase Order
+        Update Purchase Order
       </h2>
     </template>
 

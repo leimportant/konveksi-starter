@@ -327,7 +327,7 @@ Route::get('/purchase-order/create', function () {
 
 Route::get('/purchase-order/{id}/edit', function ($id) {
     return Inertia::render('purchase-order/Update', [
-        'id' => $id,
+        'purchaseOrderId' => $id,
     ]);
 })->middleware(['auth'])->name('purchase-order.edit');
 

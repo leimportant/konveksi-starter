@@ -41,6 +41,17 @@ interface State {
   uoms: any[];
 }
 
+type PurchaseOrderItemPayload = Omit<PurchaseOrderItem, 'id' | 'product' | 'purchase_order_id'>;
+
+type PurchaseOrderPayload = {
+  purchase_date: string;
+  supplier: string;
+  nota_number: string;
+  notes?: string;
+  items: PurchaseOrderItemPayload[];
+};
+
+
 export const usePurchaseOrder = defineStore('purchaseOrder', {
   state: (): State => ({
     items: [],
@@ -91,6 +102,7 @@ export const usePurchaseOrder = defineStore('purchaseOrder', {
       try {
         const response = await axios.get(`/api/purchase-order/${id}`);
         this.purchaseOrder = response.data.data;
+        return response.data.data;
       } catch (error: any) {
         console.error(`Failed to fetch purchase order ${id}:`, error);
         this.error = error?.response?.data?.message || 'Failed to fetch data.';
@@ -126,7 +138,7 @@ export const usePurchaseOrder = defineStore('purchaseOrder', {
       }
     },
 
-    async updatePurchaseOrder(id: string, payload: PurchaseOrder) {
+    async updatePurchaseOrder(id: string, payload: PurchaseOrderPayload) {
       this.loading = true;
       this.error = null;
 

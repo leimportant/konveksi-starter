@@ -22,15 +22,6 @@ interface PurchaseOrderItem {
   total: number;
 }
 
-interface PurchaseOrder {
-  id: string;
-  purchase_date: string;
-  supplier: string;
-  nota_number: string;
-  status?: string | "Draft";
-  items: PurchaseOrderItem[];
-}
-
 const formatDate = (dateStr: string) => {
   if (!dateStr) return 'N/A';
   const date = new Date(dateStr);
@@ -40,7 +31,7 @@ const formatDate = (dateStr: string) => {
   }
   return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
 };
-// UI state
+// UI state variables
 const showCreateModal = ref(false);
 
 // Form
@@ -105,12 +96,7 @@ const handleCreate = async () => {
   }
 };
 
-const handleEdit = (order: PurchaseOrder) => {
-  router.push({
-    name: 'purchase-order.edit',
-    params: { id: order.id },
-  });
-};
+
 
 
 
@@ -168,7 +154,7 @@ const breadcrumbs = [
               <TableCell>{{ order.nota_number }}</TableCell>
               <TableCell>{{ order.status }}</TableCell>
               <TableCell class="flex gap-2">
-                <Button variant="ghost" size="icon" @click="handleEdit(order)" :disabled="loading">
+                <Button variant="ghost" size="icon" @click="$inertia.visit(`/purchase-order/${order.id}/edit`)">
                   <Edit class="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="icon" @click="handleDelete(order.id)" :disabled="loading || order.status === 'completed'">
