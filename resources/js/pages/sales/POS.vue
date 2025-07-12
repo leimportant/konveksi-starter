@@ -292,7 +292,6 @@
                              <span class="mb-1 text-sm font-semibold text-gray-700">Pilih Ukuran </span> 
                             <div class="flex flex-wrap gap-2">
                                
-                                
                                 <br />
                                 <button
                                     v-for="size in sizesForSelectedVariant"
@@ -344,7 +343,9 @@
                            
                            
                             <div v-if="getSelectedItemDetail" class="mb-4 text-sm text-gray-700">
-                              
+                                <p>
+                                Stok: <strong>{{ getSelectedItemDetail.qty_available }}</strong>
+                            </p>
                                 <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="mr-2 text-gray-400 line-through">
                                        Harga {{ formatRupiah(getSelectedItemDetail.price) }}
                                     </span> <br />

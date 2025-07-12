@@ -132,9 +132,8 @@ const handleSubmit = async () => {
   try {
     await store.createCashBalance(form.value)
     toast.success('Shift opened successfully')
-    router.visit(route('sales.index'))
+    router.visit('/pos')
   } catch (error: any) {
-    toast.error('Failed to open shift')
     console.error('Shift creation error:', error)
     
     if (error.response?.data?.errors) {
