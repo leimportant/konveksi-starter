@@ -103,6 +103,17 @@ class PosOrderController extends Controller
                         'qty' => abs($p['quantity']), // Reduce stock from source location
                     ], 'IN');
                 } else {
+
+                    app(InventoryService::class)->updateOrCreateInventory([
+                        'product_id' => $p['product_id'],
+                        'location_id' => $locationId,
+                        'uom_id' => $p['uom_id'],
+                        'sloc_id' => 'GS00', // Assuming GS01 is the source location
+                    ], [
+                        'size_id' => $p['size_id'],
+                        'qty' => -abs($p['quantity']), // Reduce stock from source location
+                    ], 'IN');
+
                      // Update stock
                     app(InventoryService::class)->updateOrCreateInventory([
                         'product_id' => $p['product_id'],
@@ -114,7 +125,6 @@ class PosOrderController extends Controller
                         'qty' => $p['quantity'], // Reduce stock from source location
                     ], 'OUT');
                 }
-
                
             }
 
