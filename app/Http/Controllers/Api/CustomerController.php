@@ -19,9 +19,9 @@ class CustomerController extends Controller
         }
 
         $perPage = $request->input('perPage', 10);
-        $categories = $query->paginate($perPage);
+        $data = $query->orderBy('created_at')->paginate($perPage);
 
-        return response()->json($categories);
+        return response()->json($data);
     }
 
     public function search(Request $request)
