@@ -13,6 +13,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Services\InventoryService;
+use Illuminate\Support\Facades\Log;
+
 class InventoryController extends Controller
 {
     /**
@@ -460,44 +462,46 @@ class InventoryController extends Controller
             ->sum('b.qty');
      }
 
-    private function getProductPrices($productId, $sizeId, $variant, $today): array
-    {
-        $price = DB::table('mst_product_price as a')
-            ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
-            ->select([
-                'b.price',
-                'b.size_id',
-                'b.discount',
-                'b.price_sell',
-                'a.effective_date',
-                'a.end_date',
-                'a.is_active'
-            ])
-            ->where('a.product_id', $productId)
-            ->where('b.size_id', $sizeId)
-            ->whereDate('a.effective_date', '<=', $today)
-            ->where(function ($query) use ($today) {
-                $query->whereNull('a.end_date')
-                    ->orWhereDate('a.end_date', '>=', $today);
-            })
-            ->whereIn('price_type_id', [1, 2])
-            ->where(function ($query) use ($variant) {
-                $query->whereNull('a.variant')
-                    ->orWhere('a.variant', $variant)
-                    ->orWhere('a.variant', 'all')
-                    ->orWhere('a.variant', '');
-            })
-            ->where('a.is_active', 1)
-            ->whereIn('b.price_type_id', [1, 2])
-            ->orderByDesc('a.effective_date')
-            ->get();
+  private function getProductPrices($productId, $sizeId, $variant, $today): array
+{
+    $price = DB::table('mst_product_price as a')
+        ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
+        ->select([
+            'b.price',
+            'b.size_id',
+            'b.price_type_id',
+            'b.discount',
+            'b.price_sell',
+            'a.effective_date',
+            'a.end_date',
+            'a.is_active'
+        ])
+        ->where('a.product_id', $productId)
+        ->where('b.size_id', $sizeId)
+        ->whereDate('a.effective_date', '<=', $today)
+        ->where(function ($query) use ($today) {
+            $query->whereNull('a.end_date')
+                  ->orWhereDate('a.end_date', '>=', $today);
+        })
+        ->whereIn('b.price_type_id', [1, 2])
+        ->where(function ($query) use ($variant) {
+            $query->whereNull('a.variant')
+                ->orWhere('a.variant', 'all')
+                ->orWhere('a.variant', '');
+        })
+        ->where('a.is_active', 1)
+        ->orderByDesc('a.effective_date')
+        ->get();
 
-        $groupedPrices = $price->groupBy('price_type_id');
-        $retailPrice = $groupedPrices[1][0] ?? null;
-        $grosirPrice = $groupedPrices[2][0] ?? null;
+    Log::info($price);
 
-        return ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice];
-     }
+    $retailPrice = $price->firstWhere('price_type_id', 1);
+    $grosirPrice = $price->firstWhere('price_type_id', 2);
+
+
+    return ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice];
+}
+
 
     private function getImageGalleries($productId)
     {
