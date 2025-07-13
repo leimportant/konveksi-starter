@@ -122,7 +122,7 @@ class InventoryController extends Controller
                             ->orWhere('a.variant', '');
                     })
                     ->where('a.is_active', 1)
-                    ->where('b.price_type_id', $price_type_id)
+                    ->whereIn('b.price_type_id', [1,2])
                     ->orderByDesc('a.effective_date')
                     ->get();
 
