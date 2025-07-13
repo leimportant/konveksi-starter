@@ -81,6 +81,8 @@ const subtotalAmount = computed(() => {
     }, 0);
 });
 
+const hasGrosirPromo = computed(() => cartItemValue.value.some((item) => (item.price_sell_grosir ?? 0) > 0 && item.quantity > 1));
+
 const discountAmount = computed(() => {
     return cartStore.cartItems.reduce((sum: number, item: CartItem) => {
         const quantity = item.quantity || 0;
@@ -168,12 +170,16 @@ const confirmCheckout = async () => {
                     .map((item: CartItem) => ({
                         product_id: item.product!.id,
                         quantity: item.quantity,
-                        price: item.price || 0, // Original price per unit
-                        price_sell: item.price_sell || 0, // Selling price per unit after discount
+                        price: item.price ?? 0,
+                        price_sell: item.price_sell ?? 0,
                         size_id: item.size_id ?? item.product?.size_id ?? '',
                         uom_id: item.uom_id ?? item.product?.uom_id ?? 'PCS',
                         // Calculate discount per item based on the difference between original price and selling price
-                        discount: (item.price || 0) - (item.price_sell || 0),
+                        discount: item.discount ?? 0,
+
+                        price_grosir: item.price_grosir ?? 0,
+                        price_sell_grosir: item.price_sell_grosir ?? 0,
+                        discount_grosir: item.discount_grosir ?? 0,
                     })),
                 payment_method: selectedPaymentMethod.value,
                 total_amount: totalAmount.value,
@@ -323,8 +329,8 @@ const goBackToCart = () => {
                 <!-- Rincian Pesanan -->
                 <div class="mb-8 rounded-2xl bg-white p-8 shadow-xl lg:col-span-2">
                     <h2 class="text-l mb-6 text-gray-800">Rincian Pesanan</h2>
-                    <template v-for="item in cartItemValue" :key="item.product?.id">
-                        <div v-if="(item.price_sell_grosir ?? 0) > 0 && item.quantity > 1" class="mb-4 mt-2 text-sm font-medium text-green-600">
+                    <template v-if="hasGrosirPromo">
+                        <div class="mb-4 mt-2 text-sm font-medium text-green-600">
                             🎉 Hore, selamat Anda mendapatkan promo harga grosir dengan pembelian lebih dari 1!
                         </div>
                     </template>

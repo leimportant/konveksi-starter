@@ -54,10 +54,12 @@ class CartItemController extends Controller
 
             $price_sell = ($validated['price'] - ($validated['discount'] ?? 0));
 
+            
             // Jika Pembelian sudah ada dan qty lebih dari 1 maka ambil harga grosir
-            $cartItemCount = CartItem::where('created_by', Auth::id())
+            $cartCount = CartItem::where('created_by', Auth::id())
                 ->sum('quantity');
 
+            $cartItemCount = $cartCount + $validated['quantity'];
 
             $price_sell_grosir = 0;
             $price_grosir = 0;
@@ -69,11 +71,10 @@ class CartItemController extends Controller
                 $discount_grosir = $grosirPrice['discount'] ?? 0;
             }
 
-
             if ($cartItem) {
                 // If the product exists, update the quantity
                 $cartItem->update([
-                    'quantity' => $cartItem->quantity + $validated['quantity'],
+                    'quantity' => $validated['quantity'],
                     'price' => $validated['price'],
                     'discount' => $validated['discount'],
                     'price_sell' => $validated['price_sell'] ?? $price_sell,
