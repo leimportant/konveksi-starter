@@ -235,7 +235,7 @@ const uploadPaymentProof = async () => {
     formData.append('payment_proof', paymentProofFile.value);
 
     try {
-        await axios.post(`/api/order/${orderIdForUpload.value}/upload-payment-proof`, formData, {
+        await axios.post(`/api/orders/${orderIdForUpload.value}/upload-payment-proof`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
