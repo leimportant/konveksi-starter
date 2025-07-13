@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { onMounted, ref } from 'vue';
 
 interface Order {
     id: string;
@@ -31,21 +31,34 @@ interface Order {
 const props = defineProps({
     message: {
         type: String,
-        default: ''
+        default: '',
     },
     order: {
         type: Object as () => Order | null,
-        default: null
-    }
+        default: null,
+    },
 });
 
 const message = ref<string>(props.message);
 const order = ref<Order | null>(props.order);
 
 const fetchOrderDetails = async () => {
-    if (props.order && props.order.id) {
+    console.log('aaa');
+    console.log(props.order);
+    if (props.order) {
         try {
-            const response = await axios.post(`/api/orders/${props.order.id}/status/approved`);
+            const response = await axios.post(
+                `/api/orders/${props.order.id}/status/approved`,
+                {},
+                {
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                },
+            );
+
+            console.log('approve');
+            console.log(response);
             order.value = response.data.order; // Assuming the API returns order data under 'order' key
             message.value = response.data.message || 'Order approved successfully!';
         } catch (error) {
@@ -66,16 +79,16 @@ onMounted(() => {
 
 <template>
     <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Order Approval Status</h1>
+        <h1 class="mb-4 text-2xl font-bold">Order Approval Status</h1>
 
-        <div v-if="message" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <div v-if="message" class="relative mb-4 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700" role="alert">
             <strong class="font-bold">Success!</strong>
             <span class="block sm:inline">{{ message }}</span>
         </div>
 
-        <div v-if="order && order.status === '1'" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <h2 class="text-xl font-semibold mb-4">Order Details</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div v-if="order && order.status === '1'" class="mb-4 rounded bg-white px-8 pb-8 pt-6 shadow-md">
+            <h2 class="mb-4 text-xl font-semibold">Order Details</h2>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                     <p><span class="font-semibold">Order ID:</span> {{ order.id }}</p>
                     <p><span class="font-semibold">Total Amount:</span> {{ order.total_amount }}</p>
@@ -91,11 +104,11 @@ onMounted(() => {
             </div>
             <div v-if="order.payment_proof" class="mt-4">
                 <p class="font-semibold">Payment Proof:</p>
-                <img :src="`/storage/${order.payment_proof}`" alt="Payment Proof" class="max-w-xs h-auto mt-2" />
+                <img :src="`/storage/${order.payment_proof}`" alt="Payment Proof" class="mt-2 h-auto max-w-xs" />
             </div>
         </div>
 
-        <div v-else class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
+        <div v-else class="relative rounded border border-yellow-400 bg-yellow-100 px-4 py-3 text-yellow-700" role="alert">
             <strong class="font-bold">Info:</strong>
             <span class="block sm:inline">No order details available.</span>
         </div>

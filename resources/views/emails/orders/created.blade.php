@@ -104,7 +104,7 @@
             style="border: 1px solid #ddd; border-radius: 6px; margin-bottom: 20px; background-color: #fefefe;">
             <tr>
                 <td width="100" style="padding: 10px; text-align: center; vertical-align: top;">
-                    <img src="{{ asset($item->product->image) }}" alt="{{ $item->product->name }}"
+                    <img src="{{ asset($item->product->image_path) }}" alt="{{ $item->product->name }}"
                         style="width: 80px; height: auto; border-radius: 4px; display: block; object-fit: cover;">
                 </td>
                 <td
@@ -113,7 +113,10 @@
                     Ukuran: {{ $item->size_id }} / {{ $item->uom_id }}<br>
                     Jumlah: {{ $item->qty }}<br>
                     Total Harga: Rp {{  number_format($item->price_final * $item->qty, 2, ',', '.') }}<br>
+                    Diskon: Rp {{ number_format($item->discount * $item->qty, 2, ',', '.') }}
                 </td>
+
+            
             </tr>
         </table>
     @endforeach

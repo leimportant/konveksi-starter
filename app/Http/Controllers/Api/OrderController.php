@@ -44,13 +44,13 @@ class OrderController extends Controller
 
         if ($request->input('status') === 'storecart') {
             $storeCartItems = PosTransaction::with('orderItems.product')
-            ->where(function ($q) use ($user) {
-                $q->where('customer_id', $user->id)
-                    ->orWhere('created_by', $user->id);
-            })
-            ->get();
+                ->where(function ($q) use ($user) {
+                    $q->where('customer_id', $user->id)
+                        ->orWhere('created_by', $user->id);
+                })
+                ->get();
         }
-        
+
         // Handle CART status secara khusus
         if ($request->input('status') === 'cart') {
             $cartItems = CartItem::with('creator', 'product')
@@ -188,7 +188,7 @@ class OrderController extends Controller
             $order->save(); // Save to get the auto-incremented ID for order_id
 
             $calculatedTotalAmount = $this->processOrderItems($request->items, $order->id, $locationId, $request->payment_method);
-            $order->total_amount = $calculatedTotalAmount;
+            $order->total_amount = $request->total_amount > 0 ? $request->total_amount : $calculatedTotalAmount;
             if (!$order->save()) {
                 throw new \Exception('Gagal menyimpan order!');
             }
@@ -218,8 +218,6 @@ class OrderController extends Controller
                 ], 201);
             }
 
-
-
             return response()->json(['message' => 'Pesanan berhasil dibuat', 'order' => $order], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -237,13 +235,21 @@ class OrderController extends Controller
                 throw new \Exception("Product with ID {$itemData['product_id']} not found.");
             }
 
-            $basePrice = $itemData['price']; // Unit price from request
-            $totalLineDiscount = $itemData['discount'] ?? 0; // Total discount for this item line from request
+            $price = $itemData['price'] ?? 0; // Unit price from request
+            $discount = $itemData['discount'] ?? 0; // Total discount for this item line from request
             $quantity = $itemData['quantity']; // Quantity from request
-            $price_sell = $itemData['price_sell']; // Quantity from request
+            $price_sell = $itemData['price_sell'] ?? $price; // Quantity from request
 
+
+            $price_grosir = $itemData['price_grosir'] ?? 0;
+            $price_sell_grosir = $itemData['price_sell_grosir'] ?? $price_grosir;
+            $discount_grosir = $itemData['discount_grosir'];
+
+            $basePrice = $price_grosir > 0 ? $price_grosir : $price;
+            $priceSell = $price_sell_grosir > 0 ? $price_sell_grosir : $price_sell;
+            $totalLineDiscount = $discount_grosir > 0 ? $discount_grosir : $discount;
             // Calculate price after discount per item (unit price)
-            $priceAfterDiscountPerItem = $basePrice - ($totalLineDiscount / $quantity);
+            $priceAfterDiscountPerItem = $priceSell - ($totalLineDiscount / $quantity);
 
             $orderItem = new OrderItem();
             $orderItem->item_id = Str::uuid(); // Assign UUID
@@ -254,44 +260,32 @@ class OrderController extends Controller
             $orderItem->uom_id = $itemData['uom_id'] ?? null; // Optional color_id
             $orderItem->discount = $totalLineDiscount; // Store the total discount amount for this item line
             $orderItem->price = $basePrice; // Store the original product price per unit
-            $orderItem->price_final = $price_sell; // Store the final price per unit after discount
+            $orderItem->price_final = $priceSell; // Store the final price per unit after discount
             $orderItem->save();
 
             $calculatedTotalAmount += ($priceAfterDiscountPerItem * $quantity);
 
-            // ganti ke inventory_booking
-            // $status = "IN";
-            // if ($paymentMethod == "bank_transfer") {
-            //     $status = "OUT";
-            // }
-            // langsung update inventory
-            // $inventory = Inventory::where('product_id', $itemData['product_id'])
-            //     ->where('location_id', $locationId)
-            //     ->where('uom_id', $itemData['uom_id'])
-            //     ->where('sloc_id', 'GS00')
-            //     ->where('size_id', $itemData['size_id'])
-            //     ->where('status', $status)
-            //     ->first();
-            // $qty = $inventory ? $inventory->qty : 0;
-            // $qty_rese = $inventory ? $inventory->qty_reserved : 0;
+            // potong stock yg IN
+            // Update stock
+            app(InventoryService::class)->updateOrCreateInventory([
+                'product_id' => $itemData['product_id'],
+                'location_id' => intval($locationId),
+                'uom_id' => $itemData['uom_id'],
+                'sloc_id' => 'GS00', // Assuming GS01 is the source location
+            ], [
+                'size_id' => $itemData['size_id'],
+                'qty' => -abs($quantity), // Reduce stock from source location
+            ], 'IN');
 
-            // $qty_reserved = intval($qty_rese + $quantity);
-            // if ($paymentMethod == "bank_transfer") {
-            //     $qty = $quantity;
-            //     $qty_reserved = 0;
-            // }
-
-            // update stock
-            // app(InventoryService::class)->updateOrCreateInventory([
-            //     'product_id' => $itemData['product_id'],
-            //     'location_id' => $locationId,
-            //     'uom_id' => $itemData['uom_id'],
-            //     'sloc_id' => 'GS00',
-            // ], [
-            //     'size_id' => $itemData['size_id'],
-            //     'qty' => $qty, // Reduce stock from source location
-            //     'qty_reserved' => $qty_reserved, // Reduce stock from source location
-            // ], $status);
+             app(InventoryService::class)->updateOrCreateInventory([
+                'product_id' => $itemData['product_id'],
+                'location_id' => intval($locationId),
+                'uom_id' => $itemData['uom_id'],
+                'sloc_id' => 'GS00', // Assuming GS01 is the source location
+            ], [
+                'size_id' => $itemData['size_id'],
+                'qty' => abs($quantity), // Reduce stock from source location
+            ], 'OUT');
         }
         return $calculatedTotalAmount;
     }
@@ -332,55 +326,56 @@ class OrderController extends Controller
     //     Mail::to($order->customer->email)->send(new OrderStatusUpdated($order->load('orderItems.product', 'customer')));
 
     //     return response()->json(['message' => 'Order rejected successfully', 'order' => $order->load('orderItems.product', 'customer')], 200);
-    
+
     // }
 
-    public function approve(Request $request)
+
+    public function approve(Request $request, $id)
     {
-        $order = Order::with('customer', 'details')->find($request->order_id); // pastikan relasi tersedia
+        $order = Order::with('customer', 'details')->find($id);
 
         if (!$order || $order->status != "1") {
-            return Inertia::render('Order/Approve', [
-                'message' => 'Order Tidak ditemukan atau sudah diproses',
-                'order' => (object) [],
-            ]);
+            return response()->json([
+                'message' => 'Order tidak ditemukan atau sudah diproses.',
+                'order' => null,
+            ], 404);
         }
-
-        // Update order status
-        $order->status = "2";
-        $order->is_paid = 'Y';
-        $order->updated_by = Auth::id();
-        $order->save();
-
-        // Kirim email ke customer
-        if ($order->customer && $order->customer->email) {
-            Mail::to($order->customer->email)->send(new OrderStatusUpdated($order));
-        }
-
-        // Simpan ke pos_transaction
-        $userId = Auth::id();
-        $transactionNumber = 'TRX-' . strtoupper(uniqid()); // generate nomor unik
-        $totalAmount = $order->total_amount;
-        $paidAmount = $order->paid_amount ?? $totalAmount;
-        $changeAmount = max(0, $paidAmount - $totalAmount);
-        $customerId = $order->customer_id ?? 0;
 
         DB::beginTransaction();
+
         try {
+            // Update order status
+            $order->status = "2";
+            $order->is_paid = 'Y';
+            $order->updated_by = Auth::id();
+            $order->save();
+
+            // Kirim email (jika ada)
+            if ($order->customer && $order->customer->email) {
+                Mail::to($order->customer->email)->send(new OrderStatusUpdated($order));
+            }
+
+            // Simpan ke pos_transaction
+            $transactionNumber = 'TRX-' . strtoupper(uniqid());
+            $totalAmount = $order->total_amount;
+            $paidAmount = $order->paid_amount ?? $totalAmount;
+            $changeAmount = max(0, $paidAmount - $totalAmount);
+            $userId = Auth::id();
+
             $transactionId = DB::table('pos_transaction')->insertGetId([
                 'transaction_number' => $transactionNumber,
                 'transaction_date' => Carbon::now(),
                 'total_amount' => $totalAmount,
                 'paid_amount' => $paidAmount,
                 'change_amount' => $changeAmount,
-                'payment_method' => 'transfer', // bisa ambil dari order jika ada
-                'customer_id' => $customerId,
+                'payment_method' => 'transfer',
+                'customer_id' => $order->customer_id ?? 0,
                 'status' => 'completed',
                 'notes' => 'ONLINE',
-                'source_type' => 'online', // info tambahan agar bisa bedakan transaksi
+                'source_type' => 'online',
                 'created_by' => $userId,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             foreach ($order->details as $detail) {
@@ -392,24 +387,27 @@ class OrderController extends Controller
                     'uom_id' => $detail->uom_id ?? null,
                     'size_id' => $detail->size_id ?? null,
                     'subtotal' => $detail->price * $detail->quantity,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
             DB::commit();
+
             return response()->json([
-                'message' => 'Pesanan berhasil disetujui dan dicatat sebagai transaksi',
-                'order' => $order,
+                'message' => 'Pesanan berhasil disetujui dan dicatat sebagai transaksi.',
+                'order' => $order->fresh(['customer', 'details']),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'message' => 'Gagal menyimpan transaksi: ' . $e->getMessage(),
             ], 500);
         }
     }
+
 
 
     private function handlePaymentProof(Request $request): ?string
@@ -540,10 +538,10 @@ class OrderController extends Controller
 
         if ($statusParam === 'storecart') {
             $query = PosTransaction::with('orderItems.product')
-            ->where(function ($q) use ($user) {
-                $q->where('customer_id', $user->id)
-                    ->orWhere('created_by', $user->id);
-            });
+                ->where(function ($q) use ($user) {
+                    $q->where('customer_id', $user->id)
+                        ->orWhere('created_by', $user->id);
+                });
         }
 
         if ($statusParam === 'done') {

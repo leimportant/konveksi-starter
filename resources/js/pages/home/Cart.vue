@@ -24,7 +24,7 @@
                             :key="product.product_id"
                             @click="viewProductDetail(product)"
                             class="cursor-pointer rounded-xl border border-gray-200 bg-green-50 p-3 shadow-sm transition hover:bg-green-100 hover:shadow-md"
-                            :title="`Stock: ${product.qty_stock}`"
+                            :title="`${product.product_name} - ${formatRupiah(product.price)}`"
                         >
                             <div class="mb-2 h-24 w-full">
                                 <!-- <img v-if="product.image_path" :src="getImageUrl(product.image_path)" alt="product"
@@ -51,7 +51,6 @@
                                 </template>
                             </p>
 
-                            <p class="text-xs text-gray-500">Stock: {{ product.qty_stock }} {{ product.uom_id }}</p>
                             <div class="mt-1 text-sm">
                                 <template v-if="product.discount && product.discount > 0">
                                     <p class="text-xs text-gray-400 line-through">{{ formatRupiah(product.price) }}</p>
@@ -114,7 +113,7 @@
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-sm font-semibold text-gray-800">{{ item.product_name }}</p>
 
-                        <p class="text-xs text-gray-400">Stock: {{ item.qty_stock }}</p>
+                        <p class="text-xs text-gray-400">Stock: {{ item.qty_available }}</p>
                         <p class="text-xs text-gray-800">
                             {{ formatRupiah((item.price_sell ?? 0) > 0 ? (item.price_sell ?? 0) : (item.price ?? 0)) }}
                         </p>
@@ -543,7 +542,7 @@ const addToCart = async () => {
     }
 
     // Validasi stok
-    if (detailQty.value > product.qty_stock) {
+    if (detailQty.value > product.qty_available) {
         toast.error('Jumlah melebihi stok tersedia');
         return;
     }
@@ -593,11 +592,11 @@ const decreaseDetailQty = () => {
 const increaseQty = debounce(async (item: Product) => {
     const price_sell = item.price - (item.discount ?? 0);
 
-    if (item.quantity < item.qty_stock) {
+    if (item.quantity < item.qty_available) {
         try {
             await cartStore.addToCart(
                 item.product_id ?? 0,
-                1,
+                item.quantity + 1,
                 item.size_id ?? '',
                 item.uom_id ?? 'PCS',
                 item.price,
