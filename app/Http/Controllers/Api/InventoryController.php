@@ -24,158 +24,17 @@ class InventoryController extends Controller
 
     public function getStock(Request $request): JsonResponse
     {
-        if (!Auth::user() || !Auth::user()->location_id) {
+        $locationId = $this->authenticateAndGetLocationId();
+        if (is_null($locationId)) {
             return response()->json(['error' => 'Location not found'], 404);
         }
 
-        $locationId = Auth::user()->location_id;
         $today = Carbon::today()->toDateString();
         $price_type_id = $request->price_type_id ?? 1;
 
-        $query = DB::table('tr_inventory as a')
-            ->select([
-                'a.product_id',
-                'a.location_id',
-                'b.name as product_name',
-                'b.descriptions as product_description',
-                'a.uom_id',
-                'a.size_id',
-                'a.sloc_id',
-                'a.variant',
-                'a.qty',
-                'a.status',
-                'b.image_path',
-                'c.name as category_name',
-            ])
-            ->join('mst_product as b', 'a.product_id', '=', 'b.id')
-            ->leftJoin('mst_category as c', 'b.category_id', '=', 'c.id')
-            ->where('a.location_id', $locationId)
-            ->whereNull('b.deleted_at')
-            ->where('a.qty', '>', 0)
-            ->where('a.status', 'IN');
+        $inventories = $this->buildInventoryQuery($request, $locationId)->get();
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('a.product_id', $search)
-                    ->orWhere('b.name', 'like', "%{$search}%")
-                    ->orWhere('c.name', 'like', "%{$search}%");
-            });
-        }
-
-        $inventories = $query->orderBy('b.created_at', 'DESC')
-        ->orderBy('a.created_at', 'DESC')->get();
-
-        // Group inventories by product_id
-        $grouped = $inventories->groupBy('product_id');
-
-        $result = [];
-
-        foreach ($grouped as $product_id => $items) {
-            $firstItem = $items->first();
-
-            // Ambil gallery image
-            $imageGallery = DB::table('tr_document_attachment')
-                ->where('doc_id', $product_id)
-                ->whereNull('deleted_at')
-                ->get();
-
-            $sizes = [];
-
-            foreach ($items as $item) {
-                // Cari qty di cart_items
-                $inCart = DB::table('cart_items')
-                    ->where('product_id', $item->product_id)
-                    ->where('size_id', $item->size_id)
-                    ->where('uom_id', $item->uom_id)
-                    ->where('variant', $item->variant)
-                    ->where('sloc_id', $item->sloc_id)
-                    ->where('location_id', $item->location_id)
-                    ->sum('quantity');
-
-                $availableQty = max(0, $item->qty - $inCart); // pastikan tidak negatif
-
-                // Ambil harga
-                $price = DB::table('mst_product_price as a')
-                    ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
-                    ->select([
-                        'b.price',
-                        'b.size_id',
-                        'b.discount',
-                        'b.price_sell',
-                        'a.effective_date',
-                        'a.end_date',
-                        'a.is_active'
-                    ])
-                    ->where('a.product_id', $item->product_id)
-                    ->where('b.size_id', $item->size_id)
-                    ->whereDate('a.effective_date', '<=', $today)
-                    ->where(function ($query) use ($today) {
-                        $query->whereNull('a.end_date')
-                            ->orWhereDate('a.end_date', '>=', $today);
-                    })
-                    ->whereIn('price_type_id', [1,2])
-                    ->where(function ($query) use ($item) {
-                        $query->whereNull('a.variant')
-                            ->orWhere('a.variant', $item->variant)
-                            ->orWhere('a.variant', 'all')
-                            ->orWhere('a.variant', '');
-                    })
-                    ->where('a.is_active', 1)
-                    ->where('b.price_type_id', $price_type_id)
-                    ->orderByDesc('a.effective_date')
-                    ->get();
-
-                $grouped = $price->groupBy('price_type_id');
-                $retailPrice = $grouped[1][0] ?? null;
-                $grosirPrice = $grouped[2][0] ?? null;
-
-                $sizes[] = [
-                    'size_id' => $item->size_id,
-                    'variant' => $item->variant,
-                    'qty_stock' => intval($item->qty),
-                    'qty_in_cart' => intval($inCart),
-                    'qty_available' => intval($availableQty),
-                    'price' => $retailPrice ? floatval($retailPrice->price) : null,
-                    'price_sell' => $retailPrice ? floatval($retailPrice->price_sell) : null,
-                    'discount' => $retailPrice ? floatval($retailPrice->discount) : null,
-
-                    'price_retail' => $retailPrice ? floatval($retailPrice->price) : null,
-                    'price_sell_retail' => $retailPrice ? floatval($retailPrice->price_sell) : null,
-                    'discount_retail' => $retailPrice ? floatval($retailPrice->discount) : null,
-
-                    'price_grosir' => $grosirPrice ? floatval($grosirPrice->price) : null,
-                    'price_sell_grosir' => $grosirPrice ? floatval($grosirPrice->price_sell) : null,
-                    'discount_grosir' => $grosirPrice ? floatval($grosirPrice->discount) : null,
-                ];
-            }
-
-            $result[] = [
-                'product_id' => $product_id,
-                'location_id' => $firstItem->location_id,
-                'sloc_id' => $firstItem->sloc_id,
-                'uom_id' => $firstItem->uom_id,
-                'size_id' => $firstItem->size_id,
-                'variant' => $firstItem->variant,
-                'product_name' => $firstItem->product_name,
-                'product_description' => $firstItem->product_description,
-                'category_name' => $firstItem->category_name,
-                'qty_available' => $firstItem->qty,
-                'price' => isset($sizes[0]['price']) ? floatval($sizes[0]['price']) : null,
-                'price_sell' => isset($sizes[0]['price_sell']) ? floatval($sizes[0]['price_sell']) : null,
-                'discount' => isset($sizes[0]['discount']) ? floatval($sizes[0]['discount']) : null,
-                'price_retail' => isset($sizes[0]['price_retail']) ? floatval($sizes[0]['price_retail']) : null,
-                'price_sell_retail' => isset($sizes[0]['price_sell_retail']) ? floatval($sizes[0]['price_sell_retail']) : null,
-                'discount_retail' => isset($sizes[0]['discount_retail']) ? floatval($sizes[0]['discount_retail']) : null,
-                'price_grosir' => isset($sizes[0]['price_grosir']) ? floatval($sizes[0]['price_grosir']) : null,
-                'price_sell_grosir' => isset($sizes[0]['price_sell_grosir']) ? floatval($sizes[0]['price_sell_grosir']) : null,
-                'discount_grosir' => isset($sizes[0]['discount_grosir']) ? floatval($sizes[0]['discount_grosir']) : null,
-                
-                'image_path' => $imageGallery->isNotEmpty() ? ($imageGallery->first()->path ?? "not_available.png") : "not_available.png",
-                'gallery_images' => $imageGallery,
-                'sizes' => $sizes,
-            ];
-        }
+        $result = $this->processInventories($inventories, $today);
 
         // Optional: paginate result array manually
         $page = $request->input('page', 1);
@@ -451,5 +310,199 @@ class InventoryController extends Controller
         $inventory->delete();
 
         return response()->noContent();
+    }
+
+    private function authenticateAndGetLocationId(): ?int
+    {
+        if (!Auth::user() || !Auth::user()->location_id) {
+            return null;
+        }
+        return Auth::user()->location_id;
+    }
+
+    private function buildInventoryQuery(Request $request, int $locationId)
+    {
+        $query = DB::table('tr_inventory as a')
+            ->select([
+                'a.product_id',
+                'a.location_id',
+                'b.name as product_name',
+                'b.descriptions as product_description',
+                'a.uom_id',
+                'a.size_id',
+                'a.sloc_id',
+                'a.variant',
+                'a.qty',
+                'a.status',
+                'b.image_path',
+                'c.name as category_name',
+            ])
+            ->join('mst_product as b', 'a.product_id', '=', 'b.id')
+            ->leftJoin('mst_category as c', 'b.category_id', '=', 'c.id')
+            ->where('a.location_id', $locationId)
+            ->whereNull('b.deleted_at')
+            ->where('a.qty', '>', 0)
+            ->where('a.sloc_id', 'GS00')
+            ->where('a.status', 'IN');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('a.product_id', $search)
+                    ->orWhere('b.name', 'like', "%{$search}%")
+                    ->orWhere('c.name', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->orderBy('b.created_at', 'DESC')->orderBy('a.created_at', 'DESC');
+    }
+
+    private function processInventories($inventories, $today): array
+    {
+        $grouped = $inventories->groupBy(['product_id', 'location_id']);
+        $result = [];
+
+        foreach ($grouped as $product_id => $items) {
+            $firstItem = $items->first();
+
+            $imageGallery = $this->getImageGalleries($product_id);
+
+            $sizes = [];
+
+            foreach ($items as $item) {
+                $inCart = $this->getInCartQuantity($item);
+
+                $booking = $this->getBookingQuantity($item);
+
+                $availableQty = max(0, $item->qty - $inCart - $booking);
+
+                ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice] = $this->getProductPrices(
+                    $item->product_id,
+                    $item->size_id,
+                    $item->variant,
+                    $today
+                );
+
+                $sizes[] = [
+                    'size_id' => $item->size_id,
+                    'variant' => $item->variant,
+                    'qty_stock' => intval($item->qty),
+                    'qty_in_cart' => intval($inCart),
+                    'qty_available' => intval($availableQty),
+                    'price' => $retailPrice ? floatval($retailPrice->price) : null,
+                    'price_sell' => $retailPrice ? floatval($retailPrice->price_sell) : null,
+                    'discount' => $retailPrice ? floatval($retailPrice->discount) : null,
+
+                    'price_retail' => $retailPrice ? floatval($retailPrice->price) : null,
+                    'price_sell_retail' => $retailPrice ? floatval($retailPrice->price_sell) : null,
+                    'discount_retail' => $retailPrice ? floatval($retailPrice->discount) : null,
+
+                    'price_grosir' => $grosirPrice ? floatval($grosirPrice->price) : null,
+                    'price_sell_grosir' => $grosirPrice ? floatval($grosirPrice->price_sell) : null,
+                    'discount_grosir' => $grosirPrice ? floatval($grosirPrice->discount) : null,
+                ];
+            }
+
+            $result[] = [
+                'product_id' => $product_id,
+                'location_id' => $firstItem->location_id,
+                'sloc_id' => $firstItem->sloc_id,
+                'uom_id' => $firstItem->uom_id,
+                'size_id' => $firstItem->size_id,
+                'variant' => $firstItem->variant,
+                'product_name' => $firstItem->product_name,
+                'product_description' => $firstItem->product_description,
+                'category_name' => $firstItem->category_name,
+                'qty_available' => $firstItem->qty,
+                'price' => isset($sizes[0]['price']) ? floatval($sizes[0]['price']) : null,
+                'price_sell' => isset($sizes[0]['price_sell']) ? floatval($sizes[0]['price_sell']) : null,
+                'discount' => isset($sizes[0]['discount']) ? floatval($sizes[0]['discount']) : null,
+                'price_retail' => isset($sizes[0]['price_retail']) ? floatval($sizes[0]['price_retail']) : null,
+                'price_sell_retail' => isset($sizes[0]['price_sell_retail']) ? floatval($sizes[0]['price_sell_retail']) : null,
+                'discount_retail' => isset($sizes[0]['discount_retail']) ? floatval($sizes[0]['discount_retail']) : null,
+                'price_grosir' => isset($sizes[0]['price_grosir']) ? floatval($sizes[0]['price_grosir']) : null,
+                'price_sell_grosir' => isset($sizes[0]['price_sell_grosir']) ? floatval($sizes[0]['price_sell_grosir']) : null,
+                'discount_grosir' => isset($sizes[0]['discount_grosir']) ? floatval($sizes[0]['discount_grosir']) : null,
+                
+                'image_path' => $imageGallery->isNotEmpty() ? ($imageGallery->first()->path ?? "not_available.png") : "not_available.png",
+                'gallery_images' => $imageGallery,
+                'sizes' => $sizes,
+            ];
+        }
+
+        return $result;
+    }
+
+    private function getInCartQuantity($item): int
+    {
+        return DB::table('cart_items')
+            ->where('product_id', $item->product_id)
+            ->where('size_id', $item->size_id)
+            ->where('uom_id', $item->uom_id)
+            ->where('variant', $item->variant)
+            ->where('sloc_id', $item->sloc_id)
+            ->where('location_id', $item->location_id)
+            ->sum('quantity');
+     }
+
+    private function getBookingQuantity($item): int
+    {
+        return DB::table('tr_transfer_stock as a')
+            ->join('tr_transfer_stock_detail as b', 'a.id', '=', 'b.transfer_id')
+            ->where('a.location_id', $item->location_id)
+            ->where('a.sloc_id', $item->sloc_id)
+            ->where('a.status', 'Pending')
+            ->where('b.product_id', $item->product_id)
+            ->where('b.uom_id', $item->uom_id)
+            ->where('b.size_id', $item->size_id)
+            ->where('b.variant', $item->variant)
+            ->sum('b.qty');
+     }
+
+    private function getProductPrices($productId, $sizeId, $variant, $today): array
+    {
+        $price = DB::table('mst_product_price as a')
+            ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
+            ->select([
+                'b.price',
+                'b.size_id',
+                'b.discount',
+                'b.price_sell',
+                'a.effective_date',
+                'a.end_date',
+                'a.is_active'
+            ])
+            ->where('a.product_id', $productId)
+            ->where('b.size_id', $sizeId)
+            ->whereDate('a.effective_date', '<=', $today)
+            ->where(function ($query) use ($today) {
+                $query->whereNull('a.end_date')
+                    ->orWhereDate('a.end_date', '>=', $today);
+            })
+            ->whereIn('price_type_id', [1, 2])
+            ->where(function ($query) use ($variant) {
+                $query->whereNull('a.variant')
+                    ->orWhere('a.variant', $variant)
+                    ->orWhere('a.variant', 'all')
+                    ->orWhere('a.variant', '');
+            })
+            ->where('a.is_active', 1)
+            ->whereIn('b.price_type_id', [1, 2])
+            ->orderByDesc('a.effective_date')
+            ->get();
+
+        $groupedPrices = $price->groupBy('price_type_id');
+        $retailPrice = $groupedPrices[1][0] ?? null;
+        $grosirPrice = $groupedPrices[2][0] ?? null;
+
+        return ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice];
+     }
+
+    private function getImageGalleries($productId)
+    {
+        return DB::table('tr_document_attachment')
+            ->where('doc_id', $productId)
+            ->whereNull('deleted_at')
+            ->get();
     }
 }
