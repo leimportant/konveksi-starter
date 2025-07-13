@@ -205,7 +205,7 @@ class TransferStockController extends Controller
     {
         $transfer = TransferStock::where('id', $id)->firstOrFail();
 
-        $transfer->status = 'Accepted';
+        $transfer->status = 'Rejected';
         $transfer->updated_by = Auth::id();
         $transfer->save();
 
