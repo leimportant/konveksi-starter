@@ -10,6 +10,10 @@ class ModelSize extends Model
 {
     use HasFactory, SoftDeletes;
     protected $primaryKey = ['model_id', 'size_id', 'variant'];
+
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $table = 'tr_model_size';
 
     protected $fillable = [
