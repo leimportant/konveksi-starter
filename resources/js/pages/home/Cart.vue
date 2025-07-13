@@ -174,12 +174,21 @@
                                 class="mb-4 h-40 w-full rounded-lg sm:h-48 md:h-60"
                             >
                                 <SwiperSlide v-for="(image, index) in selectedProduct.gallery_images" :key="index">
-                                    <img
-                                        :src="getImageUrl(image.path)"
-                                        alt="product gallery image"
-                                        class="h-full w-full cursor-pointer rounded-lg object-cover"
-                                        @click="openFullscreenImage(getImageUrl(image.path))"
-                                    />
+                                    <template v-if="isImage(image.extension)">
+                                        <img
+                                            :src="getImageUrl(image.path)"
+                                            :alt="image.filename || 'product gallery image'"
+                                            class="h-full w-full cursor-pointer rounded-lg object-cover transition hover:scale-105"
+                                            @click="openFullscreenImage(getImageUrl(image.path))"
+                                        />
+                                    </template>
+                                    <template v-else-if="isVideo(image.extension)">
+                                        <video
+                                            :src="getImageUrl(image.path)"
+                                            controls
+                                            class="h-full w-full rounded-lg object-cover"
+                                        ></video>
+                                    </template>
                                 </SwiperSlide>
                             </Swiper>
                         </div>
@@ -309,14 +318,14 @@
                             <input
                                 type="number"
                                 min="1"
-                                :max="selectedProduct?.qty_stock ?? 1"
+                                :max="getSelectedItemDetail?.qty_available ?? 1"
                                 v-model.number="detailQty"
                                 class="w-12 rounded border py-1 text-center text-sm text-gray-800 sm:w-16"
                             />
 
                             <button
                                 @click="increaseDetailQty"
-                                :disabled="detailQty >= (selectedProduct?.qty_stock ?? 1)"
+                                :disabled="detailQty >= (getSelectedItemDetail?.qty_available ?? 1)"
                                 class="rounded px-3 py-1 text-sm disabled:opacity-50"
                             >
                                 +
@@ -373,7 +382,7 @@ import { computed, onMounted, ref } from 'vue';
 
 const modules = [Pagination, Navigation];
 
-const isLoading = ref(false);
+
 
 interface SizeVariant {
     size_id: string;
@@ -404,7 +413,7 @@ interface Product {
     sizes: SizeVariant[];
     quantity: number; // This is quantity in cart, not stock
     cartItemId?: number; // Add this to store the cart item's ID
-    gallery_images?: { filename: string; path: string }[]; // Add this for multiple images
+    gallery_images?: { filename: string; path: string; extension: string }[]; // Add this for multiple images
 }
 
 const toast = useToast();
@@ -430,6 +439,10 @@ const toggleCart = () => (showCart.value = !showCart.value);
 
 const getImageUrl = (path: string) => {
     if (!path) return '';
+    // Handle video paths
+    if (path.endsWith('.mp4') || path.endsWith('.webm') || path.endsWith('.ogg')) {
+        return '/storage/videos/' + path.split('/').pop(); // Assuming videos are in storage/videos and path might include subdirectories
+    }
     if (path.startsWith('storage/')) return '/' + path;
     if (path.startsWith('/storage/')) return path;
     return '/storage/' + path;
@@ -478,7 +491,7 @@ async function fetchProducts() {
         const response = await axios.get(`/api/stock?page=${currentPage.value}&search=${searchText.value}`);
         products.value = response.data.data.map((product: Product) => ({
             ...product,
-            gallery_images: product.gallery_images || [], // Ensure gallery_images is an array
+            gallery_images: product.gallery_images ? product.gallery_images.map(img => ({ ...img, extension: img.path.split('.').pop() || '' })) : [],
         }));
         lastPage.value = response.data.last_page;
         await cartStore.fetchCartItems();
@@ -494,7 +507,10 @@ function onSearchInput() {
 }
 
 function viewProductDetail(product: Product) {
-    selectedProduct.value = { ...product, gallery_images: product.gallery_images || [] };
+    selectedProduct.value = {
+        ...product,
+        gallery_images: product.gallery_images ? product.gallery_images.map(img => ({ ...img, extension: img.path.split('.').pop() || '' })) : [],
+    };
     detailQty.value = 1;
     selectedVariant.value = product.variant === 'all' ? 'all' : null;
     selectedSize.value = null;
@@ -565,25 +581,22 @@ const addToCart = async () => {
     }
 };
 
-const increaseDetailQty = debounce(async () => {
-    isLoading.value = true;
-    if (selectedProduct.value && detailQty.value < selectedProduct.value.qty_stock) {
+const increaseDetailQty = () => {
+    if (selectedProduct.value && detailQty.value < (getSelectedItemDetail.value?.qty_available ?? 0)) {
         detailQty.value++;
     }
-    isLoading.value = false;
-}, 300);
+};
 
-const decreaseDetailQty = debounce(async () => {
-    isLoading.value = true;
+const decreaseDetailQty = () => {
     if (detailQty.value > 1) {
         detailQty.value--;
     }
-    isLoading.value = false;
-}, 300);
+};
+
 
 const increaseQty = debounce(async (item: Product) => {
     const price_sell = item.price - (item.discount ?? 0);
-    isLoading.value = true;
+
     if (item.quantity < item.qty_stock) {
         try {
             await cartStore.addToCart(
@@ -604,11 +617,9 @@ const increaseQty = debounce(async (item: Product) => {
     } else {
         toast.error('Stok maksimum tercapai');
     }
-    isLoading.value = false;
 }, 300);
 
 const decreaseQty = debounce(async (item: Product) => {
-    isLoading.value = true;
     if (item.quantity > 1) {
         try {
             const price_sell = item.price - (item.discount ?? 0);
@@ -628,7 +639,6 @@ const decreaseQty = debounce(async (item: Product) => {
             toast.error('Error decreasing quantity');
         }
     }
-    isLoading.value = false;
 }, 300);
 
 const removeFromCart = async (cartItemId: number | undefined) => {
@@ -676,6 +686,18 @@ const cartTotalDiscount = computed(() => {
 const proceedToCheckout = () => {
     console.log('Proceeding to checkout');
     router.visit('/checkout');
+};
+
+const isImage = (extension: string | undefined) => {
+    if (!extension) return false;
+    const imgExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'];
+    return imgExtensions.includes(extension.toLowerCase());
+};
+
+const isVideo = (extension: string | undefined) => {
+    if (!extension) return false;
+    const videoExtensions = ['mp4', 'webm', 'ogg'];
+    return videoExtensions.includes(extension.toLowerCase());
 };
 
 onMounted(async () => {
