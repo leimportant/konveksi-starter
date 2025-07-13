@@ -25,6 +25,7 @@ class ModelSize extends Model
     protected $casts = [
         'model_id' => 'integer',
         'size_id' => 'string',
+        'variant'  => 'string',
         'qty' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
