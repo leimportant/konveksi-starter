@@ -438,14 +438,10 @@ const showCart = ref(false);
 const toggleCart = () => (showCart.value = !showCart.value);
 
 const getImageUrl = (path: string) => {
-    if (!path) return '';
-    // Handle video paths
-    if (path.endsWith('.mp4') || path.endsWith('.webm') || path.endsWith('.ogg')) {
-        return '/storage/videos/' + path.split('/').pop(); // Assuming videos are in storage/videos and path might include subdirectories
-    }
-    if (path.startsWith('storage/')) return '/' + path;
-    if (path.startsWith('/storage/')) return path;
-    return '/storage/' + path;
+  if (!path) return '';
+  if (path.startsWith('storage/')) return '/' + path;
+  if (path.startsWith('/storage/')) return path;
+  return '/storage/' + path;
 };
 
 function formatRupiah(value: number | string): string {
