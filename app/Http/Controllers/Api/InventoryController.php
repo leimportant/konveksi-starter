@@ -362,14 +362,15 @@ class InventoryController extends Controller
         $grouped = $inventories->groupBy(['product_id', 'location_id']);
         $result = [];
 
-        foreach ($grouped as $product_id => $items) {
-            $firstItem = $items->first();
+        foreach ($grouped as $product_id => $locationGroups) {
+            $itemsToProcess = $locationGroups->flatten();
+            $firstItem = $itemsToProcess->first();
 
             $imageGallery = $this->getImageGalleries($product_id);
 
             $sizes = [];
 
-            foreach ($items as $item) {
+            foreach ($itemsToProcess as $item) {
                 $inCart = $this->getInCartQuantity($item);
 
                 $booking = $this->getBookingQuantity($item);
