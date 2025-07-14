@@ -28,7 +28,11 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:mst_category',
+            'name' => [
+                'required',
+                'max:100',
+                Rule::unique('mst_category', 'name')->whereNull('deleted_at'),
+            ],
         ]);
 
         $validated['created_by'] = Auth::id();

@@ -27,8 +27,13 @@ class UomController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:mst_uom',
+            'name' => [
+                'required',
+                'max:100',
+                Rule::unique('mst_uom', 'name')->whereNull('deleted_at'),
+            ],
         ]);
+
         $validated['id'] = $request->name;
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
