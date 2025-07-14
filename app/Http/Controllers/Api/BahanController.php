@@ -3,18 +3,18 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
+use App\Models\Bahan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 
-class ProductController extends Controller
+class BahanController extends Controller
 {
-    public function productsBySearch(Request $request)
+    public function bahansBySearch(Request $request)
     {
         $search = $request->input('search');
-        $query = Product::query();
+        $query = Bahan::where('category_id', 0)->query();
 
         if ($search) {
             $query->where('name', 'like', '%' . $search . '%')
@@ -22,34 +22,26 @@ class ProductController extends Controller
 ;
         }
 
-        $products = $query->with(['category', 'uom', 'galleryImages'])
+        $data = $query->with(['uom'])
             ->orderBy('name')
             ->paginate();
 
-        // Attach size IDs to each product
-        foreach ($products as $data) {
-            $products->sizes = $this->getProductPriceSizeIds($data->id);
-        }
-
         return response()->json([
             'status' => 'success',
-            'data' => $products
+            'data' => $data
         ]);
     }
 
    public function index(Request $request)
     {
-        $query = Product::whereNotIn('category_id',[0])
-                         ->with(['category', 'uom', 'galleryImages']); 
+        $query = Bahan::where('category_id', 0)
+                         ->with(['uom']); 
 
         $search = $request->input('search');
 
         if ($search) {
             $query->where('name', 'like', '%' . $search . '%')
                 ->orWhere('descriptions', 'like', '%' . $search . '%')
-                ->orWhereHas('category', function ($q) use ($search) {
-                    $q->where('name', 'like', '%' . $search . '%');
-                })
                 ->orWhereHas('uom', function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%');
                 });
@@ -57,10 +49,6 @@ class ProductController extends Controller
 
         $perPage = $request->input('perPage', 10);
         $data = $query->paginate($perPage);
-        // Attach size IDs to each product
-        foreach ($data as $product) {
-            $product->sizes = $this->getProductPriceSizeIds($product->id);
-        }
 
         return response()->json($data);
     }
@@ -69,20 +57,18 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id' => 'required|exists:mst_category,id',
             'uom_id' => 'exists:mst_uom,id',
-            'descriptions' => 'nullable|string',
             'name' => 'required|max:255|unique:mst_product,name',
-            'doc_id' => 'nullable|string|exists:tr_document_attachment,doc_id'
         ]);
+        $validated['category_id'] = 0;
         $newId = $this->generateNumber($validated['category_id']);
         $validated['id'] = $newId;
-
+       
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
-        $product = Product::create($validated);
-        return response()->json($product, 201);
+        $Bahan = Bahan::create($validated);
+        return response()->json($Bahan, 201);
     }
 
     private function generateNumber(int $categoryId): string
@@ -92,7 +78,7 @@ class ProductController extends Controller
         $prefixLength = strlen($categoryIdStr);
 
         // Ambil ID terakhir dari produk dalam kategori itu
-        $lastProductId = DB::table('mst_product')
+        $lastBahanId = DB::table('mst_product')
             ->where('category_id', $categoryId)
             ->where('id', 'like', $categoryIdStr . '%')
             ->orderByDesc('id')
@@ -100,8 +86,8 @@ class ProductController extends Controller
 
         // Ambil 4 digit terakhir (setelah prefix category_id)
         $lastNumber = 0;
-        if ($lastProductId) {
-            $lastNumber = (int) substr($lastProductId, $prefixLength);
+        if ($lastBahanId) {
+            $lastNumber = (int) substr($lastBahanId, $prefixLength);
         }
 
         $newNumber = $lastNumber + 1;
@@ -110,40 +96,29 @@ class ProductController extends Controller
         return $categoryIdStr . str_pad((string) $newNumber, 4, '0', STR_PAD_LEFT);
     }
 
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Bahan $data)
     {
         $validated = $request->validate([
-            'name' => ['required', 'max:255', Rule::unique('mst_product')->ignore($product->id)],
-            'category_id' => 'required|exists:mst_category,id',
-            'descriptions' => 'nullable|string',
+            'name' => ['required', 'max:255', Rule::unique('mst_product')->ignore($data->id)],
             'uom_id' => 'exists:mst_uom,id',
-            'doc_id' => 'nullable|string|exists:tr_document_attachment,doc_id',
         ]);
 
-        $product->update($validated);
-        return response()->json($product);
+        $validated['category_id'] = 0;
+
+        $data->update($validated);
+        return response()->json($data);
     }
 
-    public function show(Product $product)
+    public function show(Bahan $Bahan)
     {
-        return response()->json($product);
+        return response()->json($Bahan);
     }
 
-    public function destroy(Product $product)
+    public function destroy(Bahan $bahan)
     {
-        $product->deleted_by = Auth::id();
-        $product->save();
-        $product->delete();
+        $bahan->deleted_by = Auth::id();
+        $bahan->save();
+        $bahan->delete();
         return response()->json(null, 204);
     }
-
-    public function getProductPriceSizeIds($productId)
-    {
-        return \DB::table('mst_product_price AS a')
-            ->join('mst_product_price_type AS b', 'a.id', '=', 'b.price_id')
-            ->where('a.product_id', $productId)
-            ->groupBy('b.size_id')
-            ->pluck('b.size_id');
-    }
-
 }

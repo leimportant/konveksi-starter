@@ -171,6 +171,10 @@ Route::get('/products', function () {
     return Inertia::render('product/Index');
 })->middleware(['auth'])->name('product.getIndex');
 
+Route::get('/bahans', function () {
+    return Inertia::render('bahan/Index');
+})->middleware(['auth'])->name('bahans.getIndex');
+
 Route::get('/categories', function () {
     return Inertia::render('category/Index');
 })->middleware(['auth'])->name('categorie.getIndex');

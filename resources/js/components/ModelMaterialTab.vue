@@ -158,7 +158,7 @@ const searchProducts = async (search: string) => {
   let newProducts: Product[] = [];
   if (search.length >= 2) {
     try {
-      const res = await axios.get('/api/products', { params: { search } });
+      const res = await axios.get('/api/bahan', { params: { search } });
       newProducts = res.data.data;
     } catch (error) {
       console.error('Search error:', error);
@@ -191,7 +191,7 @@ onMounted(async () => {
     const fetchedProductsForModelValue: Product[] = [];
     for (const productId of uniqueProductIds) {
       try {
-        const res = await axios.get(`/api/products/${productId}`);
+        const res = await axios.get(`/api/bahan/${productId}`);
         if (res.data) {
           fetchedProductsForModelValue.push(res.data);
         }
@@ -240,7 +240,7 @@ watch(() => props.modelValue, async (newValue: Material[]) => {
       if (!productExists) {
         try {
           // Fetch the product by ID and add it to productOption
-          const res = await axios.get(`/api/products/${material.product_id}`);
+          const res = await axios.get(`/api/bahan/${material.product_id}`);
           if (res.data) {
             productOption.value.push(res.data);
           }
@@ -273,7 +273,7 @@ const handleProductChange = (selectedProduct: any, index: number) => {
       const existingProduct = productOption.value.find(p => p.id === selectedProduct);
       if (!existingProduct) {
         // If not found, fetch it and add it to productOption
-        axios.get(`/api/products/${selectedProduct}`).then(res => {
+        axios.get(`/api/bahan/${selectedProduct}`).then(res => {
           if (res.data) {
             productOption.value.push(res.data);
           }

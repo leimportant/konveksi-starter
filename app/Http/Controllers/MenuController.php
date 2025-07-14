@@ -34,16 +34,19 @@ class MenuController extends Controller
             ->get()
             ->map(function ($menu) {
                 return [
+                    'id' => $menu->id,
                     'title' => $menu->title,
                     'href' => $menu->href,
                     'icon' => $menu->icon,
                     'children' => $menu->children->map(function ($child) {
                         return [
+                            'id' => $child->id,
                             'title' => $child->title,
                             'href' => $child->href,
                             'icon' => $child->icon,
                             'children' => $child->children->map(function ($grandChild) {
                                 return [
+                                    'id' => $grandChild->id,
                                     'title' => $grandChild->title,
                                     'href' => $grandChild->href,
                                     'icon' => $grandChild->icon,

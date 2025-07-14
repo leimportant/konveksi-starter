@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ModelRefController;
 use App\Http\Controllers\Api\ActivityRoleController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\BahanController;
 use App\Http\Controllers\Api\GoodReceiveController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\ProductionController;
@@ -74,6 +75,9 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware('auth')->group(function () {
 
+    Route::get('api/sidebar-badge-counts', [DashboardController::class, 'getBadgeCounts']);
+
+
     Route::get('api/dashboard', [DashboardController::class, 'index']);
     Route::get('api/dashboard/sales', [DashboardController::class, 'getSalesData']);
     Route::get('api/dashboard/sales/amount', [DashboardController::class, 'getSalesByOmsetData']);
@@ -115,6 +119,9 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/categories', CategoryController::class);
     Route::apiResource('api/products', ProductController::class);
     Route::get('api/products-search', [ProductController::class, 'productsBySearch']);
+    Route::apiResource('api/bahan', BahanController::class);
+    Route::get('api/bahan-search', [ProductController::class, 'bahansBySearch']);
+    
     Route::apiResource('api/good-receive', GoodReceiveController::class);
     Route::prefix('api/models')->group(function () {
         Route::get('/list', [ModelRefController::class, 'list']);

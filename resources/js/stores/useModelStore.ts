@@ -4,7 +4,6 @@ import axios from 'axios';
 
 export interface SizeItem {
     size_id: string;
-    size_name: string;
     variant: string;
     qty: number;
   }
