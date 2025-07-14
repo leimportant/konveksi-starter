@@ -61,7 +61,7 @@ class BahanController extends Controller
             'name' => 'required|max:255|unique:mst_product,name',
         ]);
         $validated['category_id'] = 0;
-        $newId = $this->generateNumber($validated['category_id']);
+        $newId = $this->generateNumber(100);
         $validated['id'] = $newId;
        
         $validated['created_by'] = Auth::id();
