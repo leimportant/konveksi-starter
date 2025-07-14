@@ -19,7 +19,7 @@ class ProductController extends Controller
         if ($search) {
             $query->where('name', 'like', '%' . $search . '%')
                 ->orWhere('descriptions', 'like', '%' . $search . '%')
-;
+            ;
         }
 
         $products = $query->with(['category', 'uom', 'galleryImages'])
@@ -37,10 +37,10 @@ class ProductController extends Controller
         ]);
     }
 
-   public function index(Request $request)
+    public function index(Request $request)
     {
-        $query = Product::whereNotIn('category_id',[0])
-                         ->with(['category', 'uom', 'galleryImages']); 
+        $query = Product::whereNotIn('category_id', [0])
+            ->with(['category', 'uom', 'galleryImages']);
 
         $search = $request->input('search');
 
@@ -126,6 +126,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
+        $product->product_name = $product->name;
         return response()->json($product);
     }
 
@@ -139,11 +140,49 @@ class ProductController extends Controller
 
     public function getProductPriceSizeIds($productId)
     {
-        return \DB::table('mst_product_price AS a')
+        return DB::table('mst_product_price AS a')
             ->join('mst_product_price_type AS b', 'a.id', '=', 'b.price_id')
             ->where('a.product_id', $productId)
             ->groupBy('b.size_id')
             ->pluck('b.size_id');
     }
+
+    public function getProductWithSizeIds(Request $request)
+    {
+        $productId = $request->input('productId'); // Ambil productId dari query param
+        $search = $request->input('search');
+
+        $query = DB::table('mst_product AS a')
+            ->select(
+                'a.id',
+                'a.id as product_id',
+                'a.name as product_name',
+                DB::raw("CONCAT(a.name, ' - Uk: ', c.id) as product_title"),
+                'a.uom_id',
+                'c.id as size_id',
+                'c.name as size_name'
+            )
+            ->join('mst_product_price_type AS b', 'a.id', '=', 'b.product_id')
+            ->join('mst_size AS c', 'b.size_id', '=', 'c.id');
+
+        if ($productId) {
+            $query->where('a.id', $productId);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('a.name', 'like', '%' . $search . '%')
+                    ->orWhere('a.descriptions', 'like', '%' . $search . '%');
+            });
+        }
+
+        $query->groupBy('a.id', 'a.name', 'a.uom_id', 'c.id', 'c.name');
+
+        $data = $query->paginate(10);
+
+        return response()->json($data);
+    }
+
+
 
 }
