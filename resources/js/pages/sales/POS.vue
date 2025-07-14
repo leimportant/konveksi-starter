@@ -24,7 +24,6 @@
                         >
                             <!-- Column 1: Image -->
                             <div class="flex-shrink-0">
-                              
                                 <img
                                     v-if="product.image_path"
                                     :src="getImageUrl(product.image_path)"
@@ -51,18 +50,20 @@
                                 <p class="text-[10px] text-gray-400 md:text-xs">Stok: {{ product.qty_available }} / {{ product.uom_id }}</p>
 
                                 <!-- Pilih Varian -->
-    
 
-    <!-- Pilih Ukuran -->
-    <div v-if="product.variant" class="mt-2">
-      <p class="text-xs text-gray-500">Tersedia Ukuran:</p>
-      <div class="mt-1 flex flex-wrap gap-2">
-        <div class="rounded-full border px-3 py-1 text-xs font-medium" v-for="size in getSizesForVariant(product.sizes, product.variant)"  :key="size.size_id">
-            {{ size.size_id }}
-        </div>
-        
- 
-        <!-- <button
+                                <!-- Pilih Ukuran -->
+                                <div v-if="product.variant" class="mt-2">
+                                    <p class="text-xs text-gray-500">Tersedia Ukuran:</p>
+                                    <div class="mt-1 flex flex-wrap gap-2">
+                                        <div
+                                            class="rounded-full border px-3 py-1 text-xs font-medium"
+                                            v-for="size in getSizesForVariant(product.sizes, product.variant)"
+                                            :key="size.size_id"
+                                        >
+                                            {{ size.size_id }}
+                                        </div>
+
+                                        <!-- <button
           v-for="size in getSizesForVariant(product.sizes, product.variant)"
           :key="size.size_id"
           @click="selectSize(product, size)"
@@ -75,8 +76,8 @@
         >
           {{ size.size_id }}
         </button> -->
-      </div>
-    </div>
+                                    </div>
+                                </div>
 
                                 <div>
                                     <template v-if="product.discount && product.discount > 0">
@@ -141,8 +142,8 @@
                                         <div class="md-grid-cols-2 relative flex grid-cols-1 items-center justify-center">
                                             <input
                                                 type="checkbox"
-                                                :checked="selectedForDiscount.includes(item.id+item.size_id)"
-                                                @change="toggleProductSelection(item.id+item.size_id)"
+                                                :checked="selectedForDiscount.includes(item.id + item.size_id)"
+                                                @change="toggleProductSelection(item.id + item.size_id)"
                                                 class="text-primary-600 focus:ring-primary-500 absolute left-0 top-0 rounded border-gray-300"
                                                 :title="'Pilih untuk diskon'"
                                             />
@@ -156,7 +157,7 @@
                                     </TableCell>
                                     <TableCell class="text-xs">
                                         <div class="max-w-[140px] truncate font-semibold text-gray-900">{{ item.product_name }}</div>
-                                                                                <div class="max-w-[140px] truncate font-semibold text-gray-900">Ukuran : {{ item.size_id }}</div>
+                                        <div class="max-w-[140px] truncate font-semibold text-gray-900">Ukuran : {{ item.size_id }}</div>
                                         <span v-if="item.discount && item.discount > 0" class="text-[10px] text-gray-400 line-through">
                                             {{ formatRupiah(item.price) }}
                                         </span>
@@ -171,6 +172,7 @@
                                         <input
                                             type="number"
                                             min="1"
+                                            :max="item.qty_available"
                                             v-model.number="item.quantity"
                                             class="w-12 rounded border px-1 py-0.5 text-center text-xs"
                                         />
@@ -194,7 +196,7 @@
                         <span class="text-xs font-bold">{{ selectedCustomerName }} (#{{ selectedCustomerId }})</span>
                     </div>
 
-                    <div class="mt-2 rounded-lg p-1 shadow-sm  gap-4 p-4">
+                    <div class="mt-2 gap-4 rounded-lg p-1 p-4 shadow-sm">
                         <label class="mb-1 block text-xs font-medium text-gray-900">Metode Pembayaran</label>
                         <select
                             v-model="selectedPaymentMethod"
@@ -205,12 +207,16 @@
                         </select>
                     </div>
 
-                    <div class="mt-4 border-t pt-2 gap-4 p-4">
+                    <div class="mt-4 gap-4 border-t p-4 pt-2">
                         <div class="mb-2 flex justify-between text-xs font-semibold text-gray-700">
                             <span>Total</span>
                             <span class="font-bold">{{ formattedTotalAmount }}</span>
                         </div>
-                        <Button class="w-full text-xs font-semibold rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500" @click="openPaymentDialog" :disabled="isLoading.placingOrder">
+                        <Button
+                            class="w-full rounded-md bg-indigo-600 py-2 text-xs font-semibold text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                            @click="openPaymentDialog"
+                            :disabled="isLoading.placingOrder"
+                        >
                             <span v-if="isLoading.placingOrder">Memproses...</span>
                             <span v-else>Bayar</span>
                         </Button>
@@ -289,15 +295,13 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-semibold">{{ selectedProduct.product_name }}</h3>
-                             <span class="mb-1 text-sm font-semibold text-gray-700">Pilih Ukuran </span> 
+                            <span class="mb-1 text-sm font-semibold text-gray-700">Pilih Ukuran </span>
                             <div class="flex flex-wrap gap-2">
-                               
                                 <br />
                                 <button
                                     v-for="size in sizesForSelectedVariant"
                                     :key="size.size_id"
                                     @click="selectedSize = size.size_id"
-                                    
                                     :class="[
                                         'rounded-full border px-3 py-1 text-sm font-semibold transition',
                                         selectedSize === size.size_id
@@ -305,87 +309,104 @@
                                             : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
                                     ]"
                                 >
-                                 <div @click="selectSize(selectedProduct, size)">  {{ size.size_id }}</div>
+                                    <div @click="selectSize(selectedProduct, size)">{{ size.size_id }}</div>
                                 </button>
-                                </div>
-                           
+                            </div>
                         </div>
                     </div>
 
-                        <!-- Variant -->
-                        <div v-if="selectedProduct?.variant !== 'all'" class="mb-4">
-                            <h4 class="mb-1 text-sm font-semibold text-gray-700">Variant</h4>
-                            <div class="flex flex-wrap gap-2">
-                                <button
-                                    v-for="variant in uniqueVariants"
-                                    :key="variant"
-                                    @click="
-                                        () => {
-                                            selectedVariant = variant;
-                                            selectedSize = null;
-                                        }
-                                    "
-                                    :class="[
-                                        'rounded-full border px-3 py-1 text-sm font-semibold transition',
-                                        selectedVariant === variant
-                                            ? 'border-indigo-600 bg-indigo-600 text-white'
-                                            : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
-                                    ]"
-                                >
-                                    {{ variant }}
-                                </button>
-                            </div>
-
-                         
+                    <!-- Variant -->
+                    <div v-if="selectedProduct?.variant !== 'all'" class="mb-4">
+                        <h4 class="mb-1 text-sm font-semibold text-gray-700">Variant</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                v-for="variant in uniqueVariants"
+                                :key="variant"
+                                @click="
+                                    () => {
+                                        selectedVariant = variant;
+                                        selectedSize = null;
+                                    }
+                                "
+                                :class="[
+                                    'rounded-full border px-3 py-1 text-sm font-semibold transition',
+                                    selectedVariant === variant
+                                        ? 'border-indigo-600 bg-indigo-600 text-white'
+                                        : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
+                                ]"
+                            >
+                                {{ variant }}
+                            </button>
                         </div>
-                           <!-- Size -->
-                        <div class="mb-4">
-                           
-                           
-                            <div v-if="getSelectedItemDetail" class="mb-4 text-sm text-gray-700">
-                                <p>
+                    </div>
+                    <!-- Size -->
+                    <div class="mb-4">
+                        <div v-if="getSelectedItemDetail" class="mb-4 text-sm text-gray-700">
+                            <p>
                                 Stok: <strong>{{ getSelectedItemDetail.qty_available }}</strong>
                             </p>
-                                <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="mr-2 text-gray-400 line-through">
-                                       Harga {{ formatRupiah(getSelectedItemDetail.price) }}
-                                    </span> <br />
-                                    <span class="font-bold">
-                                     Harga Diskon   {{ formatRupiah(getSelectedItemDetail.price_sell || getSelectedItemDetail.price) }}
-                                    </span><br />
-                                    <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="text-green-600 text-xs">
-                                        (Diskon: {{ formatRupiah(getSelectedItemDetail.discount ?? 0) }})
-                                    </span>
+                            <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="mr-2 text-gray-400 line-through">
+                                Harga {{ formatRupiah(getSelectedItemDetail.price) }}
+                            </span>
+                            <br />
+                            <span class="font-bold">
+                                Harga Diskon {{ formatRupiah(getSelectedItemDetail.price_sell || getSelectedItemDetail.price) }} </span
+                            ><br />
+                            <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="text-xs text-green-600">
+                                (Diskon: {{ formatRupiah(getSelectedItemDetail.discount ?? 0) }})
+                            </span>
                         </div>
-                        </div>
+                    </div>
 
                     <div class="flex justify-end gap-2">
                         <Button variant="outline" @click="showDetailModal = false">Batal</Button>
-                        <Button @click="addToCart(selectedProduct)" :disabled="!selectedSize || (!selectedVariant && selectedProduct?.variant !== 'all')">Tambah ke Keranjang</Button>
+                        <Button
+                            @click="addToCart(selectedProduct)"
+                            :disabled="!selectedSize || (!selectedVariant && selectedProduct?.variant !== 'all')"
+                            >Tambah ke Keranjang</Button
+                        >
                     </div>
                 </div>
             </Modal>
 
             <Modal :show="showReturnDialog" @close="closeReturnDialog" title="Retur Barang">
-    <div class="space-y-2">
-        <label class="block text-xs font-medium">Produk</label>
-        <select v-model="returnProductId" class="w-full border rounded p-1 text-xs">
-            <option value="">Pilih Produk</option>
-            <option v-for="product in products" :key="product.id" :value="product.id">
-                {{ product.product_name }} (Stok: {{ product.qty_available }})
-            </option>
-        </select>
-        <label class="block text-xs font-medium">Qty</label>
-        <input type="number" v-model.number="returnQty" min="1" class="w-full border rounded p-1 text-xs" />
-        <label class="block text-xs font-medium">Harga Retur</label>
-        <input type="number" v-model.number="returnPrice" min="0" class="w-full border rounded p-1 text-xs" />
-        <div class="flex justify-end gap-2 mt-2">
-            <Button variant="outline" @click="closeReturnDialog">Batal</Button>
-            <Button class="bg-red-600 text-white" @click="handleReturnAddToCart">Simpan</Button>
-        </div>
-        <div v-if="returnError" class="text-xs text-red-600 mt-1">{{ returnError }}</div>
-        <div v-if="returnSuccess" class="text-xs text-red-600 mt-1">Retur berhasil ditambahkan ke keranjang!</div>
-    </div>
-</Modal>
+                <div class="space-y-2">
+                    <label class="block text-xs font-medium">Produk</label>
+                    <Vue3Select
+                        v-model="returnProductId"
+                        :options="productReturns"
+                        label="product_title"
+                         value="id"
+                        :onSearch="searchProducts"
+                        :reduce="(product: Product) => ({
+                            ...product,
+                            name: product.product_name,
+                            product_name: product.product_name,
+                            size_id: product.size_id,
+                            uom_id: product.uom_id,
+                            qty_available: 0
+                        })"
+                        placeholder="Pilih Produk"
+                    />
+
+                    <!-- <select v-model="returnProductId" class="w-full rounded border p-1 text-xs">
+                        <option value="">Pilih Produk</option>
+                        <option v-for="product in products" :key="product.id" :value="product.id">
+                            {{ product.product_name }} (Stok: {{ product.qty_available }})
+                        </option>
+                    </select> -->
+                    <label class="block text-xs font-medium">Qty</label>
+                    <input type="number" v-model.number="returnQty" min="1" class="w-full rounded border p-1 text-xs" />
+                    <label class="block text-xs font-medium">Harga Retur</label>
+                    <input type="number" v-model.number="returnPrice" min="0" class="w-full rounded border p-1 text-xs" />
+                    <div class="mt-2 flex justify-end gap-2">
+                        <Button variant="outline" @click="closeReturnDialog">Batal</Button>
+                        <Button class="bg-red-600 text-white" @click="handleReturnAddToCart">Simpan</Button>
+                    </div>
+                    <div v-if="returnError" class="mt-1 text-xs text-red-600">{{ returnError }}</div>
+                    <div v-if="returnSuccess" class="mt-1 text-xs text-red-600">Retur berhasil ditambahkan ke keranjang!</div>
+                </div>
+            </Modal>
 
             <!-- Print Preview Modal -->
             <div v-if="showPrintPreview" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 p-4">
@@ -409,7 +430,7 @@
                     <!-- Items -->
                     <div v-for="(item, index) in lastOrderItems" :key="item.product_id" class="mb-1">
                         <p>{{ index + 1 }}. {{ item.product_name }} &nbsp; - {{ item.size_id }}</p>
-                     
+
                         <div class="flex justify-between">
                             <span>{{ item.quantity }} x {{ formatRupiah(item.price) }}</span>
                             <span>&nbsp;&nbsp;{{ formatRupiah(item.price * item.quantity) }}</span>
@@ -471,14 +492,16 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { computed, nextTick, ref } from 'vue';
+import axios from 'axios';
+import { computed, nextTick, ref, watch } from 'vue';
 
 import { useToast } from '@/composables/useToast';
 import type { User } from '@/types';
 import { type SharedData } from '@/types';
-import { PercentIcon, ScanQrCode, Trash2, UserPlusIcon, ReplaceAll } from 'lucide-vue-next';
 import { usePage } from '@inertiajs/vue3';
-import axios from 'axios';
+import { PercentIcon, ReplaceAll, ScanQrCode, Trash2, UserPlusIcon } from 'lucide-vue-next';
+import Vue3Select from 'vue3-select';
+import 'vue3-select/dist/vue3-select.css';
 // import jsQR from 'jsqr';
 import CustomerDialog from '@/components/CustomerDialog.vue';
 import Modal from '@/components/Modal.vue';
@@ -493,8 +516,13 @@ interface ProductSize {
     price: number;
     price_sell?: number;
     discount?: number;
+    price_retail: number;
+    discount_retail: number;
+    price_sell_retail: number;
+    price_grosir: number;
+    discount_grosir: number;
+    price_sell_grosir: number;
 }
-
 
 interface Product {
     id: number;
@@ -508,10 +536,21 @@ interface Product {
     price: number;
     discount?: number;
     price_sell?: number;
+   
     quantity: number;
     sizes: ProductSize[];
     variant: string | null;
     isReturn?: boolean;
+}
+
+interface ProductRetur {
+    id: number;
+    product_id: number;
+    product_name: string;
+    size_id: string;
+    uom_id: string;
+    quantity: number;
+    price: number;
 }
 
 interface PaymentMethod {
@@ -550,6 +589,7 @@ const showQrScanner = ref(false);
 
 const toast = useToast();
 const products = ref<Product[]>([]);
+const productReturns = ref<Product[]>([]);
 const selectedProducts = ref<Product[]>([]);
 const paymentMethods = ref<PaymentMethod[]>([]);
 const selectedPaymentMethod = ref<string | null>(null);
@@ -589,7 +629,7 @@ const orderList = ref<HTMLElement | null>(null);
 const printArea = ref<HTMLElement | null>(null);
 
 const showReturnDialog = ref(false);
-const returnProductId = ref<number | ''>('');
+const returnProductId = ref<ProductRetur | null>(null);
 const returnQty = ref<number>(1);
 const returnPrice = ref<number>(0);
 const returnError = ref('');
@@ -603,34 +643,49 @@ const changeAmount = computed(() => {
     return paidAmount.value - totalAmount.value > 0 ? paidAmount.value - totalAmount.value : 0;
 });
 
-
 const uniqueVariants = computed(() => {
     if (!selectedProduct.value?.sizes) return [];
     const variants = selectedProduct.value.sizes.map((item) => item.variant);
     return [...new Set(variants)];
 });
 
+const searchProducts = async (search: string) => {
+    if (search.length < 2) {
+        products.value = [];
+        return;
+    }
+    try {
+        const res = await axios.get('/api/product-with-size', { params: { search } });
+        productReturns.value = res.data.data;
+    } catch (error) {
+        console.error('Search error:', error);
+        toast.error('Failed to search products');
+    }
+};
 
 function getSizesForVariant(sizes: ProductSize[], variant: string): ProductSize[] {
-  if (!sizes) return [];
-  return sizes.filter(size => size.variant === variant);
+    if (!sizes) return [];
+    return sizes.filter((size) => size.variant === variant);
 }
-
-
 
 function selectSize(product: Product, size: ProductSize) {
-  if (product) {
-    product.size_id = size.size_id;
-    selectedSize.value = size.size_id;
-  }
-  if (selectedProduct.value) {
-    selectedProduct.value.price = size.price;
-    selectedProduct.value.price_sell = size.price_sell;
-    
-  }
+    if (product) {
+        product.size_id = size.size_id;
+        selectedSize.value = size.size_id;
+    }
+    if (selectedProduct.value) {
+        selectedProduct.value.price = size.price;
+        selectedProduct.value.price_sell = size.price_sell;
+    }
 }
 
-
+// const applyDynamicPricing = (size: ProductSize, qty: number) => {
+//   return {
+//     price: qty > 1 ? size.price_grosir : size.price_retail,
+//     price_sell: qty > 1 ? size.price_sell_grosir : size.price_sell_retail,
+//     discount: qty > 1 ? size.discount_grosir : size.discount_retail,
+//   };
+// };
 
 
 
@@ -647,24 +702,30 @@ const sizesForSelectedVariant = computed(() => {
     return selectedProduct.value.sizes.filter((item) => item.variant === selectedVariant.value);
 });
 
-
 function closeReturnDialog() {
     showReturnDialog.value = false;
-    returnProductId.value = '';
+    returnProductId.value = null;
     returnQty.value = 1;
     returnPrice.value = 0;
     returnError.value = '';
     returnSuccess.value = false;
 }
 
-function handleReturnAddToCart() {
+async function handleReturnAddToCart() {
     returnError.value = '';
     returnSuccess.value = false;
-    const product = products.value.find(p => p.id === returnProductId.value);
-    if (!product) {
+
+    if (!returnProductId.value) {
         returnError.value = 'Produk harus dipilih';
         return;
     }
+    const product = returnProductId.value;
+
+    if (!product || !product.id) {
+        returnError.value = 'Produk harus dipilih';
+        return;
+    }
+
     if (!returnQty.value || returnQty.value < 1) {
         returnError.value = 'Qty minimal 1';
         return;
@@ -673,8 +734,20 @@ function handleReturnAddToCart() {
         returnError.value = 'Harga retur harus diisi';
         return;
     }
+
     selectedProducts.value.push({
-        ...product,
+        id: product.id,
+        product_id: product.id,
+        product_name: product.product_name ?? '', // fallback to 'name' if 'product_name' missing
+        size_id: product.size_id ?? '',
+        uom_id: product.uom_id ?? '',
+         // Properti tambahan yang diminta
+        qty_stock: 0,
+        qty_available: 0,
+        image_path: '',
+        sizes:  [],
+        variant: null,
+
         quantity: -Math.abs(returnQty.value), // negative qty for return
         price: returnPrice.value,
         price_sell: returnPrice.value,
@@ -780,68 +853,104 @@ function onSearchInput() {
 }
 
 const addToCart = (product: Product) => {
-    
     if (product.qty_stock <= 0) {
         toast.error('Stok tidak cukup');
         return;
     }
-    // check price = 0 or price_sell 0 toast.error('Harga produk tidak valid');
-    if (product.price <= 0 && (product.price_sell === undefined || product.price_sell === null || product.price_sell <= 0)) {
+
+    if (product.price <= 0 && (!product.price_sell || product.price_sell <= 0)) {
         toast.error('Harga produk belum ditentukan');
         return;
     }
-    
-    // Check if product has sizes
+
     let currentSelectedSize: ProductSize | undefined;
+
+    // Handle size selection
     if (product.sizes && product.sizes.length > 0) {
         if (!selectedSize.value) {
             toast.error('Silakan pilih ukuran terlebih dahulu');
             return;
         }
-        currentSelectedSize = product.sizes.find(s => s.size_id === selectedSize.value && (selectedVariant.value === null || s.variant === selectedVariant.value));
+
+        currentSelectedSize = product.sizes.find(
+            (s) =>
+                s.size_id === selectedSize.value &&
+                (selectedVariant.value === null || s.variant === selectedVariant.value),
+        );
+
         if (!currentSelectedSize || currentSelectedSize.qty_stock <= 0) {
             toast.error('Stok ukuran ini tidak tersedia');
             return;
         }
     }
-    
-    const itemToAdd = {
+
+    const quantityToAdd = 1;
+
+    // Always assume retail first
+    const useGrosir = quantityToAdd > 1;
+
+    // Ensure size-specific pricing exists
+    const sizePrice = currentSelectedSize?.[useGrosir ? 'price_grosir' : 'price_retail'];
+    const sizeSell = currentSelectedSize?.[useGrosir ? 'price_sell_grosir' : 'price_sell_retail'];
+    const sizeDiscount = currentSelectedSize?.[useGrosir ? 'discount_grosir' : 'discount_retail'];
+
+    if (product.sizes.length && !currentSelectedSize) {
+        toast.error('Ukuran tidak valid.');
+        return;
+    }
+
+    const itemToAdd: Product = {
         id: product.product_id || product.id,
+        product_id: product.product_id || product.id,
         product_name: product.product_name,
         uom_id: product.uom_id,
-        size_id: currentSelectedSize ? currentSelectedSize.size_id : '',
-        qty_stock: product.qty_stock,
-        image_path: product.image_path,
-        price: product.price,
-        discount: product.discount,
-        price_sell: product.price_sell,
-        quantity: 1,
-        variant: currentSelectedSize ? currentSelectedSize.variant : product.variant, // Include variants data
-        sizes: currentSelectedSize ? [{
-             size_id: currentSelectedSize.size_id,
-             variant: currentSelectedSize.variant || 'all',
-             qty_stock: currentSelectedSize.qty_stock,
-             qty_in_cart: 1,
-             qty_available: currentSelectedSize.qty_stock - 1,
-             price: currentSelectedSize.price_sell || product.price,
-             price_sell: currentSelectedSize.price_sell || product.price_sell,
-             discount: currentSelectedSize.discount,
-         }] : [], // Add the selected size as a SizeVariant array
-    
+        size_id: currentSelectedSize?.size_id ?? '',
+        qty_stock: currentSelectedSize?.qty_stock ?? product.qty_stock,
+        qty_available: (currentSelectedSize?.qty_stock ?? product.qty_stock) - quantityToAdd,
+        image_path: product.image_path ?? '',
+        price: sizePrice ?? product.price,
+        price_sell: sizeSell ?? product.price_sell ?? product.price,
+        discount: sizeDiscount ?? product.discount ?? 0,
+        quantity: quantityToAdd,
+        variant: currentSelectedSize?.variant ?? product.variant ?? null,
+        sizes: currentSelectedSize
+            ? [
+                  {
+                      ...currentSelectedSize,
+                      qty_in_cart: quantityToAdd,
+                      qty_available: currentSelectedSize.qty_stock - quantityToAdd,
+                  },
+              ]
+            : [],
     };
 
-    const existing = selectedProducts.value.find((item) => item.id === itemToAdd.id && item.size_id === itemToAdd.size_id && item.variant === itemToAdd.variant);
+    const existing = selectedProducts.value.find(
+        (item) =>
+            item.id === itemToAdd.id &&
+            item.size_id === itemToAdd.size_id &&
+            item.variant === itemToAdd.variant,
+    );
+
     if (existing) {
-        existing.quantity++;
+        existing.quantity += quantityToAdd;
+
+        const nowGrosir = existing.quantity > 1;
+        if (currentSelectedSize) {
+            existing.price = currentSelectedSize[nowGrosir ? 'price_grosir' : 'price_retail'] ?? existing.price;
+            existing.price_sell = currentSelectedSize[nowGrosir ? 'price_sell_grosir' : 'price_sell_retail'] ?? existing.price_sell;
+            existing.discount = currentSelectedSize[nowGrosir ? 'discount_grosir' : 'discount_retail'] ?? existing.discount;
+        }
     } else {
         selectedProducts.value.push(itemToAdd);
     }
 
-    showDetailModal.value = false; // Close the modal after adding to cart
+    showDetailModal.value = false;
     nextTick(() => {
         if (orderList.value) orderList.value.scrollTop = orderList.value.scrollHeight;
     });
 };
+
+
 
 function removeFromCart(productId: number) {
     selectedProducts.value = selectedProducts.value.filter((p) => p.id !== productId);
@@ -875,7 +984,6 @@ function removeFromCart(productId: number) {
 //     }
 // }
 
-
 function openDiscountDialog() {
     if (selectedProducts.value.length === 0) return;
 
@@ -885,7 +993,7 @@ function openDiscountDialog() {
 function saveDiscount() {
     selectedProducts.value = selectedProducts.value.map((product) => {
         // Only update discount if product is selected
-        if (selectedForDiscount.value.includes(product.id+product.size_id)) {
+        if (selectedForDiscount.value.includes(product.id + product.size_id)) {
             return {
                 ...product,
                 discount: discountInput.value,
@@ -919,7 +1027,7 @@ async function confirmPayment() {
         toast.error('No payment methods available');
         return;
     }
-    const selectedMethod = paymentMethods.value.find(pm => pm.id === selectedPaymentMethod.value);
+    const selectedMethod = paymentMethods.value.find((pm) => pm.id === selectedPaymentMethod.value);
     if (!selectedMethod || selectedMethod.name !== 'CREDIT') {
         if (paidAmount.value === null || paidAmount.value < totalAmount.value) {
             toast.error('Paid amount must be at least total amount');
@@ -927,7 +1035,6 @@ async function confirmPayment() {
         }
     }
 
-    
     showPaymentDialog.value = false;
     await placeOrder();
 }
@@ -1027,7 +1134,7 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
     showQrScanner.value = false;
 
     try {
-        const orderIds = qrCodeData.split(',').map(id => id.trim());
+        const orderIds = qrCodeData.split(',').map((id) => id.trim());
 
         const response = await axios.get('/api/orders/scan', {
             params: { ids: orderIds.join(',') },
@@ -1061,15 +1168,32 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
             discount: item.discount,
             quantity: item.quantity ?? 1,
             variant: item.variant || 'all',
-            sizes: item.size_id ? [{ size_id: item.size_id, variant: item.variant || 'all', qty_stock: item.qty_stock, qty_in_cart: item.quantity ?? 1, qty_available: item.qty_stock, price: item.price, price_sell: item.price_sell, discount: item.discount }] : [],
+            sizes: item.size_id
+                ? [
+                      {
+                          size_id: item.size_id,
+                          variant: item.variant || 'all',
+                          qty_stock: item.qty_stock,
+                          qty_in_cart: item.quantity ?? 1,
+                          qty_available: item.qty_stock,
+                          price: item.price,
+                          price_sell: item.price_sell,
+                          discount: item.discount,
+                          price_retail: item.price,
+                          price_sell_retail: item.price_sell,
+                          discount_retail: item.discount,
+                          price_grosir: item.price,
+                          price_sell_grosir: item.price_sell,
+                          discount_grosir: item.discount,
+                      },
+                  ]
+                : [],
         }));
 
         console.log('Produk dalam pesanan:', products);
 
         products.forEach((product) => {
-            const existingIndex = selectedProducts.value.findIndex(
-                (p) => (p.product_id ?? p.id) === (product.product_id ?? product.id)
-            );
+            const existingIndex = selectedProducts.value.findIndex((p) => (p.product_id ?? p.id) === (product.product_id ?? product.id));
 
             if (existingIndex > -1) {
                 selectedProducts.value[existingIndex].quantity += product.quantity;
@@ -1084,6 +1208,35 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
         toast.error('Failed to scan QR code or retrieve order details.');
     }
 };
+
+const watchedItems = new WeakMap<Product, boolean>();
+
+watch(
+  selectedProducts,
+  (newItems) => {
+    newItems.forEach((item) => {
+      if (watchedItems.has(item)) return; // Sudah dipasang watch
+
+      watchedItems.set(item, true); // Tandai sudah dipasang
+      watch(
+        () => item.quantity,
+        (newQty) => {
+          if (!item.sizes || item.sizes.length === 0) return;
+          const size = item.sizes[0];
+          const isGrosir = newQty > 1;
+
+          item.price = isGrosir ? size.price_grosir : size.price_retail;
+          item.price_sell = isGrosir ? size.price_sell_grosir : size.price_sell_retail;
+          item.discount = isGrosir ? size.discount_grosir : size.discount_retail;
+
+          size.qty_in_cart = newQty;
+          size.qty_available = size.qty_stock - newQty;
+        }
+      );
+    });
+  },
+  { deep: true }
+);
 
 
 function doPrintKasir80mm() {
@@ -1106,9 +1259,11 @@ function doPrintKasir80mm() {
         lines.push('------------------------------------');
         lines.push(`Customer: ${selectedCustomerName.value || '-'}`);
         lines.push('--------------------------------------');
-        lastOrderItems.value.forEach(item => {
+        lastOrderItems.value.forEach((item) => {
             lines.push(`${item.product_name}${item.size_id ? ' - ' + item.size_id : ''}`);
-            lines.push(`${item.quantity} x ${formatRupiah(item.price)}${' '.repeat(20 - (item.quantity + '').length - formatRupiah(item.price).length)}${formatRupiah(item.quantity * item.price)}`);
+            lines.push(
+                `${item.quantity} x ${formatRupiah(item.price)}${' '.repeat(20 - (item.quantity + '').length - formatRupiah(item.price).length)}${formatRupiah(item.quantity * item.price)}`,
+            );
         });
         lines.push('--------------------------------');
         lines.push(`Total QTY        ${totalQty}`);
@@ -1121,16 +1276,21 @@ function doPrintKasir80mm() {
         lines.push('     aninkafashion.com');
         lines.push('\n\n\n');
 
-        qz.websocket.connect().then(() => {
-            return qz.printers.find();
-        }).then((printer: string) => {
-            const config = qz.configs.create(printer);
-            return qz.print(config, [{ type: 'raw', format: 'plain', data: lines.join('\n') }]);
-        }).catch((err: any) => {
-            alert('Print error: ' + err);
-        }).finally(() => {
-            qz.websocket.disconnect();
-        });
+        qz.websocket
+            .connect()
+            .then(() => {
+                return qz.printers.find();
+            })
+            .then((printer: string) => {
+                const config = qz.configs.create(printer);
+                return qz.print(config, [{ type: 'raw', format: 'plain', data: lines.join('\n') }]);
+            })
+            .catch((err: any) => {
+                alert('Print error: ' + err);
+            })
+            .finally(() => {
+                qz.websocket.disconnect();
+            });
         return;
     }
 
@@ -1244,7 +1404,7 @@ function printToRawBT() {
         separator,
         `Customer: ${selectedCustomerName.value || '-'}`,
         separator,
-        ...lastOrderItems.value.flatMap(item => {
+        ...lastOrderItems.value.flatMap((item) => {
             const name = item.product_name + ' - ' + item.size_id;
             const qtyPrice = `${item.quantity} x ${formatRupiah(item.price)}`;
             const total = formatRupiah(item.quantity * item.price);
@@ -1253,10 +1413,7 @@ function printToRawBT() {
             const left = qtyPrice.padEnd(23); // Setengah baris
             const right = total.padStart(maxLineWidth - 23); // Sisanya ke kanan
 
-            return [
-                name.length > maxLineWidth ? name.slice(0, maxLineWidth) : name,
-                `${left}${right}`
-            ];
+            return [name.length > maxLineWidth ? name.slice(0, maxLineWidth) : name, `${left}${right}`];
         }),
         separator,
         `Total QTY   : ${lastOrderItems.value.reduce((sum, item) => sum + item.quantity, 0)}`,
@@ -1267,20 +1424,17 @@ function printToRawBT() {
         separator,
         '---TERIMA KASIH---'.padStart(Math.floor((maxLineWidth + 18) / 2)),
         'aninkafashion.com'.padStart(Math.floor((maxLineWidth + 19) / 2)),
-        '\n\n\n'
+        '\n\n\n',
     ];
 
     const rawText = lines.join('\n');
 
-    const encoded = encodeURIComponent(rawText)
-        .replace(/'/g, '%27')
-        .replace(/"/g, '%22');
+    const encoded = encodeURIComponent(rawText).replace(/'/g, '%27').replace(/"/g, '%22');
 
     const rawbtUrl = `intent://${encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
 
     window.location.href = rawbtUrl;
 }
-
 
 // function printToRawBT2() {
 //     const lines = [
@@ -1322,7 +1476,6 @@ function printToRawBT() {
 //     // Redirect
 //     window.location.href = rawbtUrl;
 // }
-
 
 function autoPrint() {
     if (isMobileDevice()) {
