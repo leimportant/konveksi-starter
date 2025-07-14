@@ -58,18 +58,24 @@ class BahanController extends Controller
     {
         $validated = $request->validate([
             'uom_id' => 'exists:mst_uom,id',
-            'name' => 'required|max:255|unique:mst_product,name',
+            'name' => [
+                'required',
+                'max:255',
+                Rule::unique('mst_product', 'name')->whereNull('deleted_at'),
+            ],
         ]);
+
         $validated['category_id'] = 0;
         $newId = $this->generateNumber(100);
         $validated['id'] = $newId;
-       
+
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
         $Bahan = Bahan::create($validated);
         return response()->json($Bahan, 201);
     }
+
 
     private function generateNumber(int $categoryId): string
     {

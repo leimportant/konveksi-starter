@@ -27,7 +27,11 @@ class SizeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
+            'name' => [
+                'required',
+                'max:100',
+                Rule::unique('mst_size', 'name')->whereNull('deleted_at'),
+            ],
         ]);
 
         $name = trim($validated['name']);
