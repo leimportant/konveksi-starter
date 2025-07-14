@@ -66,7 +66,7 @@ class BahanController extends Controller
         ]);
 
         $validated['category_id'] = 0;
-        $newId = $this->generateNumber(100);
+        $newId = $this->generateNumber(100, $validated['category_id']);
         $validated['id'] = $newId;
 
         $validated['created_by'] = Auth::id();
@@ -77,30 +77,25 @@ class BahanController extends Controller
     }
 
 
-    private function generateNumber(int $categoryId): string
+    private function generateNumber(int $prefixCategoryId, int $realCategoryId): string
     {
-        // Panjang digit category_id (misalnya: 2 untuk '12')
-        $categoryIdStr = (string) $categoryId;
-        $prefixLength = strlen($categoryIdStr);
+        $prefixStr = (string) $prefixCategoryId;
+        $prefixLength = strlen($prefixStr);
 
-        // Ambil ID terakhir dari produk dalam kategori itu
-        $lastBahanId = DB::table('mst_product')
-            ->where('category_id', $categoryId)
-            ->where('id', 'like', $categoryIdStr . '%')
+        $lastId = DB::table('mst_product')
+            ->where('id', 'like', $prefixStr . '%')
             ->orderByDesc('id')
             ->value('id');
 
-        // Ambil 4 digit terakhir (setelah prefix category_id)
         $lastNumber = 0;
-        if ($lastBahanId) {
-            $lastNumber = (int) substr($lastBahanId, $prefixLength);
+        if ($lastId && strlen($lastId) > $prefixLength) {
+            $lastNumber = (int) substr($lastId, $prefixLength);
         }
 
         $newNumber = $lastNumber + 1;
-
-        // Gabungkan: category_id + new number (formatted)
-        return $categoryIdStr . str_pad((string) $newNumber, 4, '0', STR_PAD_LEFT);
+        return $prefixStr . str_pad((string) $newNumber, 4, '0', STR_PAD_LEFT);
     }
+
 
     public function update(Request $request, Bahan $data)
     {
