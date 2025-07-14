@@ -32,12 +32,16 @@ const formData = ref<{
   qty: 0
 });
 
-
+interface Size {
+  id: string;
+  name: string;
+}
 // Dropdown options
 interface Product {
   id: number;
   name: string;
   uom_id: string;
+  sizes: Size[];
 }
 
 const products = ref<Product[]>([]);
@@ -80,20 +84,21 @@ const searchProducts = async (search: string) => {
 // Fetch dropdown data
 const fetchDropdownData = async () => {
   try {
-    const [productsRes, locationsRes, slocsRes, sizeRes] = await Promise.all([
+    const [productsRes, locationsRes, slocsRes] = await Promise.all([
       axios.get('/api/products'),
       axios.get('/api/locations'),
       axios.get('/api/slocs'),
-      axios.get('/api/sizes')
+      // axios.get('/api/sizes')
     ]);
 
     products.value = productsRes.data.data;
+   
     locations.value = locationsRes.data.data.map((location: { id: number; name?: string }) => ({
       id: location.id,
       name: location?.name || `Location ${location.id}` // Provide meaningful default name
     }));
     slocs.value = slocsRes.data.data;
-    sizes.value = sizeRes.data.data;
+    // sizes.value = sizeRes.data.data;
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Failed to fetch data';
   }
@@ -144,9 +149,11 @@ onMounted(async () => {
 watch(() => formData.value.product_id, (newProduct) => {
   const id = typeof newProduct === 'object' ? newProduct.id : newProduct;
   const selected = searchResults.value.find((p: any) => p.id === id); // Search in searchResults
-
+  formData.value.size_id = '';
+  sizes.value = [];
   if (selected && selected.uom_id) {
     formData.value.uom_id = selected.uom_id;
+    sizes.value = selected.sizes;
   } else {
     formData.value.uom_id = '';
   }

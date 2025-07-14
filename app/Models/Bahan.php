@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Product extends Model
+class Bahan extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -28,16 +28,6 @@ class Product extends Model
         'deleted_by',
         'doc_id'
     ];
-
-    public function galleryImages()
-    {
-        return $this->hasMany(DocumentAttachment::class, 'doc_id', 'doc_id');
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
 
 
     public function uom()

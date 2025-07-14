@@ -12,7 +12,7 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Category::query();
+        $query = Category::whereNotIn('id', [0]); // ✅ perbaikan
 
         if ($request->has('name')) {
             $query->where('name', 'like', '%' . $request->name . '%');
@@ -23,6 +23,7 @@ class CategoryController extends Controller
 
         return response()->json($categories);
     }
+
 
     public function store(Request $request)
     {

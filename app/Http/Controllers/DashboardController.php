@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CartItem;
 use App\Models\Customer;
 use App\Models\ModelRef;
 use App\Models\Order;
@@ -32,6 +33,16 @@ class DashboardController extends Controller
         ];
 
         return response()->json($data);
+    }
+
+    public function getBadgeCounts(Request $request)
+    {
+        $cartItem = CartItem::count();
+        $order =  Order::whereNotIn('status', [6,11])->count();
+        return response()->json([
+            'orders' => intval($order + $cartItem),
+            'customers' => Customer::where('is_active', 'Y')->count(),
+        ]);
     }
 
     public function getSalesData(Request $request)
