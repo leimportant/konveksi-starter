@@ -93,7 +93,8 @@ onMounted(async () => {
     await menuStore.fetchMenus();
   }
   await preloadIcons(menuStore.items);
-  setInterval(fetchBadgeCounts, 30000); // tiap 30 detik
+  fetchBadgeCounts();
+  // setInterval(fetchBadgeCounts, 6000000);
 
 });
 

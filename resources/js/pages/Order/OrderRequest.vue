@@ -78,16 +78,11 @@ watch(activeTab, (newTab) => {
 });
 
 
-const debouncedSetFilter = debounce((field: string, value: string) => {
+watch(filterName, debounce((newValue) => {
     orders.value = []; // Clear orders when filter changes
     scrollPage.value = 1;
-    setFilterOrderRequest(field, value, { status: activeTab.value, page: scrollPage.value, per_page: perPage.value, append: false });
-}, 400);
-
-const handleFilter = (e: Event) => {
-    const target = e.target as HTMLInputElement;
-    debouncedSetFilter('name', target.value);
-};
+    setFilterOrderRequest('name', newValue, { status: activeTab.value, page: scrollPage.value, per_page: perPage.value, append: false });
+}, 400));
 
     const filteredOrders = computed(() => {
         return orders.value;
@@ -221,9 +216,8 @@ async function submitShipping() {
          <div class="px-4 py-4">
         <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white min-h-screen overflow-x-auto">
             <Input
-            :value="filterName"
+            v-model="filterName"
             placeholder="Search"
-            @input="handleFilter"
             class="w-64"
             aria-label="Search"
             />

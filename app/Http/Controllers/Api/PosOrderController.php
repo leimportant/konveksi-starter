@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\OrderStatusEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,7 @@ class PosOrderController extends Controller
             'items.*.price' => 'required|numeric|min:0',
             'payment_method_id' => 'required|exists:mst_payment_method,id',
             'paid_amount' => 'nullable|numeric|min:0',
-            'customer_id' => 'nullable|integer|exists:mst_customer,id',
+            'customer_id' => 'nullable|integer|exists:mst_customer,user_id',
         ]);
 
         $userId = Auth::id();
@@ -31,6 +32,7 @@ class PosOrderController extends Controller
         $customerId = $request->input('customer_id', null);
         $paidAmount = $request->input('paid_amount', null);
         $customerId = $request->input('customer_id', null);
+        $transactionId = $request->input('transaction_number', null);
 
         DB::beginTransaction();
         try {
@@ -56,7 +58,7 @@ class PosOrderController extends Controller
                 ->count();
 
             $counter = str_pad($countToday + 1, 3, '0', STR_PAD_LEFT);
-            $transactionNumber = $today . $counter;
+            $transactionNumber = $transactionId ?? $today . $counter;
 
             $id =  strtoupper(substr(bin2hex(random_bytes(2)), 0, 4)) . $transactionNumber;
             // Insert pos_transaction
@@ -127,6 +129,15 @@ class PosOrderController extends Controller
                 }
                
             }
+
+            // update ke table Order where in transactionId ini comma
+            $transactionIds = explode(',', $transactionId);
+            DB::table('t_orders')
+                    ->whereIn('id', $transactionIds)
+                    ->update([
+                        'status' => OrderStatusEnum::DONE,
+                        'updated_at' => Carbon::now(),
+                    ]);
 
             DB::commit();
 

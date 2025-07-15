@@ -167,12 +167,13 @@ class TransferStockController extends Controller
             foreach ($transfer->transfer_detail as $detail) {
                 $qty = $detail['qty'] ?? 0;
 
+                $sloc_from = $transfer['sloc_id'] != "GS00" ? "GS00" : $transfer['sloc_id'];
                 // 🔻 Kurangi stok dari lokasi asal
                 app(InventoryService::class)->updateOrCreateInventory([
                     'product_id' => $detail['product_id'],
                     'location_id' => $transfer['location_id'], // lokasi asal
                     'uom_id' => $detail['uom_id'],
-                    'sloc_id' => $transfer['sloc_id'],
+                    'sloc_id' => $sloc_from,
                 ], [
                     'size_id' => $detail['size_id'],
                     'qty' => -abs($qty),
