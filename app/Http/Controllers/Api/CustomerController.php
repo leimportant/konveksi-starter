@@ -95,6 +95,12 @@ class CustomerController extends Controller
         return response()->json($customer);
     }
 
+    public function get($userId)
+    {
+        $customer = Customer::where('user_id', $userId)->first();
+        return response()->json($customer);
+    }
+
     public function update(Request $request, Customer $customer)
     {
         try {

@@ -160,7 +160,6 @@ class OrderController extends Controller
 
     public function store(StoreOrderRequest $request)
     {
-
         DB::beginTransaction();
         try {
             $user = Auth::user();
@@ -234,6 +233,23 @@ class OrderController extends Controller
             if (!$product) {
                 throw new \Exception("Product with ID {$itemData['product_id']} not found.");
             }
+
+            // cek stock
+            $inventory = Inventory::where('product_id', $itemData['product_id'])
+                ->where('location_id', $locationId)
+                ->where('uom_id', $itemData['uom_id'])
+                ->where('size_id', $itemData['size_id'])
+                ->where('sloc_id', 'GS00')
+                ->where('qty', '>', 0)
+                ->where('status', 'IN')
+                ->first();
+
+            $productName = $product->name ?? "-";
+            if (!$inventory) {
+                throw new \Exception("Produk {$productName} sudah tidak tersedia atau stoknya tidak mencukupi");
+            }
+
+
 
             $price = $itemData['price'] ?? 0; // Unit price from request
             $discount = $itemData['discount'] ?? 0; // Total discount for this item line from request
@@ -576,24 +592,50 @@ class OrderController extends Controller
         return response()->json($orders, 201);
     }
 
-    public function scan(Request $request)
-    {
-        $ids = explode(',', $request->query('ids', ''));
+   public function scan(Request $request)
+{
+    $ids = explode(',', $request->query('ids', ''));
 
-        if (empty($ids)) {
-            return response()->json(['message' => 'No Qr tidak terdetect'], 400);
-        }
-
-        $orders = Order::with('orderItems.product')
-            ->whereIn('id', $ids)
-            ->get();
-
-        if ($orders->isEmpty()) {
-            return response()->json(['message' => 'No orders found.'], 404);
-        }
-
-        return response()->json($orders);
+    if (empty($ids)) {
+        return response()->json(['message' => 'No QR terdeteksi'], 400);
     }
+
+    $orders = Order::with(['orderItems.product', 'customer'])
+        ->whereIn('id', $ids)
+        ->get();
+
+    if ($orders->isEmpty()) {
+        return response()->json(['message' => 'No orders found.'], 404);
+    }
+
+    // Transform the orders
+    $result = $orders->map(function ($order) {
+        return [
+            'id' => $order->id,
+            'customer_id' => $order->customer_id,
+            'transaction_number' => $order->transaction_number,
+            'customer' => [
+                'name' => optional($order->customer)->name,
+            ],
+            'order_items' => $order->orderItems->map(function ($item) {
+                return [
+                    'product_id' => $item->product_id,
+                    'qty' => $item->qty,
+                    'size_id' => $item->size_id,
+                    'uom_id' => $item->uom_id,
+                    'price' => $item->price,
+                    'discount' => $item->discount,
+                    'price_sell' => $item->price - $item->discount,
+                    'price_final' => $item->price_final,
+                    'product_name' => optional($item->product)->name ?? 'Tidak diketahui',
+                ];
+            }),
+        ];
+    });
+
+    return response()->json($result);
+}
+
 
     public function cancelOrder(Request $request, $id)
     {

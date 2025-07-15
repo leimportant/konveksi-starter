@@ -54,130 +54,97 @@ class InventoryController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->input('perPage', 10);
-        $page = $request->input('page', 1);
 
-        $locationParam = $request->input('location');
-        $sloc = $request->input('sloc');
-        $product = $request->input('product');
+        $query = DB::table('tr_inventory as a')
+            ->select('a.*', 'b.name AS product_name', 'c.name AS sloc_name', 'd.name AS location_name')
+            ->leftJoin('mst_product as b', 'a.product_id', '=', 'b.id')
+            ->leftJoin('mst_sloc as c', 'a.sloc_id', '=', 'c.id')
+            ->leftJoin('mst_location as d', 'a.location_id', '=', 'd.id')
+            ->where('a.status', 'IN');
 
-
-        $bindings = [];
-        $location = Auth::user()->location_id ?? null;
-        $where = "WHERE 1 = 1";
-        $where .= " AND a.location_id = ?";
-        $bindings[] = $location;
-
-        if ($locationParam) {
-            $where .= " AND a.location_id = ?";
-            $bindings[] = $locationParam;
-        } else {
-            $where .= " AND a.location_id = ?";
-            $bindings[] = $location; // dari Auth::user()
+        if ($request->has('location')) {
+            $query->where('a.location_id', $request->input('location'));
         }
 
-        if ($sloc) {
-            $where .= " AND a.sloc_id = ?";
-            $bindings[] = $sloc;
+        if ($request->has('name')) {
+            $name = $request->input('name');
+            $query->where(function ($q) use ($name) {
+                $q->where('b.name', 'like', '%' . $name . '%')
+                    ->orWhere('c.name', 'like', '%' . $name . '%');
+            });
         }
 
-        if ($product) {
-            $where .= " AND a.product_id = ?";
-            $bindings[] = $product;
-        }
+        $results = $query->paginate($perPage);
 
-
-        $sql = "
-        SELECT 
-            a.product_id,
-            b.name AS product_name,
-            a.location_id,
-            d.name AS location_name,
-            a.uom_id,
-            a.variant,
-            a.sloc_id,
-            c.name AS sloc_name,
-            a.size_id,
-            COALESCE(qty_in_data.qty_in, 0) AS qty_in,
-            COALESCE(qty_out_data.qty_out, 0) AS qty_out,
-            (COALESCE(qty_in_data.qty_in, 0) - COALESCE(qty_out_data.qty_out, 0)) AS qty_available
-        FROM tr_inventory a
-        LEFT JOIN mst_product b ON a.product_id = b.id
-        LEFT JOIN mst_sloc c ON a.sloc_id = c.id
-        LEFT JOIN mst_location d ON a.location_id = d.id
-        LEFT JOIN (
-            SELECT 
-                product_id,
-                location_id,
-                uom_id,
-                sloc_id,
-                size_id,
-                variant,
-                SUM(qty) AS qty_in
-            FROM tr_inventory
-            WHERE status = 'IN'
-            GROUP BY product_id, location_id, uom_id, sloc_id, size_id, variant
-        ) qty_in_data
-            ON a.product_id = qty_in_data.product_id
-            AND a.location_id = qty_in_data.location_id
-            AND a.uom_id = qty_in_data.uom_id
-            AND a.sloc_id = qty_in_data.sloc_id
-            AND a.size_id = qty_in_data.size_id
-            AND a.variant = qty_in_data.variant
-        LEFT JOIN (
-            SELECT 
-                a.location_id, 
-                a.sloc_id, 
-                b.product_id, 
-                b.uom_id, 
-                b.size_id, 
-                b.variant, 
-                SUM(b.qty) AS qty_out
-            FROM tr_transfer_stock a
-            JOIN tr_transfer_stock_detail b
-                ON a.id = b.transfer_id
-            WHERE a.status = 'Pending'
-            GROUP BY b.product_id, a.location_id, b.uom_id, a.sloc_id, b.size_id, b.variant
-        ) qty_out_data
-            ON a.product_id = qty_out_data.product_id
-            AND a.location_id = qty_out_data.location_id
-            AND a.uom_id = qty_out_data.uom_id
-            AND a.sloc_id = qty_out_data.sloc_id
-            AND a.size_id = qty_out_data.size_id
-            AND a.variant = qty_out_data.variant
-        $where
-        GROUP BY 
-            a.product_id,
-            b.name,
-            a.location_id,
-            d.name,
-            a.uom_id,
-            a.sloc_id,
-            a.variant,
-            c.name,
-            a.size_id,
-            qty_in_data.qty_in,
-            qty_out_data.qty_out
-    ";
-
-        // Jalankan query
-        $results = DB::select($sql, $bindings);
-
-        // Buat koleksi
-        $collection = collect($results);
-
-        // Pagination manual
-        $paginated = new LengthAwarePaginator(
-            $collection->forPage($page, $perPage),
-            $collection->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        return response()->json($paginated);
+        return response()->json($results);
     }
 
 
+public function stockMonitoring(Request $request)
+{
+    $query = DB::table('tr_inventory as i')
+        ->join('mst_product as p', 'p.id', '=', 'i.product_id')
+        ->join('mst_location as l', 'l.id', '=', 'i.location_id')
+        ->select(
+            'i.product_id',
+            'p.name as product_name',
+            'i.uom_id',
+            'i.sloc_id',
+            'l.name as location_name',
+            DB::raw('SUM(i.qty) as qty')
+        )
+        ->where('i.status', 'IN')
+        ->groupBy('i.product_id', 'p.name', 'i.uom_id', 'i.sloc_id', 'l.name');
+
+    // Filter by product name or product id
+    if ($request->has('productName')) {
+        $query->where(function ($q) use ($request) {
+            $q->where('p.name', 'like', '%' . $request->input('productName') . '%')
+              ->orWhere('i.product_id', 'like', '%' . $request->input('productName') . '%');
+        });
+    }
+
+    // Paginate result
+    $rawResults = $query->get();
+
+    // Group & transform result
+    $grouped = [];
+
+    foreach ($rawResults as $item) {
+        $key = "{$item->product_id}_{$item->sloc_id}";
+
+        if (!isset($grouped[$key])) {
+            $grouped[$key] = [
+                'product_id' => $item->product_id,
+                'product_name' => $item->product_name,
+                'uom_id' => $item->uom_id,
+                'sloc_id' => $item->sloc_id,
+            ];
+        }
+
+        $locationKey = $item->location_name;
+
+        $grouped[$key][$locationKey] = [
+            'qty' => (int) $item->qty,
+        ];
+    }
+
+    // Manual pagination (optional if needed)
+    $page = $request->input('page', 1);
+    $perPage = $request->input('perPage', 10);
+    $items = array_values($grouped);
+    $offset = ($page - 1) * $perPage;
+
+    $paginated = new LengthAwarePaginator(
+        array_slice($items, $offset, $perPage),
+        count($items),
+        $perPage,
+        $page,
+        ['path' => $request->url(), 'query' => $request->query()]
+    );
+
+    return response()->json($paginated);
+}
 
     /**
      * Store a newly created inventory record.
@@ -239,10 +206,15 @@ class InventoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id): JsonResponse
+    public function update(Request $request, $product_id, $location_id, $sloc_id, $size_id): JsonResponse
     {
         try {
-            $inventory = Inventory::findOrFail($id);
+            $inventory = Inventory::where([
+                'product_id' => $product_id,
+                'location_id' => $location_id,
+                'sloc_id' => $sloc_id,
+                'size_id' => $size_id,
+            ])->firstOrFail(); // ✅ fetch model
 
             $validated = $request->validate([
                 'qty' => 'required|numeric|min:0'
@@ -251,10 +223,12 @@ class InventoryController extends Controller
             $validated['updated_by'] = Auth::id();
             $inventory->update($validated);
 
+            $inventory->load(['product', 'location', 'sloc', 'uom']); // ✅ now works
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Inventory updated successfully',
-                'data' => $inventory->load(['product', 'location', 'sloc', 'uom'])
+                'data' => $inventory
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -426,7 +400,7 @@ class InventoryController extends Controller
                 'price_grosir' => isset($sizes[0]['price_grosir']) ? floatval($sizes[0]['price_grosir']) : null,
                 'price_sell_grosir' => isset($sizes[0]['price_sell_grosir']) ? floatval($sizes[0]['price_sell_grosir']) : null,
                 'discount_grosir' => isset($sizes[0]['discount_grosir']) ? floatval($sizes[0]['discount_grosir']) : null,
-                
+
                 'image_path' => $imageGallery->isNotEmpty() ? ($imageGallery->first()->path ?? "not_available.png") : "not_available.png",
                 'gallery_images' => $imageGallery,
                 'sizes' => $sizes,
@@ -446,61 +420,90 @@ class InventoryController extends Controller
             ->where('sloc_id', $item->sloc_id)
             ->where('location_id', $item->location_id)
             ->sum('quantity');
-     }
+    }
 
     private function getBookingQuantity($item): int
     {
         return DB::table('tr_transfer_stock as a')
             ->join('tr_transfer_stock_detail as b', 'a.id', '=', 'b.transfer_id')
             ->where('a.location_id', $item->location_id)
-            ->where('a.sloc_id', $item->sloc_id)
             ->where('a.status', 'Pending')
             ->where('b.product_id', $item->product_id)
             ->where('b.uom_id', $item->uom_id)
             ->where('b.size_id', $item->size_id)
             ->where('b.variant', $item->variant)
             ->sum('b.qty');
-     }
+    }
 
-  private function getProductPrices($productId, $sizeId, $variant, $today): array
-{
-    $price = DB::table('mst_product_price as a')
-        ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
-        ->select([
-            'b.price',
-            'b.size_id',
-            'b.price_type_id',
-            'b.discount',
-            'b.price_sell',
-            'a.effective_date',
-            'a.end_date',
-            'a.is_active'
-        ])
-        ->where('a.product_id', $productId)
-        ->where('b.size_id', $sizeId)
-        ->whereDate('a.effective_date', '<=', $today)
-        ->where(function ($query) use ($today) {
-            $query->whereNull('a.end_date')
-                  ->orWhereDate('a.end_date', '>=', $today);
-        })
-        ->whereIn('b.price_type_id', [1, 2])
-        ->where(function ($query) use ($variant) {
-            $query->whereNull('a.variant')
-                ->orWhere('a.variant', 'all')
-                ->orWhere('a.variant', '');
-        })
-        ->where('a.is_active', 1)
-        ->orderByDesc('a.effective_date')
-        ->get();
+    private function getProductPrices($productId, $sizeId, $variant, $today): array
+    {
+        $price = DB::table('mst_product_price as a')
+            ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
+            ->select([
+                'b.price',
+                'b.size_id',
+                'b.price_type_id',
+                'b.discount',
+                'b.price_sell',
+                'a.effective_date',
+                'a.end_date',
+                'a.is_active'
+            ])
+            ->where('a.product_id', $productId)
+            ->where('b.size_id', $sizeId)
+            ->whereDate('a.effective_date', '<=', $today)
+            ->where(function ($query) use ($today) {
+                $query->whereNull('a.end_date')
+                    ->orWhereDate('a.end_date', '>=', $today);
+            })
+            ->whereIn('b.price_type_id', [1, 2])
+            ->where(function ($query) use ($variant) {
+                $query->whereNull('a.variant')
+                    ->orWhere('a.variant', 'all')
+                    ->orWhere('a.variant', '');
+            })
+            ->where('a.is_active', 1)
+            ->orderByDesc('a.effective_date')
+            ->get();
 
-    Log::info($price);
+        Log::info($price);
 
-    $retailPrice = $price->firstWhere('price_type_id', 1);
-    $grosirPrice = $price->firstWhere('price_type_id', 2);
+        $retailPrice = $price->firstWhere('price_type_id', 1);
+        $grosirPrice = $price->firstWhere('price_type_id', 2);
 
 
-    return ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice];
-}
+        return ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice];
+    }
+
+    public function delete($product_id, $location_id, $sloc_id, $size_id)
+    {
+        $item = DB::table('tr_inventory')
+            ->where('product_id', $product_id)
+            ->where('location_id', $location_id)
+            ->where('sloc_id', $sloc_id)
+            ->where('size_id', $size_id)
+            ->first();
+
+        if (!$item) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Item not found',
+                'errors' => 'Item not found',
+            ], 404);
+        }
+
+        DB::table('tr_inventory')
+            ->where('product_id', $product_id)
+            ->where('location_id', $location_id)
+            ->where('sloc_id', $sloc_id)
+            ->where('size_id', $size_id)
+            ->where('status', 'IN')
+            ->where('variant', 'all')
+            ->delete();
+
+
+        return response()->json(null, 204);
+    }
 
 
     private function getImageGalleries($productId)

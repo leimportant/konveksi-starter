@@ -191,10 +191,25 @@
                         </Table>
                     </div>
 
-                    <div v-if="selectedCustomerName" class="mt-2 flex justify-between p-3">
-                        <span class="text-xs font-bold">Pelanggan:</span>
-                        <span class="text-xs font-bold">{{ selectedCustomerName }} (#{{ selectedCustomerId }})</span>
-                    </div>
+    <div
+        v-if="selectedCustomerName"
+        class="mt-4 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2 bg-gray-100 rounded-xl p-4 shadow-sm"
+        >
+        <div>
+            <p class="text-sm text-gray-500 font-medium">Pelanggan</p>
+            <p class="text-xs text-gray-800">
+            {{ selectedCustomerName }} <span class="text-xs text-gray-600">(#{{ selectedCustomerId }})</span>
+            </p>
+        </div>
+
+        <div>
+            <p class="text-sm text-gray-500 font-medium">Transaksi Online</p>
+            <p class="text-xs text-gray-800">
+            {{ transactionNumber }}
+            </p>
+        </div>
+        </div>
+
 
                     <div class="mt-2 gap-4 rounded-lg p-1 p-4 shadow-sm">
                         <label class="mb-1 block text-xs font-medium text-gray-900">Metode Pembayaran</label>
@@ -578,6 +593,7 @@ interface OrderPayload {
     total_amount: number;
     paid_amount: number;
     customer_id?: number | null;
+    transaction_number?: string | null;
 }
 
 // const showScanner = ref(false);
@@ -1045,9 +1061,26 @@ function clearCart() {
     selectedForDiscount.value = []; // Clear discount selections
 }
 
-const applyCustomer = () => {
-    showCustomerDialog.value = true;
-};
+async function applyCustomer(customerId: number | null = null) {
+    if (customerId) {
+        selectedCustomerId.value = customerId;
+    }
+
+    if (selectedCustomerId.value) {
+        try {
+            const response = await axios.get(`/api/customers/get/${selectedCustomerId.value}`);
+            selectedCustomerName.value = response.data.name;
+            toast.success(`Pelanggan ${selectedCustomerName.value} berhasil ditambahkan.`);
+        } catch (error) {
+            console.error('Error fetching customer details:', error);
+            toast.error('Gagal mengambil detail pelanggan.');
+            selectedCustomerId.value = null;
+            selectedCustomerName.value = null;
+        }
+    } else {
+        showCustomerDialog.value = true;
+    }
+}
 
 const handleCustomerSelected = (customer: { id: number; name: string }) => {
     selectedCustomerId.value = customer.id;
@@ -1096,6 +1129,7 @@ async function placeOrder() {
             total_amount: totalAmount.value,
             paid_amount: paidAmount.value!,
             customer_id: selectedCustomerId.value, // Add customer_id here
+            transaction_number: transactionNumber.value || "", // Add flag for online transaction
         };
 
         const response = await axios.post('/api/pos/orders', orderPayload);
@@ -1144,9 +1178,17 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
 
         const combinedOrderItems: OrderItem[] = [];
 
+        if (orders.length > 0) {
+            // Assuming the first order contains the customer information
+            selectedCustomerId.value = orders[0].customer_id;
+            selectedCustomerName.value = orders[0].customer?.name || 'Guest'; // Adjust based on actual customer object structure
+            transactionNumber.value = orderIds.join(',');
+        }
+
         orders.forEach((order: any) => {
             if (order?.order_items?.length) {
                 combinedOrderItems.push(...order.order_items);
+   
             }
         });
 
@@ -1160,7 +1202,7 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
             product_id: item.product_id,
             product_name: item.product_name,
             uom_id: item.uom_id,
-            size_id: item.size_id || 'PCS',
+            size_id: item.size_id || '',
             qty_stock: item.qty_stock,
             image_path: item.image_path,
             price: item.price,
@@ -1192,17 +1234,18 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
 
         console.log('Produk dalam pesanan:', products);
 
+        
         products.forEach((product) => {
-            const existingIndex = selectedProducts.value.findIndex((p) => (p.product_id ?? p.id) === (product.product_id ?? product.id));
-
-            if (existingIndex > -1) {
-                selectedProducts.value[existingIndex].quantity += product.quantity;
-            } else {
-                selectedProducts.value.push({ ...product });
-            }
+              selectedProducts.value.push({ ...product });
         });
 
         toast.success('Order items added to cart!');
+
+        // If a customer was identified from the QR scan, apply them
+        if (selectedCustomerId.value) {
+            applyCustomer();
+        }
+
     } catch (error) {
         console.error('Error scanning QR code:', error);
         toast.error('Failed to scan QR code or retrieve order details.');

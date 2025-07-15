@@ -113,6 +113,7 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/slocs', SlocController::class);
     Route::get('api/customers/search', [CustomerController::class, 'search']);
     Route::apiResource('api/customers', CustomerController::class);
+    Route::get('api/customers/get/{userId}', [CustomerController::class, 'get']);
     Route::apiResource('api/payment-methods', PaymentMethodController::class);
     Route::apiResource('api/sizes', SizeController::class);
     Route::apiResource('api/bank-account', BankAccountController::class);
@@ -141,6 +142,11 @@ Route::middleware('auth')->group(function () {
     Route::get('api/locations/get', [LocationController::class, 'getLocations']);
     Route::get('api/stock', [InventoryController::class, 'getStock']);
     Route::apiResource('api/inventories', InventoryController::class);
+    Route::get('api/inventories/{product_id}/{location_id}/{sloc_id}/{size_id}', [InventoryController::class, 'show']);
+    Route::put('api/inventory/{product_id}/{location_id}/{sloc_id}/{size_id}', [InventoryController::class, 'update']);
+    Route::delete('api/inventories/{product_id}/{location_id}/{sloc_id}/{size_id}', [InventoryController::class, 'delete']);
+
+    Route::get('api/inventory/stock-monitoring', [InventoryController::class, 'stockMonitoring']);
 
     Route::post('api/pos/orders', [PosOrderController::class, 'placeOrder']);
 
