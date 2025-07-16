@@ -104,7 +104,7 @@ interface ReportStoreActions {
     fetchProductionSummary: (startDate: string, endDate: string, searchKey?: string) => Promise<void>;
     fetchProductionDetail: (startDate: string, endDate: string, searchKey?: string, page?: number, perPage?: number) => Promise<void>;
     fetchOmsetPerPayment: (startDate: string, endDate: string, page?: number, perPage?: number) => Promise<void>;
-    fetchOmsetPerCustomer: (customerId: number, startDate: string, endDate: string, page?: number, itemsPerPage?: number) => Promise<void>;
+    fetchOmsetPerCustomer: (customerId: number, searchKey: string, startDate: string, endDate: string, page?: number, itemsPerPage?: number) => Promise<void>;
 }
 
 type ReportStore = ReportStoreState & ReportStoreActions;
@@ -209,6 +209,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
 
    async function fetchOmsetPerCustomer(
   customerId: number,
+  searchKey: string,
   startDate: string,
   endDate: string,
   page: number = 1,
@@ -222,6 +223,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
       {
         params: {
           customer_id: customerId,
+          searchKey: searchKey,
           start_date: startDate,
           end_date: endDate,
           page,

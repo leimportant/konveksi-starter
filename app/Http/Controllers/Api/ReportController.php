@@ -314,9 +314,9 @@ class ReportController extends Controller
         $endDate = $request->input('end_date');
         $page = $request->input('page', 1);
         $perPage = $request->input('per_page', 10);
-        $customerId = $request->input('customer_id');
+        $searchKey = $request->input('searchKey');
 
-        $rawData = $this->getRawTransactionData($startDate, $endDate, $customerId);
+        $rawData = $this->getRawTransactionData($startDate, $endDate, $searchKey);
         $grouped = $this->groupTransactionsByCustomer($rawData);
         $reportRows = $this->buildReportWithSubtotals($grouped);
         $paginated = $this->paginateReport($reportRows, $page, $perPage, $request);
@@ -332,7 +332,9 @@ class ReportController extends Controller
 
     private function getRawTransactionData(string $startDate, string $endDate, ?string $searchKey): Collection
     {
-        return DB::table('pos_transaction as a')
+        DB::enableQueryLog();
+
+        $data = DB::table('pos_transaction as a')
             ->join('pos_transaction_detail as b', 'a.id', '=', 'b.transaction_id')
             ->leftJoin('mst_customer as c', 'a.customer_id', '=', 'c.id')
             ->leftJoin('mst_product as d', 'b.product_id', '=', 'd.id')
@@ -349,16 +351,26 @@ class ReportController extends Controller
             )
             ->whereBetween(DB::raw('DATE(a.transaction_date)'), [$startDate, $endDate])
             ->when($searchKey !== null && $searchKey !== '', function ($query) use ($searchKey) {
-                    $query->where(function ($q) use ($searchKey) {
-                        $q->orWhere('a.customer_id', 'like', "%{$searchKey}%")
-                        ->orWhere('c.name', 'like', "%{$searchKey}%")
-                        ->orWhere('b.product_id', 'like', "%{$searchKey}%")
-                        ->orWhere('d.name', 'like', "%{$searchKey}%");
-                    });
-                })
-                            ->orderBy('c.name')
+                $query->where(function ($q) use ($searchKey) {
+                    if (is_numeric($searchKey)) {
+                        $q->where('a.customer_id', $searchKey)
+                            ->orWhere('b.product_id', $searchKey);
+                    } else {
+                        $q->whereRaw('LOWER(c.name) LIKE ?', ['%' . strtolower($searchKey) . '%'])
+                            ->orWhereRaw('LOWER(d.name) LIKE ?', ['%' . strtolower($searchKey) . '%']);
+                    }
+                });
+            })
+
+            ->orderBy('c.name')
             ->orderBy('a.transaction_date')
             ->get();
+
+        Log::info(DB::getQueryLog());
+
+        return $data;
+
+
     }
 
     private function groupTransactionsByCustomer(Collection $rawData): array
