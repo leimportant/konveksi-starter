@@ -110,9 +110,10 @@
                         <Button variant="outline" size="sm" @click="showQrScanner = true" class="flex items-center gap-1">
                             <ScanQrCode class="h-4 w-4" /> QR
                         </Button>
-                        <Button variant="outline" size="sm" @click="applyCustomer" class="flex items-center gap-1">
-                            <UserPlusIcon class="h-4 w-4" /> Customer
+                        <Button variant="outline" size="sm" @click="() => applyCustomer()" class="flex items-center gap-1">
+                            <UserPlusIcon class="h-4 w-4" /> Cust
                         </Button>
+
                         <Button variant="outline" size="sm" @click="applyReturn" class="flex items-center gap-1">
                             <ReplaceAll class="h-4 w-4" /> Retur
                         </Button>
@@ -1062,11 +1063,12 @@ function clearCart() {
 }
 
 async function applyCustomer(customerId: number | null = null) {
-    if (customerId) {
+   if (typeof customerId === 'number') {
         selectedCustomerId.value = customerId;
     }
 
-    if (selectedCustomerId.value) {
+    if (typeof selectedCustomerId.value === 'number') {
+
         try {
             const response = await axios.get(`/api/customers/get/${selectedCustomerId.value}`);
             selectedCustomerName.value = response.data.name;
@@ -1144,7 +1146,7 @@ async function placeOrder() {
         lastOrderPaymentMethodName.value = paymentMethods.value.find((pm) => pm.id === selectedPaymentMethod.value)?.name || '';
         lastOrderDate.value = new Date(response.data.created_at).toLocaleString();
         transactionNumber.value = response.data.transaction_number || '';
-
+        selectedCustomerId.value = null;
         showPrintPreview.value = true;
     } catch (error) {
         console.error('Error placing order:', error);
@@ -1243,7 +1245,7 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
 
         // If a customer was identified from the QR scan, apply them
         if (selectedCustomerId.value) {
-            applyCustomer();
+            applyCustomer(selectedCustomerId.value);
         }
 
     } catch (error) {
