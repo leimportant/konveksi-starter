@@ -23,16 +23,16 @@
         "prettier-plugin-organize-imports": "^4.1.0",
         "prettier-plugin-tailwindcss": "^0.6.9",
         "typescript-eslint": "^8.23.0",
+        "vite-plugin-pwa": "^1.0.1",
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
         "@ckeditor/ckeditor5-build-classic": "^41.4.2",
         "@ckeditor/ckeditor5-vue": "^7.3.0",
         "@inertiajs/inertia": "^0.11.1",
-        "@inertiajs/inertia-vue3": "^0.6.0",
         "@inertiajs/vue3": "^1.0.16",
         "@popperjs/core": "^2.11.8",
-        "@vitejs/plugin-vue": "^5.2.1",
+        "@vitejs/plugin-vue": "^5.2.4",
         "@vueup/vue-quill": "^1.2.0",
         "@vueuse/core": "^12.0.0",
         "autoprefixer": "^10.4.20",

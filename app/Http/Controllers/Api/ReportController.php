@@ -316,9 +316,10 @@ class ReportController extends Controller
         $page = $request->input('page', 1);
         $perPage = $request->input('per_page', 10);
         $searchKey = $request->input('searchKey');
-        
+        $customer_id = $request->input('customer_id');
 
-        $rawData = $this->getRawTransactionData($startDate, $endDate, $searchKey);
+        
+        $rawData = $this->getRawTransactionData($startDate, $endDate, $searchKey, $customer_id);
         $grouped = $this->groupTransactionsByCustomer($rawData);
         $reportRows = $this->buildReportWithSubtotals($grouped);
         $paginated = $this->paginateReport($reportRows, $page, $perPage, $request);
@@ -332,12 +333,13 @@ class ReportController extends Controller
         ]);
     }
 
-    private function getRawTransactionData(string $startDate, string $endDate, ?string $searchKey): Collection
+    private function getRawTransactionData(string $startDate, string $endDate, ?string $searchKey, ?int $customer_id): Collection
+
     {
 
         $user = Auth::user();
         $filterCustomerId = "";
-        if ($user->employee_status == "customer") {
+        if ($user->employee_status == "customer" && $customer_id > 0) {
             $filterCustomerId = Auth::id();
         }
 
