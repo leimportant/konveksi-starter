@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aninkafashion.com-cache-v1';
+const CACHE_NAME = 'aninkafashion-cache-v1';
 
 const urlsToCache = [
     '/',
