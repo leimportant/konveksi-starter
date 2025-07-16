@@ -141,37 +141,59 @@
         </div>
 
         <div v-if="inventoryStore.loading" class="text-center py-6">Loading inventory...</div>
-        <div v-else>
-          <table class="w-full text-sm border border-gray-200">
-            <thead class="bg-gray-100">
-              <tr>
-                <th class="border p-2">Produk</th>
-                <th class="border p-2">Size</th>
-                <th class="border p-2">UOM</th>
-                <th class="border p-2">Qty</th>
-                <th class="border p-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="item in inventoryStore.inventoryRpt"
-                :key="`${item.product_id}-${item.location_id}-${item.sloc_id}-${item.size_id}`"
-                class="hover:bg-gray-50"
+       
+  <div v-else class="space-y-4">
+    <!-- Search Input -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+      <input
+        v-model="filters.productName"
+        placeholder="Cari Produk"
+        :disabled="inventoryStore.loading"
+        class="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+        aria-label="Search"
+      />
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="overflow-x-auto rounded-md border border-gray-200 shadow-sm">
+      <table class="min-w-full text-sm text-left whitespace-nowrap">
+        <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+          <tr>
+            <th class="px-3 py-2">Produk</th>
+            <th class="px-3 py-2">Size</th>
+            <th class="px-3 py-2">UOM</th>
+            <th class="px-3 py-2 text-right">Qty</th>
+            <th class="px-3 py-2 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in inventoryStore.inventoryRpt"
+            :key="`${item.product_id}-${item.location_id}-${item.sloc_id}-${item.size_id}`"
+            class="hover:bg-gray-50 border-t"
+          >
+            <td class="px-3 py-2 font-medium text-gray-800">{{ item.product_name }}</td>
+            <td class="px-3 py-2">{{ item.size_id }}</td>
+            <td class="px-3 py-2">{{ item.uom_id }}</td>
+            <td class="px-3 py-2 text-right">{{ item.qty }}</td>
+            <td class="px-3 py-2 text-center">
+              <button
+                @click="selectInventoryItem(item)"
+                class="text-blue-600 hover:text-blue-800 hover:underline transition"
               >
-                <td class="border p-2">{{ item.product_name }}</td>
-                <td class="border p-2">{{ item.size_id }}</td>
-                <td class="border p-2">{{ item.uom_id }}</td>
-                <td class="border p-2">{{ item.qty_available }}</td>
-                <td class="border p-2 text-center">
-                  <button @click="selectInventoryItem(item)" class="text-blue-600 hover:underline">Pilih</button>
-                </td>
-              </tr>
-              <tr v-if="inventoryStore.inventoryRpt.length === 0">
-                <td colspan="5" class="border p-2 text-center">Tidak ada inventory ditemukan.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                Pilih
+              </button>
+            </td>
+          </tr>
+          <tr v-if="inventoryStore.inventoryRpt.length === 0">
+            <td colspan="5" class="px-3 py-4 text-center text-gray-500">Tidak ada inventory ditemukan.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
       </div>
     </div>
   </AppLayout>
@@ -192,10 +214,20 @@ import { router } from '@inertiajs/vue3'
 import { useTransferStockStore } from '@/stores/useTransferStockStore'
 import { useInventoryStore } from '@/stores/useInventoryStore'
 import { Trash } from 'lucide-vue-next';
+import debounce from 'lodash-es/debounce';
+
+const filters = reactive({
+  productName: ''
+});
+
+watch(() => filters.productName, debounce((newVal) => {
+  inventoryStore.setFilter('productName', newVal);
+  inventoryStore.fetchInventory();
+}, 500));
 
 const toast = useToast()
+const inventoryStore = useInventoryStore();
 const store = useTransferStockStore()
-const inventoryStore = useInventoryStore()
 
 const form = useForm({
   location_id: undefined as number | undefined,
