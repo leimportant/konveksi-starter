@@ -20,7 +20,7 @@ const fetchReport = async (page: number = 1, perPage: number = 10) => {
     // The first argument should be customerId (number), but searchKey is string, so we need to handle this properly
     // For now, pass 0 or parseInt if searchKey is a number string
     const customerId = parseInt(searchKey.value) || 0;
-    await reportStore.fetchOmsetPerCustomer(customerId, startDate.value, endDate.value, page, perPage);
+    await reportStore.fetchOmsetPerCustomer(customerId, searchKey.value, startDate.value, endDate.value, page, perPage);
 };
 
 const goToPage = (page: number) => {
