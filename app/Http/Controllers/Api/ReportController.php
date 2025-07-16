@@ -330,7 +330,7 @@ class ReportController extends Controller
         ]);
     }
 
-    private function getRawTransactionData(string $startDate, string $endDate, ?int $customerId): Collection
+    private function getRawTransactionData(string $startDate, string $endDate, ?string $searchKey): Collection
     {
         return DB::table('pos_transaction as a')
             ->join('pos_transaction_detail as b', 'a.id', '=', 'b.transaction_id')
@@ -348,15 +348,17 @@ class ReportController extends Controller
                 'b.subtotal as total'
             )
             ->whereBetween(DB::raw('DATE(a.transaction_date)'), [$startDate, $endDate])
-            ->when($customerId !== null, function ($query) use ($customerId) {
-                    $query->where(function ($q) use ($customerId) {
-                        $q->where('a.customer_id', 'like', "%{$customerId}%")
-                        ->orWhere('c.name', 'like', "%{$customerId}%")
-                        ->orWhere('b.product_id', 'like', "%{$customerId}%")
-                        ->orWhere('d.name', 'like', "%{$customerId}%");
-                    });
-                })
-
+            ->when($searchKey !== null && $searchKey !== '', function ($query) use ($searchKey) {
+                $query->where(function ($q) use ($searchKey) {
+                    if (is_numeric($searchKey)) {
+                        $q->where('a.customer_id', $searchKey)
+                            ->orWhere('b.product_id', $searchKey);
+                    } else {
+                        $q->where('c.name', 'like', "%{$searchKey}%")
+                            ->orWhere('d.name', 'like', "%{$searchKey}%");
+                    }
+                });
+            })
             ->orderBy('c.name')
             ->orderBy('a.transaction_date')
             ->get();
