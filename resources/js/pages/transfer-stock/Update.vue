@@ -80,7 +80,14 @@
             class="hover:bg-gray-50"
           >
             <TableCell class="px-3 py-2">
-              <Input type="text" :value="getProductName(detail.product_id)" readonly class="w-full" />
+
+
+               <input
+            type="text"
+            :value="getProductName(detail.product_id, detail.product_name)"
+            readonly
+            class="w-full bg-gray-100 text-sm border rounded px-2 py-1"
+          />
             </TableCell>
             <TableCell class="px-3 py-2">
               <Input type="text" v-model="detail.size_id" readonly class="w-full" />
@@ -121,41 +128,56 @@
         </div>
 
         <div v-if="inventoryStore.loading" class="text-center py-10">Loading inventory...</div>
-        <div v-else>
+         <div v-else class="space-y-4">
+    <!-- Search Input -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+      <input
+        v-model="filters.productName"
+        placeholder="Cari Produk"
+        :disabled="inventoryStore.loading"
+        class="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+        aria-label="Search"
+      />
+    </div>
 
-          <Table>
-          <TableHeader>
-            <TableRow class="bg-gray-100">
-              <TableHead>Product</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead>UOM</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow  v-for="item in inventoryStore.inventory"
-            :key="item.id">
-               <TableCell>{{ item.product?.name }}</TableCell>
-                <TableCell>{{ item.size_id }}</TableCell>
-                <TableCell>{{ item.uom_id }}</TableCell>
-                <TableCell>{{ item.qty }}</TableCell>
-              <TableCell>
-                <button
-                    @click="selectInventoryItem(item)"
-                    class="text-blue-600 hover:underline"
-                  >
-                    Pilih
-                  </button>         
-              </TableCell>
-
-            </TableRow>
-          </TableBody>
-        </Table>
-
-          
-           
-        </div>
+    <!-- Inventory Table -->
+    <div class="overflow-x-auto rounded-md border border-gray-200 shadow-sm">
+      <table class="min-w-full text-sm text-left whitespace-nowrap">
+        <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+          <tr>
+            <th class="px-3 py-2">Produk</th>
+            <th class="px-3 py-2">Size</th>
+            <th class="px-3 py-2">UOM</th>
+            <th class="px-3 py-2 text-right">Qty</th>
+            <th class="px-3 py-2 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in inventoryStore.inventoryRpt"
+            :key="`${item.product_id}-${item.location_id}-${item.sloc_id}-${item.size_id}`"
+            class="hover:bg-gray-50 border-t"
+          >
+            <td class="px-3 py-2 font-medium text-gray-800">{{ item.product_id }} - {{ item.product_name }}</td>
+            <td class="px-3 py-2">{{ item.size_id }}</td>
+            <td class="px-3 py-2">{{ item.uom_id }}</td>
+            <td class="px-3 py-2 text-right">{{ item.qty }}</td>
+            <td class="px-3 py-2 text-center">
+              <button
+                @click="selectInventoryItem(item)"
+                class="text-blue-600 hover:text-blue-800 hover:underline transition"
+              >
+                Pilih
+              </button>
+            </td>
+          </tr>
+          <tr v-if="inventoryStore.inventoryRpt.length === 0">
+            <td colspan="5" class="px-3 py-4 text-center text-gray-500">Tidak ada inventory ditemukan.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
       </div>
     </div>
   </AppLayout>
@@ -163,7 +185,7 @@
 
 
 <script setup lang="ts">
-import { reactive, onMounted, ref } from 'vue'
+import { reactive, onMounted, watch, ref } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { Head } from '@inertiajs/vue3';
 import { useForm } from '@inertiajs/vue3'
@@ -177,6 +199,7 @@ import { router } from '@inertiajs/vue3'
 import { useTransferStockStore } from '@/stores/useTransferStockStore'
 import { useInventoryStore } from '@/stores/useInventoryStore'
 import { Trash } from 'lucide-vue-next';
+import debounce from 'lodash-es/debounce';
 
 const breadcrumbs = [{ title: 'Transfer Stock', href: '/transfer-stock' }];
 const toast = useToast()
@@ -189,8 +212,11 @@ const form = useForm({
   sloc_id: undefined as number | undefined,
   transfer_detail: [] as {
     product_id: number | null
+    product_name: string,
     size_id: string
+    size_name: string
     uom_id: string
+    uom_name: string
     qty: number
   }[],
 })
@@ -203,6 +229,10 @@ const products = reactive<any[]>([])
 // const uoms = reactive<any[]>([])
 
 const dialogOpen = ref(false)
+
+const filters = reactive({
+  productName: ''
+});
 
 const props = defineProps<{
   id: string
@@ -231,6 +261,10 @@ onMounted(async () => {
   }
 })
 
+watch(() => filters.productName, debounce((newVal) => {
+  inventoryStore.setFilter('productName', newVal);
+  inventoryStore.fetchInventory();
+}, 500));
 
 const openDialog = async () => {
   if (!form.location_id || !form.sloc_id) {
@@ -251,7 +285,7 @@ const openDialog = async () => {
 const selectInventoryItem = (item: any) => {
   // Cek apakah sudah ada di detail
   const exists = form.transfer_detail.find(
-    d => d.product_id === item.product.id && d.size_id === item.size_id && d.uom_id === item.uom.id
+    d => d.product_id === item.product_id && d.size_id === item.size_id && d.uom_id === item.uom_id
   )
   if (exists) {
     toast.error('Produk ini sudah ada di daftar detail')
@@ -259,17 +293,20 @@ const selectInventoryItem = (item: any) => {
   }
 
   form.transfer_detail.push({
-    product_id: item.product?.id,
+    product_id: item.product_id,
+    product_name: item.product_name,
     size_id: item.size_id,
+    size_name: item.size_id,
     uom_id: item.uom_id,
-    qty: 1,
+    uom_name: item.uom_id,
+    qty: item.qty_available ?? 1,
   })
   dialogOpen.value = false
 }
 
-const getProductName = (product_id: number | null) => {
+const getProductName = (product_id: number | null, product_name: string) => {
   const prod = products.find(p => p.id === product_id)
-  return prod ? prod.name : ''
+  return prod ? prod.name : product_name
 }
 
 const clearError = (field: string) => {
@@ -327,8 +364,11 @@ const populateForm = () => {
     const details = transfer.transfer_detail
       ? transfer.transfer_detail.map(d => ({
           product_id: d.product_id ?? 0,
+          product_name: d.product_name ?? '',
           size_id: d.size_id ?? '',
+          size_name: d.size_id ?? '',
           uom_id: d.uom_id ?? '',
+          uom_name: d.uom_id ?? '',
           qty: d.qty,
         }))
       : []

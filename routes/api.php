@@ -148,6 +148,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('api/inventory/stock-monitoring', [InventoryController::class, 'stockMonitoring']);
 
+    Route::get('api/orders/search', [PosOrderController::class, 'index']);
     Route::post('api/pos/orders', [PosOrderController::class, 'placeOrder']);
 
     // Document Attachments

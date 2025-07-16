@@ -29,8 +29,11 @@ interface Uom {
 interface TransferDetail {
   id?: number;
   product_id: number;
+  product_name?: string;
   size_id: string;
+  size_name?: string;
   uom_id: string;
+  uom_name?: string;
   qty: number;
   product?: Product;
   size?: Size;

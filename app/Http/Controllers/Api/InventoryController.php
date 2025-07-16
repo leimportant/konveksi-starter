@@ -74,6 +74,15 @@ class InventoryController extends Controller
             });
         }
 
+        if ($request->has('productName')) {
+            $name = $request->input('productName');
+            $query->where(function ($q) use ($name) {
+                $q->where('b.name', 'like', '%' . $name . '%')
+                    ->orWhere('c.name', 'like', '%' . $name . '%');
+            });
+        }
+        
+
         $results = $query->paginate($perPage);
 
         return response()->json($results);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\OrderStatusEnum;
 use App\Http\Controllers\Controller;
+use App\Models\PosTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,28 @@ use Carbon\Carbon;
 
 class PosOrderController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        $search = $request->input('search', '');
+
+        $transactions = PosTransaction::with('orderItems')
+                ->leftJoin('mst_customer as c', 'pos_transaction.customer_id', '=', 'c.id')
+                ->select('pos_transaction.*', DB::raw("COALESCE(c.name, 'Umum') as customer"))
+                ->whereHas('orderItems', function ($query) {
+                    $query->where('quantity', '>', 0);
+                })
+                ->where(function ($query) use ($search) {
+                    $query->where('pos_transaction.transaction_number', 'like', '%' . $search . '%')
+                        ->orWhere('c.name', 'like', '%' . $search . '%')
+                        ->orWhere('pos_transaction.total_amount', 'like', '%' . $search . '%');
+                })
+                ->orderBy('pos_transaction.created_at', 'desc')
+                ->paginate(10);
+
+        return response()->json($transactions);
+    }
+
     public function placeOrder(Request $request)
     {
         $request->validate([
@@ -60,7 +83,7 @@ class PosOrderController extends Controller
             $counter = str_pad($countToday + 1, 3, '0', STR_PAD_LEFT);
             $transactionNumber = $transactionId ?? $today . $counter;
 
-            $id =  strtoupper(substr(bin2hex(random_bytes(2)), 0, 4)) . $transactionNumber;
+            $id = strtoupper(substr(bin2hex(random_bytes(2)), 0, 4)) . $transactionNumber;
             // Insert pos_transaction
             $transactionId = DB::table('pos_transaction')->insertGetId([
                 'id' => $id,
@@ -116,7 +139,7 @@ class PosOrderController extends Controller
                         'qty' => -abs($p['quantity']), // Reduce stock from source location
                     ], 'IN');
 
-                     // Update stock
+                    // Update stock
                     app(InventoryService::class)->updateOrCreateInventory([
                         'product_id' => $p['product_id'],
                         'location_id' => $locationId,
@@ -127,17 +150,17 @@ class PosOrderController extends Controller
                         'qty' => $p['quantity'], // Reduce stock from source location
                     ], 'OUT');
                 }
-               
+
             }
 
             // update ke table Order where in transactionId ini comma
             $transactionIds = explode(',', $transactionId);
             DB::table('t_orders')
-                    ->whereIn('id', $transactionIds)
-                    ->update([
-                        'status' => OrderStatusEnum::DONE,
-                        'updated_at' => Carbon::now(),
-                    ]);
+                ->whereIn('id', $transactionIds)
+                ->update([
+                    'status' => OrderStatusEnum::DONE,
+                    'updated_at' => Carbon::now(),
+                ]);
 
             DB::commit();
 
