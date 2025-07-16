@@ -349,8 +349,14 @@ class ReportController extends Controller
             )
             ->whereBetween(DB::raw('DATE(a.transaction_date)'), [$startDate, $endDate])
             ->when($customerId !== null, function ($query) use ($customerId) {
-                $query->where('a.customer_id', $customerId);
-            })
+                    $query->where(function ($q) use ($customerId) {
+                        $q->where('a.customer_id', 'like', "%{$customerId}%")
+                        ->orWhere('c.name', 'like', "%{$customerId}%")
+                        ->orWhere('b.product_id', 'like', "%{$customerId}%")
+                        ->orWhere('d.name', 'like', "%{$customerId}%");
+                    });
+                })
+
             ->orderBy('c.name')
             ->orderBy('a.transaction_date')
             ->get();
