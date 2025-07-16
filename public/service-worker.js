@@ -1,16 +1,17 @@
-const CACHE_NAME = 'laravel-vue-starter-kit-cache-v1';
+const CACHE_NAME = 'aninkafashion.com-cache-v1';
+
 const urlsToCache = [
     '/',
     '/index.php',
 
-    '/build/assets/app-CdNUM1aL.js',
-    '/build/assets/app-C9BzIwe6.css',
+
     '/images/icons/icon-192x192.svg',
     '/images/icons/icon-512x512.svg',
     '/manifest.json'
 ];
 
 self.addEventListener('install', event => {
+    console.log('Service Worker: Installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
@@ -21,18 +22,21 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+    console.log('Service Worker: Fetching', event.request.url);
     event.respondWith(
         caches.match(event.request)
             .then(response => {
                 if (response) {
                     return response;
                 }
+                console.log('Service Worker: Fetching from network', event.request.url);
                 return fetch(event.request);
             })
     );
 });
 
 self.addEventListener('activate', event => {
+    console.log('Service Worker: Activating...');
     const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
         caches.keys().then(cacheNames => {
