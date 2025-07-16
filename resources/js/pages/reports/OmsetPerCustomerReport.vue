@@ -59,7 +59,7 @@ onMounted(() => {
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Input type="date" v-model="startDate" class="w-full sm:w-auto" />
                 <Input type="date" v-model="endDate" class="w-full sm:w-auto" />
-                <Input type="text" v-model="searchKey" placeholder="Cari produk..." class="flex-1" />
+                <Input type="text" v-model="searchKey" placeholder="Cari customer atau produk..." class="flex-1" />
                 <Button @click="fetchReport(1, 10)" class="bg-indigo-600 text-white transition hover:bg-indigo-700"> Tampilkan </Button>
             </div>
 
