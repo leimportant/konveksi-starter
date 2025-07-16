@@ -349,17 +349,14 @@ class ReportController extends Controller
             )
             ->whereBetween(DB::raw('DATE(a.transaction_date)'), [$startDate, $endDate])
             ->when($searchKey !== null && $searchKey !== '', function ($query) use ($searchKey) {
-                $query->where(function ($q) use ($searchKey) {
-                    if (is_numeric($searchKey)) {
-                        $q->where('a.customer_id', $searchKey)
-                            ->orWhere('b.product_id', $searchKey);
-                    } else {
-                        $q->where('c.name', 'like', "%{$searchKey}%")
-                            ->orWhere('d.name', 'like', "%{$searchKey}%");
-                    }
-                });
-            })
-            ->orderBy('c.name')
+                    $query->where(function ($q) use ($searchKey) {
+                        $q->orWhere('a.customer_id', 'like', "%{$searchKey}%")
+                        ->orWhere('c.name', 'like', "%{$searchKey}%")
+                        ->orWhere('b.product_id', 'like', "%{$searchKey}%")
+                        ->orWhere('d.name', 'like', "%{$searchKey}%");
+                    });
+                })
+                            ->orderBy('c.name')
             ->orderBy('a.transaction_date')
             ->get();
     }
