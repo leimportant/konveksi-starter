@@ -5,6 +5,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
 {
@@ -170,7 +174,7 @@ class ReportController extends Controller
         $perPage = $request->input('per_page', 10); // Default to 10 items per page
         $page = $request->input('page', 1); // Default to page 1
 
-        $paginatedResult = new \Illuminate\Pagination\LengthAwarePaginator(
+        $paginatedResult = new LengthAwarePaginator(
             collect($result)->forPage($page, $perPage),
             count($result),
             $perPage,
@@ -284,7 +288,7 @@ class ReportController extends Controller
         ];
 
         // Pagination manual
-        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+        $paginated = new LengthAwarePaginator(
             collect($result)->forPage($page, $perPage),
             count($result),
             $perPage,
@@ -303,22 +307,39 @@ class ReportController extends Controller
         ]);
     }
 
-    public function reportOmsetPerCustomer(Request $request)
+
+    public function reportOmsetPerCustomer(Request $request): JsonResponse
     {
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
-        $searchKey = $request->input('search_key');
         $page = $request->input('page', 1);
         $perPage = $request->input('per_page', 10);
+        $customerId = $request->input('customer_id');
 
-        $rawData = DB::table('pos_transaction as a')
+        $rawData = $this->getRawTransactionData($startDate, $endDate, $customerId);
+        $grouped = $this->groupTransactionsByCustomer($rawData);
+        $reportRows = $this->buildReportWithSubtotals($grouped);
+        $paginated = $this->paginateReport($reportRows, $page, $perPage, $request);
+
+        return response()->json([
+            'data' => $paginated->items(),
+            'current_page' => $paginated->currentPage(),
+            'per_page' => $paginated->perPage(),
+            'total' => $paginated->total(),
+            'last_page' => $paginated->lastPage(),
+        ]);
+    }
+
+    private function getRawTransactionData(string $startDate, string $endDate, ?int $customerId): Collection
+    {
+        return DB::table('pos_transaction as a')
             ->join('pos_transaction_detail as b', 'a.id', '=', 'b.transaction_id')
             ->leftJoin('mst_customer as c', 'a.customer_id', '=', 'c.id')
             ->leftJoin('mst_product as d', 'b.product_id', '=', 'd.id')
             ->select(
                 DB::raw("DATE_FORMAT(a.transaction_date, '%d/%m/%Y') as tanggal"),
                 'a.customer_id',
-                'c.name as customer',
+                DB::raw("COALESCE(c.name, 'Umum') as customer"),
                 'b.product_id',
                 'd.name as product',
                 'b.quantity as qty',
@@ -327,18 +348,18 @@ class ReportController extends Controller
                 'b.subtotal as total'
             )
             ->whereBetween(DB::raw('DATE(a.transaction_date)'), [$startDate, $endDate])
-            ->when($searchKey, function ($query, $searchKey) {
-                $query->where(function ($q) use ($searchKey) {
-                    $q->where('c.name', 'like', "%{$searchKey}%")
-                        ->orWhere('d.name', 'like', "%{$searchKey}%");
-                });
+            ->when($customerId !== null, function ($query) use ($customerId) {
+                $query->where('a.customer_id', $customerId);
             })
             ->orderBy('c.name')
             ->orderBy('a.transaction_date')
             ->get();
+    }
 
-        // Grouping berdasarkan Customer
+    private function groupTransactionsByCustomer(Collection $rawData): array
+    {
         $grouped = [];
+
         foreach ($rawData as $row) {
             $key = $row->customer ?? 'Unknown';
             if (!isset($grouped[$key])) {
@@ -347,11 +368,15 @@ class ReportController extends Controller
             $grouped[$key][] = $row;
         }
 
-        // Format data akhir dengan SUBTOTAL per customer
+        return $grouped;
+    }
+
+    private function buildReportWithSubtotals(array $groupedData): array
+    {
         $result = [];
         $grandTotal = 0;
 
-        foreach ($grouped as $customer => $items) {
+        foreach ($groupedData as $customer => $items) {
             $subtotalQty = 0;
             $subtotalPrice = 0;
             $subtotalTotal = 0;
@@ -360,6 +385,7 @@ class ReportController extends Controller
                 $result[] = [
                     'tanggal' => $row->tanggal,
                     'customer' => $row->customer,
+                    'product_id' => $row->product_id,
                     'product' => $row->product,
                     'qty' => $row->qty,
                     'price' => $row->price,
@@ -375,6 +401,7 @@ class ReportController extends Controller
             $result[] = [
                 'tanggal' => null,
                 'customer' => null,
+                'product_id' => null,
                 'product' => 'SUBTOTAL',
                 'qty' => $subtotalQty,
                 'price' => $subtotalPrice,
@@ -385,10 +412,10 @@ class ReportController extends Controller
             $grandTotal += $subtotalTotal;
         }
 
-        // Tambahkan TOTAL seluruh transaksi
         $result[] = [
             'tanggal' => null,
             'customer' => null,
+            'product_id' => null,
             'product' => 'TOTAL',
             'qty' => null,
             'price' => null,
@@ -396,28 +423,22 @@ class ReportController extends Controller
             'is_summary' => true,
         ];
 
-        // Pagination
-        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-            collect($result)->forPage($page, $perPage),
-            count($result),
+        return $result;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $data
+     */
+    private function paginateReport(array $data, int $page, int $perPage, Request $request): LengthAwarePaginator
+    {
+        return new LengthAwarePaginator(
+            collect($data)->forPage($page, $perPage),
+            count($data),
             $perPage,
             $page,
             ['path' => $request->url(), 'query' => $request->query()]
         );
-
-        return response()->json([
-            'data' => $paginated->items(),
-            'pagination' => [
-                'current_page' => $paginated->currentPage(),
-                'per_page' => $paginated->perPage(),
-                'total' => $paginated->total(),
-                'last_page' => $paginated->lastPage(),
-            ]
-        ]);
     }
-
-
-
 
 
 
