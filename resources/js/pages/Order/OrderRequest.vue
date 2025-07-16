@@ -28,7 +28,7 @@ const filterName = ref('');
 
 const { orders, isLoading, error, pagination, fetchOrderRequest, cancelOrder, deleteOrder, checkShipping, updateShipping, setFilterOrderRequest } = useOrdersCustomer();
 
-const activeTab = ref<'cart' | 'pending' | 'done' | 'cancel' | 'storecart'>('cart');
+const activeTab = ref<'cart' | 'pending' | 'done' | 'cancel'>('cart');
 
 
 const shippingInfo = ref<any>(null);
@@ -247,12 +247,7 @@ async function submitShipping() {
                 ]">
                     Dibatalkan
                 </button>
-                 <button @click="activeTab = 'storecart'" :class="[
-                    'rounded-t px-4 py-2 text-sm md:',
-                    activeTab === 'storecart' ? 'border-b-2 text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
-                ]">
-                    Penjualan Toko
-                </button>
+
             </div>
 
             <!-- Table Content -->
@@ -288,7 +283,7 @@ async function submitShipping() {
                                                     class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                     Kirim Pesan
                                                 </Button>
-                                                <Button variant="ghost" size="icon" v-if="order.is_paid == 'Y'"
+                                                <Button variant="ghost" size="icon" v-if="order.is_paid !== 'Y'"
                                                     @click="handleCancel(order.id)"
                                                     class="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                     Batalkan Pesanan

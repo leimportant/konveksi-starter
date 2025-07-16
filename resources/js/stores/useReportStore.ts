@@ -18,6 +18,7 @@ interface OmsetPerCustomer {
     price: number;
     qty: number;
     total: number;
+    product_id: number;
     product: string;
     customer: string;
 }
@@ -29,6 +30,7 @@ interface PaginatedResponse<T> {
     total: number;
     per_page: number;
 }
+
 
 interface ProductionSummaryItem {
     model_id: number;
@@ -205,26 +207,44 @@ export const useReportStore = defineStore('report', (): ReportStore => {
         }
     }
 
-    async function fetchOmsetPerCustomer(customerId: number, startDate: string, endDate: string, page: number = 1, itemsPerPage: number = 10) {
-        loading.value = true;
-        error.value = null;
-        try {
-            const response = await axios.get<PaginatedResponse<OmsetPerCustomer>>('/api/reports/omset-per-customer', {
-                params: { customer_id: customerId, start_date: startDate, end_date: endDate, page, per_page: itemsPerPage },
-            });
-            console.log('Omset Summary Response:', response.data);
-            omsetSummaryPerCustomer.value = response.data.data;
-            currentPage.value = response.data.current_page;
-             lastPage.value = response.data.last_page;
-             totalOmsetRecords.value = response.data.total;
-             perPage.value = response.data.per_page;
-        } catch (err: any) {
-            error.value = err;
-            console.error('Error fetching omzet per customer:', err);
-        } finally {
-            loading.value = false;
-        }
-    }
+   async function fetchOmsetPerCustomer(
+  customerId: number,
+  startDate: string,
+  endDate: string,
+  page: number = 1,
+  itemsPerPage: number = 10
+) {
+  loading.value = true;
+  error.value = null;
+  try {
+    const response = await axios.get<PaginatedResponse<OmsetPerCustomer>>(
+      '/api/reports/omset-per-customer',
+      {
+        params: {
+          customer_id: customerId,
+          start_date: startDate,
+          end_date: endDate,
+          page,
+          per_page: itemsPerPage,
+        },
+      }
+    );
+
+    console.log('Omset per customer Response:', response.data.data);
+
+    // ✅ Perhatikan bahwa semua properti ada di dalam response.data
+    omsetSummaryPerCustomer.value = response.data.data;
+    currentPage.value = response.data.current_page; // update current page
+        lastPage.value = response.data.last_page; // update last page
+        totalRecords.value = response.data.total; // update total records
+        perPage.value = response.data.per_page;
+} catch (err: any) {
+    error.value = err;
+    console.error('Error fetching omzet per customer:', err);
+  } finally {
+    loading.value = false;
+  }
+}
 
     return {
         salesSummary,
