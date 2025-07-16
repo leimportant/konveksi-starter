@@ -39,6 +39,10 @@ Route::get('/home', function () {
 
 })->name('home.root');
 
+Route::get('/reports/customer', function () {
+    return Inertia::render('Home/ReportCustomer');
+})->middleware(['auth'])->name('home.report-customer');
+
 Route::get('/welcome', function () {
         return Inertia::render('Welcome');
 });

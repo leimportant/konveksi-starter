@@ -4,7 +4,6 @@ import { Head } from '@inertiajs/vue3';
 import { onMounted, watch, computed } from 'vue';
 import { useInventoryStore } from '@/stores/useInventoryStore';
 import { storeToRefs } from 'pinia';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -123,35 +122,29 @@ const locationKeys = computed(() => {
 
       </div>
 
-      <!-- Pagination -->
-      <!-- Pagination -->
-            <div class="mt-4 flex justify-end space-x-2">
-                <Button
-                    @click="prevPage"
-                    :disabled="currentPage === 1"
-                    class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-                >
-                    Previous
-                </Button>
-                <template v-for="page in total" :key="page">
-                    <Button
-                        @click="goToPage(page)"
-                        :class="[
-                            'rounded border px-3 py-1 text-sm',
-                            page === currentPage ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100',
-                        ]"
-                    >
-                        {{ page }}
-                    </Button>
-                </template>
-                <Button
-                    @click="nextPage"
-                    :disabled="currentPage === total"
-                    class="rounded border px-3 py-1 text-sm border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-                >
-                    Next
-                </Button>
-            </div>
+      <!-- Pagination Controls -->
+      <div class="flex justify-end mt-4 space-x-2">
+        <button @click="prevPage" :disabled="currentPage === 1"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+          Previous
+        </button>
+
+        <template v-for="page in total" :key="page">
+          <button @click="goToPage(page)" :class="[
+            'px-3 py-1 rounded border text-xs',
+            page === currentPage
+              ? 'bg-blue-600 border-blue-600 text-white'
+              : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+          ]">
+            {{ page }}
+          </button>
+        </template>
+
+        <button @click="nextPage" :disabled="currentPage === total"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+          Next
+        </button>
+      </div>
     </div>
   </AppLayout>
 </template>

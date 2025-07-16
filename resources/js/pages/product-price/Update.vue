@@ -158,7 +158,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
-import { useForm, router } from '@inertiajs/vue3'
+import { useForm, router, Head } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -168,7 +168,6 @@ import axios from 'axios'
 import Vue3Select from 'vue3-select'
 import 'vue3-select/dist/vue3-select.css'
 import { useProductPriceStore } from '@/stores/useProductPriceStore'
-import { Head } from '@inertiajs/inertia-vue3' // IMPORT Head component
 import { Trash2 } from 'lucide-vue-next'
 
 const toast = useToast()
