@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
@@ -315,6 +316,7 @@ class ReportController extends Controller
         $page = $request->input('page', 1);
         $perPage = $request->input('per_page', 10);
         $searchKey = $request->input('searchKey');
+        
 
         $rawData = $this->getRawTransactionData($startDate, $endDate, $searchKey);
         $grouped = $this->groupTransactionsByCustomer($rawData);
@@ -332,13 +334,19 @@ class ReportController extends Controller
 
     private function getRawTransactionData(string $startDate, string $endDate, ?string $searchKey): Collection
     {
-        DB::enableQueryLog();
+
+        $user = Auth::user();
+        $filterCustomerId = "";
+        if ($user->employee_status == "customer") {
+            $filterCustomerId = Auth::id();
+        }
 
         $data = DB::table('pos_transaction as a')
             ->join('pos_transaction_detail as b', 'a.id', '=', 'b.transaction_id')
             ->leftJoin('mst_customer as c', 'a.customer_id', '=', 'c.id')
             ->leftJoin('mst_product as d', 'b.product_id', '=', 'd.id')
             ->select(
+                'a.id',
                 DB::raw("DATE_FORMAT(a.transaction_date, '%d/%m/%Y') as tanggal"),
                 'a.customer_id',
                 DB::raw("COALESCE(c.name, 'Umum') as customer"),
@@ -350,6 +358,9 @@ class ReportController extends Controller
                 'b.subtotal as total'
             )
             ->whereBetween(DB::raw('DATE(a.transaction_date)'), [$startDate, $endDate])
+            ->when($filterCustomerId, function ($query, $filterCustomerId) { // Corrected closure signature
+                $query->where('a.customer_id', $filterCustomerId);
+            })
             ->when($searchKey !== null && $searchKey !== '', function ($query) use ($searchKey) {
                 $query->where(function ($q) use ($searchKey) {
                     if (is_numeric($searchKey)) {
@@ -365,8 +376,6 @@ class ReportController extends Controller
             ->orderBy('c.name')
             ->orderBy('a.transaction_date')
             ->get();
-
-        Log::info(DB::getQueryLog());
 
         return $data;
 
@@ -400,6 +409,7 @@ class ReportController extends Controller
 
             foreach ($items as $row) {
                 $result[] = [
+                    'id'  => $row->id,
                     'tanggal' => $row->tanggal,
                     'customer' => $row->customer,
                     'product_id' => $row->product_id,
@@ -416,6 +426,7 @@ class ReportController extends Controller
             }
 
             $result[] = [
+                'id'  => null,
                 'tanggal' => null,
                 'customer' => null,
                 'product_id' => null,
@@ -430,6 +441,7 @@ class ReportController extends Controller
         }
 
         $result[] = [
+            'id'  => null,
             'tanggal' => null,
             'customer' => null,
             'product_id' => null,

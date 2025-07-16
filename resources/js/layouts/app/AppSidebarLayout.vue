@@ -55,4 +55,5 @@ withDefaults(defineProps<Props>(), {
   <div class="fixed bottom-0 left-0 right-0 z-30 block md:hidden bg-white border-t border-gray-200">
     <AppBottomNavigation v-if="showBottomNavigation" />
   </div>
+  <PWAInstallPrompt />
 </template>

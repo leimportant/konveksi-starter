@@ -15,6 +15,8 @@ import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import Order from './components/Order/Order.vue';
 import OrderItem from './components/Order/OrderItem.vue';
+import { usePWAStore } from './stores/usePWAStore';
+import { PWAInstallPrompt } from './components/ui/pwa-install-prompt';
 
 
 
@@ -58,6 +60,7 @@ createInertiaApp({
       app.component('QuillEditor', QuillEditor)
       app.component('Order', Order);
       app.component('OrderItem', OrderItem);
+      app.component('PWAInstallPrompt', PWAInstallPrompt);
 
         app.use(plugin)
             .use(ZiggyVue)
@@ -87,3 +90,11 @@ if ('serviceWorker' in navigator) {
 });
 
 initializeTheme();
+
+const pwaStore = usePWAStore();
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    pwaStore.setDeferredPrompt(e);
+    console.log('beforeinstallprompt event fired and stored in Pinia');
+});
