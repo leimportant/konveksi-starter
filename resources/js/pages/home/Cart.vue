@@ -90,8 +90,8 @@
                 <h2 class="text-xl font-bold">Keranjang Belanja</h2>
             </div>
 
-            <!-- Scrollable Items List -->
-            <div ref="orderList" class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+            <!-- Order Items (scrollable area) -->
+            <div ref="orderList" class="flex-1 overflow-y-auto px-4 py-3 space-y-4" style="min-height: 0">
                 <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">
                     Cart is empty
                 </div>
@@ -123,9 +123,8 @@
                 </div>
             </div>
 
-            <!-- Sticky Footer -->
-            <div
-                class="sticky bottom-0 bg-white dark:bg-gray-900 px-4 py-3 border-t border-gray-300 dark:border-gray-700">
+            <!-- Footer always visible -->
+            <div class="px-4 py-4 border-t border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900">
                 <p class="text-sm font-semibold">Total Diskon: {{ formatRupiah(cartTotalDiscount) }}</p>
                 <p class="text-sm font-semibold">Total: {{ formatRupiah(cartTotal) }}</p>
                 <button @click="proceedToCheckout"
@@ -134,6 +133,7 @@
                 </button>
             </div>
         </aside>
+
 
 
 
