@@ -91,13 +91,13 @@
             </div>
 
             <!-- Order Items (scrollable) -->
-            <div ref="orderList" class="overflow-y-auto px-4 py-3 space-y-4">
+            <div ref="orderList"  class="h-[300px] overflow-y-scroll px-4 py-3 space-y-4">
                 <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">
                     Cart is empty
                 </div>
 
                 <div v-for="item in cartItems" :key="item.product_id"
-                    class="flex items-center gap-3 border-b pb-3 border-gray-300 dark:border-gray-700">
+                    class="flex items-center gap-3 h-300 border-b pb-3 border-gray-300 dark:border-gray-700" style="height: 200; overflow: scroll;">
                     <img v-if="item.image_path" :src="getImageUrl(item.image_path)" alt="product"
                         class="h-12 w-12 rounded object-cover" />
                     <div class="min-w-0 flex-1">
