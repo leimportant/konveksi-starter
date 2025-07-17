@@ -621,6 +621,7 @@ class OrderController extends Controller
                 return [
                     'product_id' => $item->product_id,
                     'qty' => $item->qty,
+                    'quantity' => $item->qty,
                     'size_id' => $item->size_id,
                     'uom_id' => $item->uom_id,
                     'price' => $item->price,
