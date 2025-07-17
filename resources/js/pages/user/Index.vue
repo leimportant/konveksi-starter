@@ -3,7 +3,7 @@
 
   <AppLayout :breadcrumbs="breadcrumbs">
    <div class="px-4 py-4">
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex justify-between items-center gap-2 mb-2">
         <Button @click="showCreateModal = true"
           class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 flex items-center">
           <Plus class="h-4 w-4 mr-2" />
