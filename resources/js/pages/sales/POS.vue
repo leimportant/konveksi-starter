@@ -362,7 +362,7 @@
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <Input v-model="searchTransaction" class="flex-1 sm:w-64" placeholder="Cari transaksi..."
                             aria-label="Search" />
-                        <Button @click="searchTransaction = ''; searchprintTransaction()" class="px-4 py-2">
+                        <Button @click="searchprintTransaction()" class="px-4 py-2">
                             Cari
                         </Button>
                     </div>
@@ -701,7 +701,7 @@ async function selectTransactionForPrint(transaction: Transaction) {
         selectedTransaction.value = transaction;
 
         // Set preview data
-        lastOrderDate.value = transaction.created_at;
+        lastOrderDate.value = formatDate(transaction.created_at);
         transactionNumber.value = transaction.id;
         selectedCustomerName.value = transaction.customer;
         lastOrderItems.value = transaction.order_items.map(item => ({

@@ -227,7 +227,7 @@ const handleDelete = async (id: number) => {
             <option value="N">Inactive</option>
           </select>
           <div class="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
+            <Button type="button" variant="outline" @click="showCreateModal = false"  class="h-10">Cancel</Button>
             <Button type="submit" :disabled="loading">Create</Button>
           </div>
         </form>
@@ -248,7 +248,7 @@ const handleDelete = async (id: number) => {
             <option value="N">Inactive</option>
           </select>
           <div class="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" @click="showEditModal = false">Cancel</Button>
+            <Button type="button" variant="outline" @click="showEditModal = false" class="h-10">Cancel</Button>
             <Button type="submit" :disabled="loading">Update</Button>
           </div>
         </form>

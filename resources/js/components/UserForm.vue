@@ -102,7 +102,7 @@ const closeModal = () => {
     </div>
 
     <div class="flex justify-end gap-2 pt-2">
-      <Button type="button" variant="outline" @click="closeModal">Cancel</Button>
+      <Button type="button" variant="outline" @click="closeModal"  class="h-10">Cancel</Button>
       <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Save</Button>
     </div>
   </form>

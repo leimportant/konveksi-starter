@@ -241,7 +241,7 @@ const handleDelete = async (product_id: number, location_id: number, sloc_id: st
       </div>
 
       <div class="flex justify-end gap-2 border-t px-5 py-3">
-        <Button variant="ghost" @click="isDialogEditQty = false">Cancel</Button>
+        <Button variant="ghost" @click="isDialogEditQty = false" class="h-10">Cancel</Button>
         <Button @click="handleSaveEditQty" class="bg-blue-600 text-white hover:bg-blue-700">
           Save
         </Button>

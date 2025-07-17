@@ -198,7 +198,7 @@ const handleDelete = async (id: number) => {
               <Input v-model="form.name" placeholder="Category Name" required aria-label="Category Name" />
             </div>
             <div class="flex justify-end gap-2">
-              <Button type="button" variant="outline" @click="closeCreateModal">Cancel</Button>
+              <Button type="button" variant="outline" @click="closeCreateModal"  class="h-10">Cancel</Button>
               <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
             </div>
           </form>
@@ -214,7 +214,7 @@ const handleDelete = async (id: number) => {
               <Input v-model="form.name" placeholder="Category Name" required aria-label="Category Name" />
             </div>
             <div class="flex justify-end gap-2">
-              <Button type="button" variant="outline" @click="closeEditModal">Cancel</Button>
+              <Button type="button" variant="outline" @click="closeEditModal"  class="h-10">Cancel</Button>
               <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
             </div>
           </form>

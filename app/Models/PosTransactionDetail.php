@@ -32,8 +32,16 @@ class PosTransactionDetail extends Model
      */
     public function product()
     {
-        return $this->belongsTo(PosProduct::class, 'product_id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
+
+    public function getProductNameAttribute()
+    {
+        return $this->product->product_name ?? null;
+    }
+
+    protected $appends = ['product_name'];
+
 
     /**
      * Calculate subtotal before saving

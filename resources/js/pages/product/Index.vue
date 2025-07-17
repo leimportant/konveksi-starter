@@ -335,7 +335,7 @@ const getUomName = (uomId: string) => {
               <QuillEditor  v-model:content="form.descriptions" contentType="html" class="w-full border-input px-3 py-2 border min-h-[50px]"/>
             </div>
             <div class="flex justify-end gap-2 mt-4">
-              <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
+              <Button type="button" variant="outline" @click="showCreateModal = false"  class="h-10">Cancel</Button>
               <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Create</Button>
             </div>
           </form>
@@ -376,7 +376,7 @@ const getUomName = (uomId: string) => {
             </div>
             </div>
             <div class="flex justify-end gap-2 mt-4">
-              <Button type="button" variant="outline" @click="showEditModal = false">Cancel</Button>
+              <Button type="button" variant="outline" @click="showEditModal = false" class="h-10">Cancel</Button>
               <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Update</Button>
             </div>
           </form>

@@ -232,7 +232,7 @@ const isAllChecked = computed(() => {
           </div>
 
           <div class="flex justify-end gap-2">
-            <Button type="button" variant="outline" @click="showAssignMenuModal = false">Cancel</Button>
+            <Button type="button" variant="outline" @click="showAssignMenuModal = false" class="h-10">Cancel</Button>
             <Button type="submit" @click="handleAssignMenu">Assign</Button>
           </div>
         </div>
@@ -247,7 +247,7 @@ const isAllChecked = computed(() => {
               <Input v-model="form.name" placeholder="Role Name" required />
             </div>
             <div class="flex justify-end gap-2">
-              <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
+              <Button type="button" variant="outline" @click="showCreateModal = false"  class="h-10">Cancel</Button>
               <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Create</Button>
             </div>
           </form>
