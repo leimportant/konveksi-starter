@@ -37,10 +37,10 @@ class PosTransactionDetail extends Model
 
     public function getProductNameAttribute()
     {
-        return $this->product->product_name ?? null;
+        return $this->product->name ?? null;
     }
 
-    protected $appends = ['product_name'];
+    protected $appends = ['name'];
 
 
     /**
