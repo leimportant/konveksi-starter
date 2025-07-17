@@ -39,6 +39,7 @@ class PosOrderController extends Controller
             if ($transaction->order_items) {
                 $transaction->order_items->transform(function ($item) {
                     $item->product_name = $item->product->name ?? null;
+                    $item->product_id = $item->product->id ?? null;
                     return $item;
                 });
             }
