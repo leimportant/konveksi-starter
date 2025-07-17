@@ -82,55 +82,54 @@
 
         <!-- Cart Sidebar -->
         <aside :class="[
-            'fixed inset-y-0 right-0 z-40 w-80 max-w-full transform bg-gray-100 shadow-xl transition-transform duration-300 dark:bg-gray-800 dark:text-blue-400',
+            'fixed inset-y-0 right-0 z-40 w-80 max-w-full transform shadow-xl transition-transform duration-300',
             showCart ? 'translate-x-0' : 'translate-x-full',
-        ]" class="flex flex-col">
-            <!-- Judul -->
-            <div class="px-4 pt-4 pb-2">
+        ]" class="flex flex-col h-screen bg-gray-100 dark:bg-gray-800 dark:text-blue-400">
+            <!-- Header -->
+            <div class="px-4 py-4 border-b border-gray-300 dark:border-gray-600">
                 <h2 class="text-xl font-bold">Keranjang Belanja</h2>
             </div>
 
-            <!-- CART ITEMS (scrollable) -->
-            <div ref="orderList" class="flex-1 overflow-y-auto space-y-4 px-4 pb-4">
+            <!-- Scrollable Items List -->
+            <div ref="orderList" class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
                 <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">
                     Cart is empty
                 </div>
 
-                <!-- INI YANG DITANYAKAN -->
-                <div v-for="item in cartItems" :key="item.product_id" class="flex items-center gap-3 border-b pb-2">
-                    <!-- Content item -->
+                <div v-for="item in cartItems" :key="item.product_id"
+                    class="flex items-center gap-3 border-b pb-3 border-gray-300 dark:border-gray-700">
                     <img v-if="item.image_path" :src="getImageUrl(item.image_path)" alt="product"
                         class="h-12 w-12 rounded object-cover" />
                     <div class="min-w-0 flex-1">
-                        <p class="truncate text-sm font-semibold text-gray-800">{{ item.product_name }}</p>
-                        <p class="text-xs text-gray-400">Stock: {{ item.qty_available }}</p>
-                        <p class="text-xs text-gray-800">
+                        <p class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">{{ item.product_name
+                            }}</p>
+                        <p class="text-xs text-gray-500">Stock: {{ item.qty_available }}</p>
+                        <p class="text-xs text-gray-800 dark:text-gray-200">
                             {{ formatRupiah((item.price_sell ?? 0) > 0 ? (item.price_sell ?? 0) : (item.price ?? 0)) }}
                         </p>
-                        <p class="text-xs text-gray-800">Size {{ item.size_id }}</p>
-                        <p class="text-xs text-gray-800">Diskon {{ formatRupiah(item.discount ?? 0) }}</p>
+                        <p class="text-xs text-gray-800 dark:text-gray-200">Size: {{ item.size_id }}</p>
+                        <p class="text-xs text-gray-800 dark:text-gray-200">Diskon: {{ formatRupiah(item.discount ?? 0)
+                            }}</p>
                     </div>
                     <div class="flex items-center space-x-1">
                         <button @click="decreaseQty(item)" :disabled="item.quantity <= 1"
-                            class="rounded bg-gray-500 px-2 py-1 disabled:opacity-50">
-                            -
-                        </button>
-                        <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-500">{{ item.quantity
+                            class="rounded bg-gray-500 px-2 py-1 text-white disabled:opacity-50">-</button>
+                        <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-100">{{ item.quantity
                             }}</span>
-                        <button @click="increaseQty(item)" class="rounded bg-gray-500 px-2 py-1">+</button>
+                        <button @click="increaseQty(item)" class="rounded bg-gray-500 px-2 py-1 text-white">+</button>
                     </div>
-                    <button @click="removeFromCart(item.cartItemId)" class="text-lg text-red-500 hover:text-red-700">
-                        &times;
-                    </button>
+                    <button @click="removeFromCart(item.cartItemId)"
+                        class="text-lg text-red-500 hover:text-red-700">&times;</button>
                 </div>
             </div>
 
-            <!-- FOOTER -->
-            <div class="sticky bottom-0 bg-gray-100 dark:bg-gray-800 p-4 border-t border-gray-300 dark:border-gray-700">
+            <!-- Sticky Footer -->
+            <div
+                class="sticky bottom-0 bg-white dark:bg-gray-900 px-4 py-3 border-t border-gray-300 dark:border-gray-700">
                 <p class="text-sm font-semibold">Total Diskon: {{ formatRupiah(cartTotalDiscount) }}</p>
                 <p class="text-sm font-semibold">Total: {{ formatRupiah(cartTotal) }}</p>
                 <button @click="proceedToCheckout"
-                    class="mt-2 w-full rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+                    class="mt-2 w-full rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     Lanjut Checkout
                 </button>
             </div>
