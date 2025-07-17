@@ -1148,6 +1148,8 @@ async function confirmPayment() {
 function clearCart() {
     selectedProducts.value = [];
     selectedPaymentMethod.value = null;
+    selectedCustomerName.value = ""
+    transactionNumber.value = ""
     selectedForDiscount.value = []; // Clear discount selections
 }
 

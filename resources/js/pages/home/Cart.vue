@@ -1,4 +1,5 @@
 <template>
+
     <Head title="Belanja" />
     <AppLayout>
         <!-- Product Catalog -->
@@ -8,44 +9,30 @@
                 <section class="w-full space-y-4 bg-white p-4">
                     <div class="mb-4 flex flex-col gap-2 px-2 sm:flex-row sm:items-center sm:justify-between">
                         <h2 class="text-xl font-bold text-gray-800 dark:text-gray-500">Katalog Produk</h2>
-                        <input
-                            type="text"
-                            v-model="searchText"
-                            @input="onSearchInput"
-                            placeholder="Cari produk..."
-                            class="w-full rounded border px-3 py-1 text-sm sm:ml-auto sm:w-52"
-                        />
+                        <input type="text" v-model="searchText" @input="onSearchInput" placeholder="Cari produk..."
+                            class="w-full rounded border px-3 py-1 text-sm sm:ml-auto sm:w-52" />
                     </div>
 
                     <!-- Product Grid -->
                     <div class="grid grid-cols-2 gap-1 sm:grid-cols-5 xl:grid-cols-4">
-                        <div
-                            v-for="product in products"
-                            :key="product.product_id"
-                            @click="viewProductDetail(product)"
+                        <div v-for="product in products" :key="product.product_id" @click="viewProductDetail(product)"
                             class="cursor-pointer rounded-xl border border-gray-200 bg-green-50 p-3 shadow-sm transition hover:bg-green-100 hover:shadow-md"
-                            :title="`${product.product_name} - ${formatRupiah(product.price)}`"
-                        >
+                            :title="`${product.product_name} - ${formatRupiah(product.price)}`">
                             <div class="mb-2 h-24 w-full">
                                 <!-- <img v-if="product.image_path" :src="getImageUrl(product.image_path)" alt="product"
                   class="w-full h-full object-cover rounded-lg cursor-pointer" @click.stop="openFullscreenImage(getImageUrl(product.image_path))" /> -->
-                                <img
-                                    v-if="product.image_path"
-                                    :src="getImageUrl(product.image_path)"
-                                    alt="product"
-                                    class="h-full w-full cursor-pointer rounded-lg object-cover"
-                                />
-                                <div v-else class="flex h-full w-full items-center justify-center rounded-lg bg-gray-200 text-xs text-gray-400">
+                                <img v-if="product.image_path" :src="getImageUrl(product.image_path)" alt="product"
+                                    class="h-full w-full cursor-pointer rounded-lg object-cover" />
+                                <div v-else
+                                    class="flex h-full w-full items-center justify-center rounded-lg bg-gray-200 text-xs text-gray-400">
                                     No Image
                                 </div>
                             </div>
                             <p class="justify-between truncate text-sm font-semibold text-gray-900">
                                 {{ product.product_name }}
                                 <template v-if="product.discount && product.price">
-                                    <span
-                                        v-if="product.discount > 0"
-                                        class="ml-1 rounded bg-orange-500 px-2 py-0.5 text-[14px] font-bold text-white md:text-xs"
-                                    >
+                                    <span v-if="product.discount > 0"
+                                        class="ml-1 rounded bg-orange-500 px-2 py-0.5 text-[14px] font-bold text-white md:text-xs">
                                         - {{ Math.round((product.discount / product.price) * 100) }}%
                                     </span>
                                 </template>
@@ -56,7 +43,8 @@
                                     <p class="text-xs text-gray-400 line-through">{{ formatRupiah(product.price) }}</p>
                                     <p>
                                         {{ formatRupiah(product.price_sell || product.price) }}
-                                        <br /><span class="text-xs text-green-500">(Diskon {{ formatRupiah(product.discount) }})</span>
+                                        <br /><span class="text-xs text-green-500">(Diskon {{
+                                            formatRupiah(product.discount) }})</span>
                                     </p>
                                 </template>
                                 <p v-else class="font-semibold text-gray-700">{{ formatRupiah(product.price) }}</p>
@@ -71,10 +59,8 @@
             <div class="absolute right-8 top-5 z-50 hidden md:block">
                 <button @click="toggleCart" class="relative rounded-full bg-white p-2 shadow hover:shadow-md">
                     🛒
-                    <span
-                        v-if="cartQty > 0"
-                        class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
-                    >
+                    <span v-if="cartQty > 0"
+                        class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                         {{ cartQty }}
                     </span>
                 </button>
@@ -83,10 +69,8 @@
             <div class="fixed right-8 top-5 z-50 block md:hidden">
                 <button @click="toggleCart" class="relative rounded-full bg-white p-2 shadow hover:shadow-md">
                     🛒
-                    <span
-                        v-if="cartQty > 0"
-                        class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
-                    >
+                    <span v-if="cartQty > 0"
+                        class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                         {{ cartQty }}
                     </span>
                 </button>
@@ -97,66 +81,60 @@
         <div v-if="showCart" class="fixed inset-0 z-30 bg-black bg-opacity-30 md:hidden" @click="showCart = false" />
 
         <!-- Cart Sidebar -->
-        <aside
-            :class="[
-                'fixed inset-y-0 right-0 z-40 w-80 max-w-full transform bg-gray-100 shadow-xl transition-transform duration-300 dark:bg-gray-800 dark:text-blue-400',
-                showCart ? 'translate-x-0' : 'translate-x-full',
-            ]"
-        >
-            <h2 class="mb-4 text-xl font-bold">Keranjang Belanja</h2>
+        <aside :class="[
+            'fixed inset-y-0 right-0 z-40 w-80 max-w-full transform bg-gray-100 shadow-xl transition-transform duration-300 dark:bg-gray-800 dark:text-blue-400',
+            showCart ? 'translate-x-0' : 'translate-x-full',
+        ]" class="flex flex-col">
+            <h2 class="mb-4 px-4 pt-4 text-xl font-bold">Keranjang Belanja</h2>
 
-            <div ref="orderList" class="flex-1 space-y-4 overflow-y-auto pr-1">
+            <!-- Daftar item (scrollable area) -->
+            <div ref="orderList" class="flex-1 space-y-4 overflow-y-auto px-4 pr-1">
                 <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">Cart is empty</div>
 
                 <div v-for="item in cartItems" :key="item.product_id" class="flex items-center gap-3 border-b pb-2">
-                    <img v-if="item.image_path" :src="getImageUrl(item.image_path)" alt="product" class="h-12 w-12 rounded object-cover" />
+                    <img v-if="item.image_path" :src="getImageUrl(item.image_path)" alt="product"
+                        class="h-12 w-12 rounded object-cover" />
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-sm font-semibold text-gray-800">{{ item.product_name }}</p>
-
                         <p class="text-xs text-gray-400">Stock: {{ item.qty_available }}</p>
-                        <p class="text-xs text-gray-800">
-                            {{ formatRupiah((item.price_sell ?? 0) > 0 ? (item.price_sell ?? 0) : (item.price ?? 0)) }}
-                        </p>
-                        <p class="text-xs text-gray-800">
-                            Size {{ item.size_id }}
-                            <!-- - {{ item.variant }} -->
-                        </p>
-                        <p class="text-xs text-gray-800">
-                            Diskon
-                            {{ formatRupiah(item.discount ?? 0) }}
-                        </p>
+                        <p class="text-xs text-gray-800">{{ formatRupiah((item.price_sell ?? 0) > 0 ? (item.price_sell
+                            ?? 0) :
+                            (item.price ?? 0)) }}</p>
+                        <p class="text-xs text-gray-800">Size {{ item.size_id }}</p>
+                        <p class="text-xs text-gray-800">Diskon {{ formatRupiah(item.discount ?? 0) }}</p>
                     </div>
                     <div class="flex items-center space-x-1">
-                        <button @click="decreaseQty(item)" :disabled="item.quantity <= 1" class="rounded bg-gray-500 px-2 py-1 disabled:opacity-50">
-                            -
-                        </button>
-                        <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-500">{{ item.quantity }}</span>
+                        <button @click="decreaseQty(item)" :disabled="item.quantity <= 1"
+                            class="rounded bg-gray-500 px-2 py-1 disabled:opacity-50">-</button>
+                        <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-500">{{ item.quantity
+                            }}</span>
                         <button @click="increaseQty(item)" class="rounded bg-gray-500 px-2 py-1">+</button>
                     </div>
-                    <button @click="removeFromCart(item.cartItemId)" class="text-lg text-red-500 hover:text-red-700">&times;</button>
+                    <button @click="removeFromCart(item.cartItemId)"
+                        class="text-lg text-red-500 hover:text-red-700">&times;</button>
                 </div>
             </div>
 
-            <div class="mt-2 space-y-2 pt-4">
+            <!-- Total dan tombol checkout (sticky bottom) -->
+            <div class="sticky bottom-0 bg-gray-100 dark:bg-gray-800 p-4 border-t">
                 <p class="text-sm font-semibold">Total Diskon: {{ formatRupiah(cartTotalDiscount) }}</p>
                 <p class="text-sm font-semibold">Total: {{ formatRupiah(cartTotal) }}</p>
-                <button
-                    @click="proceedToCheckout"
-                    class="w-full rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                >
+                <button @click="proceedToCheckout"
+                    class="mt-2 w-full rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
                     Lanjut Checkout
                 </button>
             </div>
         </aside>
 
+
         <!-- Product Detail Modal -->
-        <div
-            v-if="showDetailModal"
+        <div v-if="showDetailModal"
             class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50 px-4"
-            @click.self="closeDetailModal"
-        >
-            <div class="relative flex max-h-[90vh] w-full max-w-sm flex-col rounded-xl bg-white sm:max-w-md sm:p-0 md:max-w-lg lg:max-w-xl">
-                <button @click="closeDetailModal" class="absolute right-3 top-2 text-2xl font-bold text-gray-600 hover:text-gray-900 sm:text-xl">
+            @click.self="closeDetailModal">
+            <div
+                class="relative flex max-h-[90vh] w-full max-w-sm flex-col rounded-xl bg-white sm:max-w-md sm:p-0 md:max-w-lg lg:max-w-xl">
+                <button @click="closeDetailModal"
+                    class="absolute right-3 top-2 text-2xl font-bold text-gray-600 hover:text-gray-900 sm:text-xl">
                     &times;
                 </button>
                 <!-- Scrollable content  -->
@@ -164,49 +142,35 @@
                     <div v-if="selectedProduct">
                         <!-- Gallery -->
                         <div v-if="selectedProduct?.gallery_images && selectedProduct.gallery_images.length > 0">
-                            <Swiper
-                                :slides-per-view="1"
-                                :space-between="10"
-                                :modules="modules"
-                                :pagination="{ clickable: true }"
-                                :navigation="true"
-                                class="mb-4 h-40 w-full rounded-lg sm:h-48 md:h-60"
-                            >
+                            <Swiper :slides-per-view="1" :space-between="10" :modules="modules"
+                                :pagination="{ clickable: true }" :navigation="true"
+                                class="mb-4 h-40 w-full rounded-lg sm:h-48 md:h-60">
                                 <SwiperSlide v-for="(image, index) in selectedProduct.gallery_images" :key="index">
                                     <template v-if="isImage(image.extension)">
-                                        <img
-                                            :src="getImageUrl(image.path)"
+                                        <img :src="getImageUrl(image.path)"
                                             :alt="image.filename || 'product gallery image'"
                                             class="h-full w-full cursor-pointer rounded-lg object-cover transition hover:scale-105"
-                                            @click="openFullscreenImage(getImageUrl(image.path))"
-                                        />
+                                            @click="openFullscreenImage(getImageUrl(image.path))" />
                                     </template>
                                     <template v-else-if="isVideo(image.extension)">
-                                        <video
-                                            :src="getImageUrl(image.path)"
-                                            controls
-                                            class="h-full w-full rounded-lg object-cover"
-                                        ></video>
+                                        <video :src="getImageUrl(image.path)" controls
+                                            class="h-full w-full rounded-lg object-cover"></video>
                                     </template>
                                 </SwiperSlide>
                             </Swiper>
                         </div>
 
                         <!-- Single Image -->
-                        <div v-else-if="selectedProduct?.image_path" class="mb-4 h-40 w-full rounded-lg sm:h-48 md:h-60">
-                            <img
-                                :src="getImageUrl(selectedProduct.image_path)"
-                                alt="product"
+                        <div v-else-if="selectedProduct?.image_path"
+                            class="mb-4 h-40 w-full rounded-lg sm:h-48 md:h-60">
+                            <img :src="getImageUrl(selectedProduct.image_path)" alt="product"
                                 class="h-full w-full cursor-pointer rounded-lg object-cover"
-                                @click="openFullscreenImage(getImageUrl(selectedProduct.image_path))"
-                            />
+                                @click="openFullscreenImage(getImageUrl(selectedProduct.image_path))" />
                         </div>
 
                         <!-- No Image -->
-                        <div
-                            v-else
-                            class="mb-4 flex h-40 w-full items-center justify-center rounded-lg bg-gray-200 text-xs text-gray-400 sm:h-48 md:h-60"
-                        >
+                        <div v-else
+                            class="mb-4 flex h-40 w-full items-center justify-center rounded-lg bg-gray-200 text-xs text-gray-400 sm:h-48 md:h-60">
                             No Image
                         </div>
 
@@ -216,7 +180,7 @@
                         </h3>
 
                         <!-- Stock & Info -->
-                        
+
                         <!-- Price -->
                         <!-- <p class="mb-3 font-semibold text-gray-500 text-gray-800 sm:text-lg">
                             <span v-if="selectedProduct?.discount && selectedProduct.discount > 0" class="mr-2 text-gray-400 line-through">
@@ -238,22 +202,17 @@
                         <div v-if="selectedProduct?.variant !== 'all'" class="mb-4">
                             <h4 class="mb-1 text-sm font-semibold text-gray-700">Variant</h4>
                             <div class="flex flex-wrap gap-2">
-                                <button
-                                    v-for="variant in uniqueVariants"
-                                    :key="variant"
-                                    @click="
-                                        () => {
-                                            selectedVariant = variant;
-                                            selectedSize = null;
-                                        }
-                                    "
-                                    :class="[
+                                <button v-for="variant in uniqueVariants" :key="variant" @click="
+                                    () => {
+                                        selectedVariant = variant;
+                                        selectedSize = null;
+                                    }
+                                " :class="[
                                         'rounded-full border px-3 py-1 text-sm font-semibold transition',
                                         selectedVariant === variant
                                             ? 'border-indigo-600 bg-indigo-600 text-white'
                                             : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
-                                    ]"
-                                >
+                                    ]">
                                     {{ variant }}
                                 </button>
                             </div>
@@ -263,17 +222,13 @@
                         <div v-if="selectedVariant || selectedProduct?.variant === 'all'" class="mb-4">
                             <h4 class="mb-1 text-sm font-semibold text-gray-700">Ukuran</h4>
                             <div class="flex flex-wrap gap-2">
-                                <button
-                                    v-for="size in sizesForSelectedVariant"
-                                    :key="size"
-                                    @click="selectedSize = size"
+                                <button v-for="size in sizesForSelectedVariant" :key="size" @click="selectedSize = size"
                                     :class="[
                                         'rounded-full border px-3 py-1 text-sm font-semibold transition',
                                         selectedSize === size
                                             ? 'border-green-600 bg-green-600 text-white'
                                             : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
-                                    ]"
-                                >
+                                    ]">
                                     {{ size }}
                                 </button>
                             </div>
@@ -284,18 +239,21 @@
                                 Stok: <strong>{{ getSelectedItemDetail.qty_available }}</strong>
                             </p>
                             <p>
-                               
+
                                 <span v-if="!getSelectedItemDetail.price || getSelectedItemDetail.price <= 0">
                                     Harga Belum di Setting
                                 </span>
                                 <template v-else>
-                                    <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="mr-2 text-gray-400 line-through">
-                                       Harga {{ formatRupiah(getSelectedItemDetail.price) }}
+                                    <span v-if="(getSelectedItemDetail.discount ?? 0) > 0"
+                                        class="mr-2 text-gray-400 line-through">
+                                        Harga {{ formatRupiah(getSelectedItemDetail.price) }}
                                     </span> <br />
                                     <span class="font-bold">
-                                     Harga Diskon   {{ formatRupiah(getSelectedItemDetail.price_sell || getSelectedItemDetail.price) }}
+                                        Harga Diskon {{ formatRupiah(getSelectedItemDetail.price_sell ||
+                                        getSelectedItemDetail.price) }}
                                     </span><br />
-                                    <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="text-green-600 text-xs">
+                                    <span v-if="(getSelectedItemDetail.discount ?? 0) > 0"
+                                        class="text-green-600 text-xs">
                                         (Diskon: {{ formatRupiah(getSelectedItemDetail.discount ?? 0) }})
                                     </span>
                                 </template>
@@ -306,27 +264,18 @@
 
                         <!-- Quantity Control -->
                         <div class="mb-4 flex items-center space-x-3">
-                            <button
-                                @click="decreaseDetailQty"
-                                :disabled="detailQty <= 1"
-                                class="rounded bg-gray-200 px-3 py-1 text-sm text-gray-800 disabled:opacity-50"
-                            >
+                            <button @click="decreaseDetailQty" :disabled="detailQty <= 1"
+                                class="rounded bg-gray-200 px-3 py-1 text-sm text-gray-800 disabled:opacity-50">
                                 -
                             </button>
 
-                            <input
-                                type="number"
-                                min="1"
-                                :max="getSelectedItemDetail?.qty_available ?? 1"
+                            <input type="number" min="1" :max="getSelectedItemDetail?.qty_available ?? 1"
                                 v-model.number="detailQty"
-                                class="w-12 rounded border py-1 text-center text-sm text-gray-800 sm:w-16"
-                            />
+                                class="w-12 rounded border py-1 text-center text-sm text-gray-800 sm:w-16" />
 
-                            <button
-                                @click="increaseDetailQty"
+                            <button @click="increaseDetailQty"
                                 :disabled="detailQty >= (getSelectedItemDetail?.qty_available ?? 1)"
-                                class="rounded px-3 py-1 text-sm disabled:opacity-50"
-                            >
+                                class="rounded px-3 py-1 text-sm disabled:opacity-50">
                                 +
                             </button>
                         </div>
@@ -334,11 +283,9 @@
 
                     <!-- Add to Cart -->
                     <div class="border-t p-4">
-                        <button
-                            @click="addToCart"
+                        <button @click="addToCart"
                             :disabled="(selectedProduct?.qty_available ?? 0) === 0 || (getSelectedItemDetail?.price_sell ?? 0) === 0"
-                            class="w-full rounded bg-blue-600 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 sm:py-3"
-                        >
+                            class="w-full rounded bg-blue-600 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 sm:py-3">
                             Tambah Keranjang
                         </button>
                     </div>
@@ -348,17 +295,14 @@
     </AppLayout>
 
     <!-- Fullscreen Image Modal -->
-    <div
-        v-if="showFullscreenImageModal"
+    <div v-if="showFullscreenImageModal"
         class="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-75"
-        @click.self="closeFullscreenImage"
-    >
+        @click.self="closeFullscreenImage">
         <div class="relative">
-            <img :src="fullscreenImageUrl" alt="Fullscreen Product Image" class="max-h-screen max-w-full object-contain" />
-            <button
-                @click="closeFullscreenImage"
-                class="absolute right-4 top-4 flex h-12 w-12 items-center justify-center rounded-full bg-black bg-opacity-50 text-4xl font-bold text-white"
-            >
+            <img :src="fullscreenImageUrl" alt="Fullscreen Product Image"
+                class="max-h-screen max-w-full object-contain" />
+            <button @click="closeFullscreenImage"
+                class="absolute right-4 top-4 flex h-12 w-12 items-center justify-center rounded-full bg-black bg-opacity-50 text-4xl font-bold text-white">
                 &times;
             </button>
         </div>
@@ -437,10 +381,10 @@ const showCart = ref(false);
 const toggleCart = () => (showCart.value = !showCart.value);
 
 const getImageUrl = (path: string) => {
-  if (!path) return '';
-  if (path.startsWith('storage/')) return '/' + path;
-  if (path.startsWith('/storage/')) return path;
-  return '/storage/' + path;
+    if (!path) return '';
+    if (path.startsWith('storage/')) return '/' + path;
+    if (path.startsWith('/storage/')) return path;
+    return '/storage/' + path;
 };
 
 function formatRupiah(value: number | string): string {
