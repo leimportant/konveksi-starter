@@ -111,7 +111,7 @@
 
       <!-- Aksi -->
       <div class="flex justify-end gap-2">
-        <Button @click="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
+        <Button @click="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</Button>
         <Button variant="outline" @click="resetForm">Batal</Button>
       </div>
     </div>

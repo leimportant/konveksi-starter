@@ -3,7 +3,7 @@
   <AppLayout>
     <div class="px-4 py-4">
       <div class="flex justify-between items-center gap-2 mb-2">
-        <Button @click="showCreateModal = true" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+        <Button @click="showCreateModal = true" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4" />
           Tambah data
         </Button>
@@ -101,7 +101,7 @@
 
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
-              <Button @click="handleCreate" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Save</Button>
+              <Button @click="handleCreate" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Save</Button>
             </div>
 
             <!-- <Button variant="outline" @click="showCreateModal = false">Cancel</Button>
@@ -130,7 +130,7 @@
           <DialogFooter>
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
-              <Button @click="handleUpdate" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Update</Button>
+              <Button @click="handleUpdate" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Update</Button>
             </div>
 
             <!-- <Button variant="outline" @click="showEditModal = false">Cancel</Button>

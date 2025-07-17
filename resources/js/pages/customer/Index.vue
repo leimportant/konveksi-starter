@@ -141,7 +141,7 @@ const handleDelete = async (id: number) => {
   <AppLayout :breadcrumbs="breadcrumbs">
      <div class="px-4 py-4">
     <div class="flex justify-between items-center mb-4">
-        <Button @click="openCreateModal" :disabled="loading" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+        <Button @click="openCreateModal" :disabled="loading" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4 mr-1" /> Tambah
         </Button>
         <Input

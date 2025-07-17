@@ -86,7 +86,7 @@ onMounted(() => {
                     <div class="mb-4 flex space-x-4">
                         <Input type="date" v-model="startDate" />
                         <Input type="date" v-model="endDate" />
-                        <Button @click="fetchReport(1, perPage)" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Tampilkan</Button>
+                        <Button @click="fetchReport(1, perPage)" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Tampilkan</Button>
                     </div>
 
                     <div v-if="reportStore.loading">Loading...</div>

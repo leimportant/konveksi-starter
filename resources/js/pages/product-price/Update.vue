@@ -137,7 +137,7 @@
       </TableBody>
     </Table>
 
-        <Button @click="addDetailRow" variant="outline" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Add</Button>
+        <Button @click="addDetailRow" variant="outline" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Add</Button>
       </div>
 
       <!-- Submit -->
