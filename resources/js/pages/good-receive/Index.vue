@@ -81,7 +81,7 @@ const handleDelete = async (id: number) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
       <!-- Header & Add Button -->
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex justify-between items-center gap-2 mb-2">
         <Button  @click="$inertia.visit('/good-receive/create')" aria-label="Tambah Kategori Baru" :disabled="loading" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4" />
           Add
