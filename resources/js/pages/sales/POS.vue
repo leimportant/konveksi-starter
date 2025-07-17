@@ -462,13 +462,13 @@
 
                     <!-- Items -->
                     <div v-for="(item, index) in lastOrderItems" :key="item.product_id" class="mb-1">
-                        <p>{{ index + 1 }}. {{ item.product_name }} &nbsp; - {{ item.size_id }}</p>
+                        <p class="font-bold">{{ index + 1 }}. {{ item.product_name }} &nbsp; - {{ item.size_id }}</p>
 
-                        <div class="flex justify-between">
+                        <div class="flex justify-between p-1">
                             <span>{{ item.quantity }} x {{ formatRupiah(item.price) }}</span>
                             <span>&nbsp;&nbsp;{{ formatRupiah(item.price * item.quantity) }}</span>
                         </div>
-                        <div v-if="item.discount">
+                        <div v-if="Number(item.discount) > 0">
                             <div class="flex justify-between">
                                 <span class="text-green-600">- {{ formatRupiah(item.discount) }}</span>
                                 <span>{{ formatRupiah(item.price * item.quantity - item.discount) }}</span>
@@ -894,11 +894,9 @@ const lastOrderSubTotal = computed(() => lastOrderItems.value.reduce((sum, item)
 
 const showPaymentDialog = ref(false);
 
-// Cara langsung ambil props
-const { user } = defineProps<{ user: User }>();
 
 // Buat computed property dari nama user
-const cashierName = computed(() => user?.name ?? 'Kasir');
+const cashierName = computed(() => userLogin.name ?? 'Kasir');
 
 const getImageUrl = (path: string) => {
     if (!path) return '';
@@ -1235,7 +1233,7 @@ async function placeOrder() {
 
         lastOrderTotal.value = response.data.total_amount;
         lastOrderPaymentMethodName.value = paymentMethods.value.find((pm) => pm.id === selectedPaymentMethod.value)?.name || '';
-        lastOrderDate.value = new Date(response.data.created_at).toLocaleString();
+        lastOrderDate.value = formatDate(response.data.created_at);
         transactionNumber.value = response.data.transaction_number || '';
         selectedCustomerId.value = null;
         showPrintPreview.value = true;
@@ -1625,13 +1623,27 @@ function autoPrint() {
 function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
+
 const formatDate = (date: string | null | undefined) => {
     if (!date) return '-';
-    return new Date(date).toLocaleDateString('id-ID', {
+
+    const dt = new Date(date);
+
+    const formatter = new Intl.DateTimeFormat('id-ID', {
         day: '2-digit',
-        month: 'long',
+        month: '2-digit',
         year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Jakarta',
     });
+
+    const parts = formatter.formatToParts(dt);
+
+    const get = (type: string) => parts.find(p => p.type === type)?.value || '';
+
+    return `${get('day')}/${get('month')}/${get('year')} ${get('hour')}:${get('minute')} WIB`;
 };
 
 

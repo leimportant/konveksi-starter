@@ -333,7 +333,7 @@ const goBackToCart = () => {
                     <h2 class="text-l mb-6 text-gray-800">Rincian Pesanan</h2>
                     <template v-if="hasGrosirPromo">
                         <div class="mb-4 mt-2 text-sm font-medium text-green-600">
-                            🎉 Hore, selamat Anda mendapatkan promo harga grosir dengan pembelian lebih dari 1!
+                            🎉 Hore, selamat Anda mendapatkan promo harga grosir dengan pembelian lebih dari satu!
                         </div>
                     </template>
 
@@ -344,8 +344,8 @@ const goBackToCart = () => {
                                 class="h-14 w-14 rounded-lg object-cover shadow-md" />
                             <div class="flex-1">
                                 <p class="text-sm text-gray-900">{{ item.product?.name ?? 'Produk Tidak Dikenal' }}</p>
-                                <p class="text-sm text-gray-600">Jumlah: {{ item.quantity }}</p>
-                                <p class="text-sm text-gray-600">Ukuran: {{ item.size_id }} - {{ item.uom_id }}</p>
+                                <p class="text-xs text-gray-600">Jumlah: {{ item.quantity }}</p>
+                                <p class="text-xs text-gray-600">Ukuran: {{ item.size_id }} - {{ item.uom_id }}</p>
 
                                 <!-- Harga Grosir Promo -->
                                 <!-- <div v-if="item.price_sell_grosir && item.discount_grosir && item.quantity > 1" class="mt-2 text-sm text-green-600 font-medium">

@@ -37,7 +37,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-
+        $perPage = (int) $request->input('per_page', 10);
         if (!$user) {
             return response()->json(['message' => 'Tidak terautentikasi.'], 401);
         }
@@ -48,13 +48,13 @@ class OrderController extends Controller
                     $q->where('customer_id', $user->id)
                         ->orWhere('created_by', $user->id);
                 })
-                ->get();
+                ->paginate($perPage);
         }
 
         // Handle CART status secara khusus
         if ($request->input('status') === 'cart') {
             $cartItems = CartItem::with('creator', 'product')
-                ->get();
+                ->paginate($perPage);
 
             // FILTER berdasarkan `name` atau lainnya
             if ($request->filled('name')) {
@@ -152,7 +152,7 @@ class OrderController extends Controller
             });
         }
 
-        $perPage = (int) $request->input('per_page', 10);
+        
         $orders = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         return response()->json($orders, 200);
