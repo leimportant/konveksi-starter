@@ -85,18 +85,20 @@
             'fixed inset-y-0 right-0 z-40 w-80 max-w-full transform bg-gray-100 shadow-xl transition-transform duration-300 dark:bg-gray-800 dark:text-blue-400',
             showCart ? 'translate-x-0' : 'translate-x-full',
         ]" class="flex flex-col">
-            <!-- Header -->
+            <!-- Judul -->
             <div class="px-4 pt-4 pb-2">
                 <h2 class="text-xl font-bold">Keranjang Belanja</h2>
             </div>
 
-            <!-- Scrollable Cart Items -->
-            <div ref="orderList" class="flex-1 overflow-y-auto space-y-4 px-4">
+            <!-- CART ITEMS (scrollable) -->
+            <div ref="orderList" class="flex-1 overflow-y-auto space-y-4 px-4 pb-4">
                 <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">
                     Cart is empty
                 </div>
 
+                <!-- INI YANG DITANYAKAN -->
                 <div v-for="item in cartItems" :key="item.product_id" class="flex items-center gap-3 border-b pb-2">
+                    <!-- Content item -->
                     <img v-if="item.image_path" :src="getImageUrl(item.image_path)" alt="product"
                         class="h-12 w-12 rounded object-cover" />
                     <div class="min-w-0 flex-1">
@@ -123,7 +125,7 @@
                 </div>
             </div>
 
-            <!-- Checkout Area (Sticky Bottom) -->
+            <!-- FOOTER -->
             <div class="sticky bottom-0 bg-gray-100 dark:bg-gray-800 p-4 border-t border-gray-300 dark:border-gray-700">
                 <p class="text-sm font-semibold">Total Diskon: {{ formatRupiah(cartTotalDiscount) }}</p>
                 <p class="text-sm font-semibold">Total: {{ formatRupiah(cartTotal) }}</p>
@@ -133,6 +135,7 @@
                 </button>
             </div>
         </aside>
+
 
 
 
