@@ -62,7 +62,7 @@ watch(() => reportStore.currentPage, fetchReport);
 
     <AppLayout>
         <template #header>
-            <h2 class="text-xl font-semibold text-gray-800">Production Detail Report</h2>
+            <h2 class="text-sm font-semibold text-gray-800">Production Detail Report</h2>
         </template>
 
         <div class="p-4">

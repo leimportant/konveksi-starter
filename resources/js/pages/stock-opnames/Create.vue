@@ -252,7 +252,7 @@ const onLocationChange = async () => {
   <Head title="Create Stock Opname" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
-      <h1 class="text-xl font-bold mb-4">Create Stock Opname</h1>
+      <h1 class="text-sm font-bold mb-4">Create Stock Opname</h1>
       
       <div class="bg-white rounded-md shadow p-6">
         <form @submit.prevent="submitForm">
