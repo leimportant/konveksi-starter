@@ -46,7 +46,6 @@ const isActive = (path: string) => cleanPath(currentUrl) === path;
         <User2Icon class="h-5 w-5" />
         <span class="text-xs mt-1">Profile</span>
       </Link>
-
     </nav>
   </div>
 </template>
