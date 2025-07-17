@@ -194,7 +194,7 @@
                             {{ selectedProduct?.product_name }}
                         </h3>
 
-                        <!-- Stock & Info -->
+            
                         <!-- Pilihan Varian (misal: Merah, Kuning, Hijau) -->
                         <!-- Variant -->
                         <div v-if="selectedProduct?.variant !== 'all'" class="mb-4">
