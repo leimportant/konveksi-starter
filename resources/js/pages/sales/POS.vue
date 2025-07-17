@@ -389,7 +389,7 @@
                                     </TableCell>
                                     <TableCell class="text-xs">{{ formatDate(transaction.created_at) }}</TableCell>
                                     <TableCell class="text-xs">{{ transaction.customer }}</TableCell>
-                                    <TableCell class="text-xs">{{ formatRupiah(transaction.total_amount) }}</TableCell>
+                                    <TableCell class="text-xs">{{ formatRupiah(Number(transaction.total_amount)) }}</TableCell>
                                     <TableCell class="text-xs">{{ transaction.payment_method }}</TableCell>
                                     <TableCell class="text-xs">{{ transaction.status }}</TableCell>
                                 </TableRow>
