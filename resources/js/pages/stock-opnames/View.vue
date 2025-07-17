@@ -69,7 +69,7 @@ function formatDate(dateString: string): string {
   <Head title="View Stock Opname" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
-      <h1 class="text-xl font-bold mb-4">Stock Opname Detail</h1>
+      <h1 class="text-sm font-bold mb-4">Stock Opname Detail</h1>
 
       <div v-if="stockOpname" class="bg-white shadow rounded p-6 space-y-6">
         <!-- Header Info -->

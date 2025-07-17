@@ -47,7 +47,7 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
       data-sidebar="sidebar"
       data-mobile="true"
       :side="side"
-      class="w-[--sidebar-width] bg-sidebar px-2 py-3 text-sidebar-foreground [&>button]:hidden"
+      class="w-[--sidebar-width] bg-sidebar  bg-white/100 px-2 py-3 text-sidebar-foreground [&>button]:hidden"
       :style="{ '--sidebar-width': SIDEBAR_WIDTH_MOBILE || '200px' }"
     >
       <div class="flex h-full w-full flex-col overflow-auto">
@@ -96,7 +96,7 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
     >
       <div
         data-sidebar="sidebar"
-        class="flex h-full w-full flex-col overflow-auto bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+        class="flex h-full w-full flex-col overflow-auto bg-sidebar bg-white/100 group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
       >
         <slot />
       </div>

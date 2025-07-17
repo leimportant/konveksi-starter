@@ -281,7 +281,7 @@ const goBackToCart = () => {
             <div v-if="showPostCheckoutModal"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-gray-600 bg-opacity-75">
                 <div class="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-xl">
-                    <h2 class="mb-4 text-xl font-bold">Pesanan Dikonfirmasi!</h2>
+                    <h2 class="mb-4 text-sm font-bold">Pesanan Dikonfirmasi!</h2>
                     <div v-if="orderIdForQr">
                         <p class="mb-4 text-lg">
                             ID Pesanan Anda: <span class="font-semibold">{{ orderIdForQr }}</span>
