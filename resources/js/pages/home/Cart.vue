@@ -78,29 +78,28 @@
         </div>
 
         <!-- Cart Backdrop -->
-        <div v-if="showCart" class="fixed inset-0 z-30 bg-black bg-opacity-30 md:hidden" @click="showCart = false" />
+        <div v-if="showCart" class="fixed inset-0 z-30 bg-black bg-opacity-10 md:hidden" @click="showCart = false" />
 
         <!-- Cart Sidebar -->
-        <aside :class="[
-            'fixed inset-0 z-40 transform shadow-xl transition-transform duration-300',
-            showCart ? 'translate-x-0' : 'translate-x-full',
-        ]" class="grid h-screen grid-rows-[auto_1fr_auto] w-full bg-gray-100 dark:bg-gray-800 dark:text-blue-400">
+        <aside class="fixed right-0 top-0 z-40 h-screen w-full max-w-md flex flex-col bg-gray-100 dark:bg-gray-300 transition-transform duration-300 transform"
+  :class="showCart ? 'translate-x-0' : 'translate-x-full'">
+
             <!-- Header -->
-            <div class="px-4 py-4 border-b border-gray-300 dark:border-gray-600">
-                <h2 class="text-xl font-bold">Keranjang Belanja::</h2>
+            <div class="px-2 py-2 border-b border-gray-100 dark:border-gray-200">
+                <h2 class="text-sm font-bold">Keranjang Belanja</h2>
             </div>
 
             <!-- Order Items (scrollable) -->
-            <div ref="orderList"  class="h-[400px] overflow-y-scroll px-4 py-3 space-y-4">
+            <div ref="orderList"  class="h-[420px] overflow-y-scroll px-4 py-2 space-y-4">
                 <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">
                     Cart is empty
                 </div>
 
                 <div v-for="item in cartItems" :key="item.product_id"
-                    class="flex items-center gap-3 h-300 border-b pb-3 border-gray-300 dark:border-gray-700" style="height: 200; overflow: scroll;">
+                    class="flex items-center gap-3 h-300 border-b pb-3 border-gray-300 dark:border-gray-700" style="height: 200; overflow-y: auto;">
                     <img v-if="item.image_path" :src="getImageUrl(item.image_path)" alt="product"
                         class="h-12 w-12 rounded object-cover" />
-                    <div class="min-w-0 flex-1">
+                    <div class="min-w-0 flex-1" style="overflow: hidden;">
                         <p class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">
                             {{ item.product_name }}
                         </p>
