@@ -148,7 +148,7 @@
 
           <!-- Form Buttons -->
           <div class="flex justify-end gap-2 pt-2">
-            <Button variant="outline" @click="showCreateModal = false">Cancel</Button>
+            <Button variant="outline" @click="showCreateModal = false" class="h-10">Cancel</Button>
             <Button v-if="!form.id" @click="handleCreate">Submit</Button>
             <Button v-else @click="handleUpdate">Update</Button>
           </div>

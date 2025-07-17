@@ -204,7 +204,7 @@ const breadcrumbs = [
               <Input v-model="form.status" placeholder="Status" required />
             </div>
             <div class="flex justify-end gap-2">
-              <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
+              <Button type="button" variant="outline" @click="showCreateModal = false"  class="h-10">Cancel</Button>
               <Button type="submit" class="bg-indigo-600 text-white">Create</Button>
             </div>
           </form>

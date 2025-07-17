@@ -18,22 +18,39 @@ class PosOrderController extends Controller
     {
         $search = $request->input('search', '');
 
-        $transactions = PosTransaction::with('orderItems')
-                ->leftJoin('mst_customer as c', 'pos_transaction.customer_id', '=', 'c.id')
-                ->select('pos_transaction.*', DB::raw("COALESCE(c.name, 'Umum') as customer"))
-                ->whereHas('orderItems', function ($query) {
-                    $query->where('quantity', '>', 0);
-                })
-                ->where(function ($query) use ($search) {
-                    $query->where('pos_transaction.transaction_number', 'like', '%' . $search . '%')
-                        ->orWhere('c.name', 'like', '%' . $search . '%')
-                        ->orWhere('pos_transaction.total_amount', 'like', '%' . $search . '%');
-                })
-                ->orderBy('pos_transaction.created_at', 'desc')
-                ->paginate(10);
+        $transactions = PosTransaction::with(['orderItems.product'])
+            ->leftJoin('mst_customer as c', 'pos_transaction.customer_id', '=', 'c.id')
+            ->select('pos_transaction.*', DB::raw("COALESCE(c.name, 'Umum') as customer"))
+            ->whereHas('orderItems', function ($query) {
+                $query->where('quantity', '>', 0);
+            })
+            ->where(function ($query) use ($search) {
+                $query->where('pos_transaction.transaction_number', 'like', '%' . $search . '%')
+                    ->orWhere('c.name', 'like', '%' . $search . '%')
+                    ->orWhere('pos_transaction.total_amount', 'like', '%' . $search . '%');
+            })
+            ->orderBy('pos_transaction.created_at', 'desc')
+            ->paginate(10);
+
+        // Transform safely
+        $transactionsCollection = $transactions->getCollection();
+
+        $transactionsCollection->transform(function ($transaction) {
+            if ($transaction->order_items) {
+                $transaction->order_items->transform(function ($item) {
+                    $item->product_name = $item->product->name ?? null;
+                    return $item;
+                });
+            }
+            return $transaction;
+        });
+
+        $transactions->setCollection($transactionsCollection);
 
         return response()->json($transactions);
     }
+
+
 
     public function placeOrder(Request $request)
     {

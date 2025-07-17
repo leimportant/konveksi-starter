@@ -81,8 +81,6 @@ class CartItemController extends Controller
                     'price_grosir' => $price_grosir,
                     'discount_grosir' => $discount_grosir,
                     'price_sell_grosir' => $price_sell_grosir,
-                    'size_id' => $validated['size_id'],
-                    'uom_id' => $validated['uom_id'],
                     'updated_by' => Auth::id(),
                 ]);
             } else {
