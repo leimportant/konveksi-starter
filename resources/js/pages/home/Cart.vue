@@ -531,10 +531,12 @@ function closeFullscreenImage() {
 const cartQty = computed(() => cartStore.cartItems.reduce((total: number, item) => total + (item.quantity || 0), 0));
 
 const addToCart = async () => {
-    const product = selectedProduct.value;
+    const productDetail = getSelectedItemDetail.value;
 
-    console.log(product);
-    if (!product) return;
+    if (!productDetail) {
+        toast.error('Detail produk tidak ditemukan.');
+        return;
+    }
 
     if (!selectedSize.value) {
         toast.error('Harap pilih ukuran terlebih dahulu.');
@@ -542,31 +544,31 @@ const addToCart = async () => {
     }
 
     // Validasi stok
-    if (detailQty.value > product.qty_available) {
+    if (detailQty.value > productDetail.qty_available) {
         toast.error('Jumlah melebihi stok tersedia');
         return;
     }
 
     // Hitung harga (gunakan price_sell jika > 0, jika tidak pakai price)
-    const price: number = product.price ?? 0;
+    const price: number = productDetail.price ?? 0;
 
-    const discount: number = product.discount ?? 0;
+    const discount: number = productDetail.discount ?? 0;
 
     // Gunakan price_sell jika ada, jika tidak gunakan price - discount
-    const price_sell: number = (product.price_sell ?? 0) > 0 ? (product.price_sell ?? 0) : price - discount;
+    const price_sell: number = (productDetail.price_sell ?? 0) > 0 ? (productDetail.price_sell ?? 0) : price - discount;
 
     try {
         await cartStore.addToCart(
-            product.product_id ?? 0,
+            selectedProduct.value?.product_id ?? 0, // Use selectedProduct for product_id
             detailQty.value,
-            product.size_id ?? '',
-            product.uom_id ?? 'PCS',
+            productDetail.size_id ?? '',
+            selectedProduct.value?.uom_id ?? 'PCS', // Use selectedProduct for uom_id
             price,
             discount,
             price_sell,
-            product.location_id ?? 1,
-            product.variant ?? 'all',
-            product.sloc_id ?? '',
+            selectedProduct.value?.location_id ?? 2, // Use selectedProduct for location_id
+            selectedProduct.value?.variant ?? 'all', // Use selectedProduct for variant
+            selectedProduct.value?.sloc_id ?? '', // Use selectedProduct for sloc_id
         );
         toast.success('Product added to cart');
         await fetchProducts();
@@ -575,6 +577,7 @@ const addToCart = async () => {
         toast.error(cartStore.error || 'Failed to add product to cart');
     }
 };
+
 
 const increaseDetailQty = () => {
     if (selectedProduct.value && detailQty.value < (getSelectedItemDetail.value?.qty_available ?? 0)) {
