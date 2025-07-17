@@ -91,7 +91,7 @@
             </div>
 
             <!-- Order Items (scrollable area) -->
-            <div ref="orderList" class="overflow-auto px-4 py-3 space-y-4">
+            <div ref="orderList" class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
                 <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">
                     Cart is empty
                 </div>
