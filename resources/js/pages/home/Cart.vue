@@ -87,7 +87,7 @@
         ]" class="flex flex-col h-screen bg-gray-100 dark:bg-gray-800 dark:text-blue-400 w-full">
             <!-- Header -->
             <div class="px-4 py-4 border-b border-gray-300 dark:border-gray-600">
-                <h2 class="text-xl font-bold">Keranjang Belanja</h2>
+                <h2 class="text-xl font-bold">Keranjang Belanja:</h2>
             </div>
 
             <!-- Order Items (scrollable area) -->
