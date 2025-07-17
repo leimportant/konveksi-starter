@@ -82,9 +82,9 @@
 
         <!-- Cart Sidebar -->
         <aside :class="[
-            'fixed inset-y-0 right-0 z-40 w-80 max-w-full transform shadow-xl transition-transform duration-300',
+            'fixed inset-0 z-40 transform shadow-xl transition-transform duration-300',
             showCart ? 'translate-x-0' : 'translate-x-full',
-        ]" class="flex flex-col h-screen bg-gray-100 dark:bg-gray-800 dark:text-blue-400">
+        ]" class="flex flex-col h-screen bg-gray-100 dark:bg-gray-800 dark:text-blue-400 w-full">
             <!-- Header -->
             <div class="px-4 py-4 border-b border-gray-300 dark:border-gray-600">
                 <h2 class="text-xl font-bold">Keranjang Belanja</h2>
