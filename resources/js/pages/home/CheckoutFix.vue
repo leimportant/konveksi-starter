@@ -292,7 +292,7 @@ const goBackToCart = () => {
                             hover:file:bg-blue-100 mb-4"
                     />
                     <div class="flex justify-end gap-2">
-                        <Button @click="uploadPaymentProof" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Kirim Bukti Pembayaran</Button>
+                        <Button @click="uploadPaymentProof" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Kirim Bukti Pembayaran</Button>
                         <Button @click="router.visit('/')" type="button" variant="outline">Nanti Saja</Button>
                     </div>
                 </div>
@@ -374,7 +374,7 @@ const goBackToCart = () => {
 
                         <div class="mt-8 flex justify-end space-x-4">
                             <Button @click="goBackToCart" class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700 focus:ring-2 focus:ring-indigo-500">Batal</Button>
-                            <Button @click="confirmCheckout" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Proses</Button>
+                            <Button @click="confirmCheckout" class="w-full bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Proses</Button>
                         </div>
                     </div>
                 </div>

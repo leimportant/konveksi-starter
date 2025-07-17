@@ -55,7 +55,7 @@ class PosOrderController extends Controller
         $customerId = $request->input('customer_id', null);
         $paidAmount = $request->input('paid_amount', null);
         $customerId = $request->input('customer_id', null);
-        $transactionId = $request->input('transaction_number', null);
+        $transactionIdNumber = $request->input('transaction_number', null);
 
         DB::beginTransaction();
         try {
@@ -154,10 +154,11 @@ class PosOrderController extends Controller
             }
 
             // update ke table Order where in transactionId ini comma
-            $transactionIds = explode(',', $transactionId);
+            $transactionIds = explode(',', $transactionIdNumber);
             DB::table('t_orders')
                 ->whereIn('id', $transactionIds)
                 ->update([
+                    'reference_trans_id' => $id,
                     'status' => OrderStatusEnum::DONE,
                     'updated_at' => Carbon::now(),
                 ]);

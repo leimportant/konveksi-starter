@@ -357,7 +357,8 @@
             </Modal>
 
             <Modal :show="showReprintDialog" @close="closeReprintDialog" title="RePrint Struk">
-                <div class="space-y-4 p-3 sm:p-4 text-sm">
+                <div class="space-y-1 p-3 sm:p-4 text-sm">
+
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <Input v-model="searchTransaction" class="flex-1 sm:w-64" placeholder="Cari transaksi..."
                             aria-label="Search" />
@@ -372,6 +373,7 @@
                         <Table class="min-w-full">
                             <TableHeader>
                                 <TableRow class="bg-gray-100 text-gray-600 text-xs uppercase">
+                                    <TableHead>Aksi</TableHead>
                                     <TableHead>Tanggal</TableHead>
                                     <TableHead>Customer</TableHead>
                                     <TableHead>Total</TableHead>
@@ -381,8 +383,10 @@
                             </TableHeader>
                             <TableBody>
                                 <TableRow v-for="transaction in transactions" :key="transaction.id"
-                                    @click="selectTransactionForPrint(transaction)"
                                     class="hover:bg-gray-50 cursor-pointer">
+                                    <TableCell class="text-xs">
+                                        <Button variant="outline" @click="selectTransactionForPrint(transaction)">Cetak</Button>
+                                    </TableCell>
                                     <TableCell class="text-xs">{{ formatDate(transaction.created_at) }}</TableCell>
                                     <TableCell class="text-xs">{{ transaction.customer }}</TableCell>
                                     <TableCell class="text-xs">{{ formatRupiah(transaction.total_amount) }}</TableCell>
@@ -693,13 +697,10 @@ async function searchprintTransaction() {
 }
 
 async function selectTransactionForPrint(transaction: Transaction) {
-    if (confirm('Yakin mau Print Struk?')) {
+    if (confirm('Yakin mau tampilkan struk untuk dicetak ulang?')) {
         selectedTransaction.value = transaction;
-        // Assuming you have a print function that can use selectedTransaction.value
-        // For now, let's just log it and close the dialog
-        console.log('Printing transaction:', selectedTransaction.value);
-        // You would call your print function here, e.g., doPrintKasir80mm(selectedTransaction.value);
-        // For demonstration, let's simulate setting lastOrder details and calling autoPrint
+
+        // Set preview data
         lastOrderDate.value = transaction.created_at;
         transactionNumber.value = transaction.id;
         selectedCustomerName.value = transaction.customer;
@@ -718,12 +719,16 @@ async function selectTransactionForPrint(transaction: Transaction) {
         }));
         lastOrderTotal.value = transaction.total_amount;
         lastOrderPaymentMethodName.value = transaction.payment_method;
-        paidAmount.value = transaction.paid_amount; // Assuming paid_amount exists in transaction
+        paidAmount.value = transaction.paid_amount;
 
-        autoPrint();
+        // Tampilkan print preview modal terlebih dahulu
+        showPrintPreview.value = true;
+
+        // Jangan langsung autoPrint. Biarkan user klik "Cetak" dari preview
         closeReprintDialog();
     }
 }
+
 
 const paidAmount = ref<number | null>(null);
 const changeAmount = computed(() => {

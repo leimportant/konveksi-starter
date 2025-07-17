@@ -70,7 +70,7 @@ onMounted(() => {
                         <Input type="date" v-model="startDate" />
                         <Input type="date" v-model="endDate" />
                         <Input type="text" v-model="searchKey" placeholder="Search by product name" />
-                        <Button @click="fetchReport" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Tampilkan</Button>
+                        <Button @click="fetchReport" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Tampilkan</Button>
                     </div>
 
                     <div v-if="reportStore.loading">Loading...</div>

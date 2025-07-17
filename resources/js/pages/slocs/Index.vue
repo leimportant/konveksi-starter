@@ -110,7 +110,7 @@ const handleDelete = async (id: string) => {
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
       <div class="flex justify-between items-center gap-2 mb-2">
-        <Button @click="showCreateModal = true" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+        <Button @click="showCreateModal = true" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
           <Plus class="h-4 w-4" />
           Add
         </Button>
@@ -196,7 +196,7 @@ const handleDelete = async (id: string) => {
             </div>
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="showCreateModal = false">Cancel</Button>
-              <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Create</Button>
+              <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Create</Button>
             </div>
           </form>
         </div>
@@ -215,7 +215,7 @@ const handleDelete = async (id: string) => {
             </div>
             <div class="flex justify-end gap-2">
               <Button type="button" variant="outline" @click="showEditModal = false">Cancel</Button>
-              <Button type="submit" class="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Update</Button>
+              <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Update</Button>
             </div>
           </form>
         </div>
