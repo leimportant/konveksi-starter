@@ -40,7 +40,12 @@ class PosTransactionDetail extends Model
         return $this->product->name ?? null;
     }
 
-    protected $appends = ['name'];
+    public function getNameAttribute()
+    {
+        return $this->getProductNameAttribute();
+    }
+
+    protected $appends = ['product_name'];
 
 
     /**
