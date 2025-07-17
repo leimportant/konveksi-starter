@@ -84,14 +84,14 @@
         <aside :class="[
             'fixed inset-0 z-40 transform shadow-xl transition-transform duration-300',
             showCart ? 'translate-x-0' : 'translate-x-full',
-        ]" class="flex flex-col h-screen bg-gray-100 dark:bg-gray-800 dark:text-blue-400 w-full">
+        ]" class="grid h-screen grid-rows-[auto_1fr_auto] w-full bg-gray-100 dark:bg-gray-800 dark:text-blue-400">
             <!-- Header -->
             <div class="px-4 py-4 border-b border-gray-300 dark:border-gray-600">
                 <h2 class="text-xl font-bold">Keranjang Belanja:</h2>
             </div>
 
-            <!-- Order Items (scrollable area) -->
-            <div ref="orderList" class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+            <!-- Order Items (scrollable) -->
+            <div ref="orderList" class="overflow-y-auto px-4 py-3 space-y-4">
                 <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">
                     Cart is empty
                 </div>
@@ -101,25 +101,33 @@
                     <img v-if="item.image_path" :src="getImageUrl(item.image_path)" alt="product"
                         class="h-12 w-12 rounded object-cover" />
                     <div class="min-w-0 flex-1">
-                        <p class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">{{ item.product_name
-                            }}</p>
+                        <p class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">
+                            {{ item.product_name }}
+                        </p>
                         <p class="text-xs text-gray-500">Stock: {{ item.qty_available }}</p>
                         <p class="text-xs text-gray-800 dark:text-gray-200">
                             {{ formatRupiah((item.price_sell ?? 0) > 0 ? (item.price_sell ?? 0) : (item.price ?? 0)) }}
                         </p>
                         <p class="text-xs text-gray-800 dark:text-gray-200">Size: {{ item.size_id }}</p>
-                        <p class="text-xs text-gray-800 dark:text-gray-200">Diskon: {{ formatRupiah(item.discount ?? 0)
-                            }}</p>
+                        <p class="text-xs text-gray-800 dark:text-gray-200">
+                            Diskon: {{ formatRupiah(item.discount ?? 0) }}
+                        </p>
                     </div>
                     <div class="flex items-center space-x-1">
                         <button @click="decreaseQty(item)" :disabled="item.quantity <= 1"
-                            class="rounded bg-gray-500 px-2 py-1 text-white disabled:opacity-50">-</button>
-                        <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-100">{{ item.quantity
-                            }}</span>
-                        <button @click="increaseQty(item)" class="rounded bg-gray-500 px-2 py-1 text-white">+</button>
+                            class="rounded bg-gray-500 px-2 py-1 text-white disabled:opacity-50">
+                            -
+                        </button>
+                        <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-100">
+                            {{ item.quantity }}
+                        </span>
+                        <button @click="increaseQty(item)" class="rounded bg-gray-500 px-2 py-1 text-white">
+                            +
+                        </button>
                     </div>
-                    <button @click="removeFromCart(item.cartItemId)"
-                        class="text-lg text-red-500 hover:text-red-700">&times;</button>
+                    <button @click="removeFromCart(item.cartItemId)" class="text-lg text-red-500 hover:text-red-700">
+                        &times;
+                    </button>
                 </div>
             </div>
 
@@ -133,10 +141,6 @@
                 </button>
             </div>
         </aside>
-
-
-
-
 
         <!-- Product Detail Modal -->
         <div v-if="showDetailModal"
