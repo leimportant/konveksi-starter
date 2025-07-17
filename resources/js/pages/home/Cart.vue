@@ -87,7 +87,7 @@
         ]" class="grid h-screen grid-rows-[auto_1fr_auto] w-full bg-gray-100 dark:bg-gray-800 dark:text-blue-400">
             <!-- Header -->
             <div class="px-4 py-4 border-b border-gray-300 dark:border-gray-600">
-                <h2 class="text-xl font-bold">Keranjang Belanja:</h2>
+                <h2 class="text-xl font-bold">Keranjang Belanja::</h2>
             </div>
 
             <!-- Order Items (scrollable) -->
@@ -195,23 +195,6 @@
                         </h3>
 
                         <!-- Stock & Info -->
-
-                        <!-- Price -->
-                        <!-- <p class="mb-3 font-semibold text-gray-500 text-gray-800 sm:text-lg">
-                            <span v-if="selectedProduct?.discount && selectedProduct.discount > 0" class="mr-2 text-gray-400 line-through">
-                                {{ formatRupiah(selectedProduct.price) }}
-                            </span>
-                            <span>
-                                {{
-                                    formatRupiah(
-                                        (selectedProduct?.price_sell ?? 0) > 0 ? (selectedProduct?.price_sell ?? 0) : (selectedProduct?.price ?? 0),
-                                    )
-                                }}
-                            </span>
-                            <span v-if="selectedProduct?.discount && selectedProduct.discount > 0" class="ml-1 text-green-500">
-                                (Diskon {{ formatRupiah(selectedProduct.discount ?? 0) }})
-                            </span>
-                        </p> -->
                         <!-- Pilihan Varian (misal: Merah, Kuning, Hijau) -->
                         <!-- Variant -->
                         <div v-if="selectedProduct?.variant !== 'all'" class="mb-4">
