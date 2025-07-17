@@ -85,11 +85,16 @@
             'fixed inset-y-0 right-0 z-40 w-80 max-w-full transform bg-gray-100 shadow-xl transition-transform duration-300 dark:bg-gray-800 dark:text-blue-400',
             showCart ? 'translate-x-0' : 'translate-x-full',
         ]" class="flex flex-col">
-            <h2 class="mb-4 px-4 pt-4 text-xl font-bold">Keranjang Belanja</h2>
+            <!-- Header -->
+            <div class="px-4 pt-4 pb-2">
+                <h2 class="text-xl font-bold">Keranjang Belanja</h2>
+            </div>
 
-            <!-- Daftar item (scrollable area) -->
-            <div ref="orderList" class="flex-1 space-y-4 overflow-y-auto px-4 pr-1">
-                <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">Cart is empty</div>
+            <!-- Scrollable Cart Items -->
+            <div ref="orderList" class="flex-1 overflow-y-auto space-y-4 px-4">
+                <div v-if="cartItems.length === 0" class="mt-10 text-center text-gray-400">
+                    Cart is empty
+                </div>
 
                 <div v-for="item in cartItems" :key="item.product_id" class="flex items-center gap-3 border-b pb-2">
                     <img v-if="item.image_path" :src="getImageUrl(item.image_path)" alt="product"
@@ -97,26 +102,29 @@
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-sm font-semibold text-gray-800">{{ item.product_name }}</p>
                         <p class="text-xs text-gray-400">Stock: {{ item.qty_available }}</p>
-                        <p class="text-xs text-gray-800">{{ formatRupiah((item.price_sell ?? 0) > 0 ? (item.price_sell
-                            ?? 0) :
-                            (item.price ?? 0)) }}</p>
+                        <p class="text-xs text-gray-800">
+                            {{ formatRupiah((item.price_sell ?? 0) > 0 ? (item.price_sell ?? 0) : (item.price ?? 0)) }}
+                        </p>
                         <p class="text-xs text-gray-800">Size {{ item.size_id }}</p>
                         <p class="text-xs text-gray-800">Diskon {{ formatRupiah(item.discount ?? 0) }}</p>
                     </div>
                     <div class="flex items-center space-x-1">
                         <button @click="decreaseQty(item)" :disabled="item.quantity <= 1"
-                            class="rounded bg-gray-500 px-2 py-1 disabled:opacity-50">-</button>
+                            class="rounded bg-gray-500 px-2 py-1 disabled:opacity-50">
+                            -
+                        </button>
                         <span class="w-8 text-center text-sm text-gray-800 dark:text-gray-500">{{ item.quantity
                             }}</span>
                         <button @click="increaseQty(item)" class="rounded bg-gray-500 px-2 py-1">+</button>
                     </div>
-                    <button @click="removeFromCart(item.cartItemId)"
-                        class="text-lg text-red-500 hover:text-red-700">&times;</button>
+                    <button @click="removeFromCart(item.cartItemId)" class="text-lg text-red-500 hover:text-red-700">
+                        &times;
+                    </button>
                 </div>
             </div>
 
-            <!-- Total dan tombol checkout (sticky bottom) -->
-            <div class="sticky bottom-0 bg-gray-100 dark:bg-gray-800 p-4 border-t">
+            <!-- Checkout Area (Sticky Bottom) -->
+            <div class="sticky bottom-0 bg-gray-100 dark:bg-gray-800 p-4 border-t border-gray-300 dark:border-gray-700">
                 <p class="text-sm font-semibold">Total Diskon: {{ formatRupiah(cartTotalDiscount) }}</p>
                 <p class="text-sm font-semibold">Total: {{ formatRupiah(cartTotal) }}</p>
                 <button @click="proceedToCheckout"
@@ -125,6 +133,7 @@
                 </button>
             </div>
         </aside>
+
 
 
         <!-- Product Detail Modal -->
@@ -208,11 +217,11 @@
                                         selectedSize = null;
                                     }
                                 " :class="[
-                                        'rounded-full border px-3 py-1 text-sm font-semibold transition',
-                                        selectedVariant === variant
-                                            ? 'border-indigo-600 bg-indigo-600 text-white'
-                                            : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
-                                    ]">
+                                    'rounded-full border px-3 py-1 text-sm font-semibold transition',
+                                    selectedVariant === variant
+                                        ? 'border-indigo-600 bg-indigo-600 text-white'
+                                        : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
+                                ]">
                                     {{ variant }}
                                 </button>
                             </div>
@@ -250,7 +259,7 @@
                                     </span> <br />
                                     <span class="font-bold">
                                         Harga Diskon {{ formatRupiah(getSelectedItemDetail.price_sell ||
-                                        getSelectedItemDetail.price) }}
+                                            getSelectedItemDetail.price) }}
                                     </span><br />
                                     <span v-if="(getSelectedItemDetail.discount ?? 0) > 0"
                                         class="text-green-600 text-xs">
