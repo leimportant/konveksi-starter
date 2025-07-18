@@ -254,7 +254,7 @@
                 <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
                     <h3 class="mb-4 text-lg font-semibold">Masukkan Jumlah Bayar</h3>
                     <input type="number" min="0" v-model.number="paidAmount"
-                        class="mb-4 w-full rounded border px-3 py-2 text-lg" placeholder="Masukkan jumlah bayar" />
+                        class="mb-4 w-full rounded border px-3 py-2 text-lg"  placeholder="Masukkan jumlah bayar" />
                     <div class="mb-4 flex justify-between">
                         <div>Total:</div>
                         <div class="font-semibold">{{ formattedTotalAmount }}</div>
@@ -538,6 +538,7 @@ import 'vue3-select/dist/vue3-select.css';
 import CustomerDialog from '@/components/CustomerDialog.vue';
 import Modal from '@/components/Modal.vue';
 import { QrcodeStream } from 'vue-qrcode-reader';
+import { useCurrencyInput } from '@/composables/useCurrencyInput'
 
 interface ProductSize {
     size_id: string;
@@ -638,6 +639,8 @@ const selectedProducts = ref<Product[]>([]);
 const paymentMethods = ref<PaymentMethod[]>([]);
 const selectedPaymentMethod = ref<string | null>(null);
 const isLoading = ref({ placingOrder: false });
+
+const paymentInput = useCurrencyInput(0);
 
 const searchText = ref('');
 const currentPage = ref(1);
@@ -1389,6 +1392,9 @@ watch(
     { deep: true }
 );
 
+watch(paymentInput.internalValue, (newValue) => {
+  paidAmount.value = newValue;
+});
 
 function doPrintKasir80mm() {
     // QZ Tray integration for direct thermal printing

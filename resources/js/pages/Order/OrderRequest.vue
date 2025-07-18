@@ -230,7 +230,7 @@ async function submitShipping() {
     <Head title="Riwayat Order" />
     <AppLayout>
          <div class="px-4 py-4">
-        <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white min-h-screen overflow-x-auto">
+        <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white min-h-screen">
             <Input
             v-model="filterName"
             placeholder="Search"
@@ -271,8 +271,8 @@ async function submitShipping() {
             <div v-else-if="error" class="text-center text-red-500 text-sm py-6">{{ error }}</div>
             <div v-else-if="filteredOrders.length === 0" class="text-center text-gray-500 text-sm py-6">Tidak ada
                 pesanan ditemukan.</div>
-            <div v-else class="overflow-x-auto border rounded">
-                <Table class="max-h-screen w-full">
+            <div v-else class="overflow-x-auto border rounded h-[calc(100vh-250px)] overflow-y-auto">
+                <Table class="w-full">
                     <TableHeader>
                         <TableRow class="bg-gray-100">
                             <TableHead class="w-[5%]">#</TableHead>
