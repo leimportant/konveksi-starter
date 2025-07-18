@@ -98,7 +98,7 @@ const prevPage = () => {
                     variant="ghost"
                     size="icon"
                     class="hover:bg-gray-100"
-                    @click="$inertia.visit(`/cash-balances/${item.id}/close`)"
+                    @click="$inertia.visit(`/cash-balances/${item.id}/closing`)"
                   >
                     <Edit class="h-4 w-4 text-gray-600" />
                   </Button>

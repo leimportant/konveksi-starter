@@ -95,7 +95,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/api/transfer-stock/{transferId}/accept', [TransferStockController::class, 'accept']);
     Route::put('/api/transfer-stock/{transferId}/reject', [TransferStockController::class, 'reject']);
 
-     Route::get('api/cash-balance', action: [CashBalanceController::class, 'index']); // Get list of cash balances
+    Route::get('api/cash-balance', action: [CashBalanceController::class, 'index']); // Get list of cash balances
     Route::post('api/cash-balance/open', [CashBalanceController::class, 'openShift']); // Open a shift
     Route::put('api/cash-balance/{id}/close', [CashBalanceController::class, 'closeShift']); // Close a shift
 
