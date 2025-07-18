@@ -65,12 +65,7 @@ class OrderController extends Controller
                         strpos(strtolower($item->product->name ?? ''), $search) !== false ||
                         strpos((string) $item->id, $search) !== false ||
                         strpos((string) $item->quantity, $search) !== false ||
-                        strpos((string) $item->price_sell, $search) !== false ||
-                        strpos(strtolower($item->order->payment_method ?? ''), $search) !== false ||
-                        strpos((string) $item->order->total_amount ?? '', $search) !== false ||
-                        strpos(strtolower($item->order->resi_number ?? ''), $search) !== false ||
-                        strpos(strtolower($item->order->delivery_provider ?? ''), $search) !== false ||
-                        strpos(strtolower($item->order->customer->name ?? ''), $search) !== false;
+                        strpos(strtolower($item->creator->name ?? ''), $search) !== false;
                 });
             }
 
