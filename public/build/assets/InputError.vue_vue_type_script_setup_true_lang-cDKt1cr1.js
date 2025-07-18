@@ -1,0 +1,1 @@
+import{d as s,l as t,ap as a,f as r,g as o,k as n,j as p}from"./app-DiFJObDm.js";const c={class:"text-xs text-red-600 dark:text-red-500"},d=s({__name:"InputError",props:{message:{}},setup(i){return(e,m)=>t((o(),r("div",null,[n("p",c,p(e.message),1)],512)),[[a,e.message]])}});export{d as _};
