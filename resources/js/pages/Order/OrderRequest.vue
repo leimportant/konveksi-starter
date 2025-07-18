@@ -57,13 +57,29 @@ const handleScroll = () => {
 
 
 const {  fetchBankAccount } = useOrdersCustomer();
+const statusLabel = (status: number) => {
+  const statuses = {
+    1: 'Pending',
+    2: 'Menunggu Pembayaran',
+    3: 'Menunggu Konfirmasi',
+    4: 'On Progress',
+    5: 'Sedang Dikemas',
+    6: 'Selesai',
+    7: 'Dibatalkan',
+    8: 'Konfirmasi Pembatalan',
+    9: 'Dikirim',
+    10: 'Disetujui',
+    11: 'Ditolak'
+  };
+  return statuses[status as keyof typeof statuses] || '-';
+};
 
 
 const toast = useToast();
 onMounted(() => {
     scrollPage.value = 1;
     fetchBankAccount();
-    fetchOrderRequest({ status: activeTab.value, page: scrollPage.value, per_page: perPage.value });
+    fetchOrderRequest({ status: activeTab.value, page: scrollPage.value, per_page: perPage.value, name: filterName.value });
 
     window.addEventListener('scroll', handleScroll);
 });
@@ -74,7 +90,7 @@ onUnmounted(() => {
 
 watch(activeTab, (newTab) => {
     scrollPage.value = 1;
-    fetchOrderRequest({ status: newTab, page: scrollPage.value, per_page: perPage.value });
+    fetchOrderRequest({ status: newTab, page: scrollPage.value, per_page: perPage.value, name: filterName.value });
 });
 
 
@@ -332,8 +348,7 @@ async function submitShipping() {
                                         'text-green-600': order.status === 2,
                                         'text-red-600': order.status === 3,
                                     }">
-                                         {{ order.status === 1 ? 'Pending' : order.status === 2 ? 'Selesai' : order.status === 3 ? 'Menunggu Konfirmasi' : order.status === 4 ? 'On Progress' : order.status === 5 ? 'Sedang di kemas' :
-                                        'Dikirim' }}
+                                        {{ statusLabel(order.status) }} 
                                     </span>
                                 </TableCell>
 

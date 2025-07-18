@@ -2,6 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue'
+import { debounce } from 'lodash'
 import { useCustomerStore } from '@/stores/useCustomerStore'
 import { storeToRefs } from 'pinia'
 import { Input } from '@/components/ui/input'
@@ -64,9 +65,9 @@ onMounted(() => {
   customerStore.fetchCustomers(currentPage.value, perPage)
 })
 
-const handleSearch = async () => {
+const debouncedHandleSearch = debounce(async () => {
   await customerStore.fetchCustomers(1, perPage, search.value)
-}
+}, 500)
 
 const goToPage = async (page: number) => {
   if (page < 1 || page > lastPage.value) return
@@ -148,7 +149,7 @@ const handleDelete = async (id: number) => {
           v-model="search"
           placeholder="Search customer name"
           class="w-64"
-          @input="handleSearch"
+          @input="debouncedHandleSearch"
           :disabled="loading"
         />
 

@@ -123,7 +123,7 @@ export function useOrdersCustomer() {
     };
 
     // untuk order request dari admin
-    const fetchOrderRequest = async (params?: { status?: string; page?: number; per_page?: number; append?: boolean }) => {
+    const fetchOrderRequest = async (params?: { status?: string; page?: number; per_page?: number; append?: boolean; name?: string }) => {
 
         isLoading.value = true;
         error.value = null;
