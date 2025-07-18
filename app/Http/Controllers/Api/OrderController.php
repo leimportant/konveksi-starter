@@ -48,7 +48,7 @@ class OrderController extends Controller
                     $q->where('customer_id', $user->id)
                         ->orWhere('created_by', $user->id);
                 })
-                ->paginate($perPage);
+                ->orderBy('created_at', 'desc')->paginate($perPage);
         }
 
         // Handle CART status secara khusus
@@ -66,7 +66,7 @@ class OrderController extends Controller
                 ->orWhereRaw('LOWER(quantity) LIKE ?', ["%$search%"]);
             }
 
-            $cartItems = $query->paginate($perPage);
+            $cartItems = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
             $fakeOrders = $cartItems->map(function ($item) use ($user) {
                 $totalAmount = ($item->price_sell ?? 0) * $item->quantity;
