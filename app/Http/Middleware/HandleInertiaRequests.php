@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         // Optional: Log jika ada request JSON (misalnya dari fetch/axios luar Inertia)
-        if ($request->expectsJson() && !Inertia::isInertiaRequest()) {
+        if ($request->expectsJson() && !$request->header('X-Inertia')) {
             \Log::warning('Non-Inertia JSON request hit share()', [
                 'url' => $request->url(),
                 'user' => $request->user()?->id,
