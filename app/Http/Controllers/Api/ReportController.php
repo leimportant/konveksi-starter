@@ -345,7 +345,7 @@ class ReportController extends Controller
 
         $data = DB::table('pos_transaction as a')
             ->join('pos_transaction_detail as b', 'a.id', '=', 'b.transaction_id')
-            ->leftJoin('mst_customer as c', 'a.customer_id', '=', 'c.id')
+            ->leftJoin('mst_customer as c', 'a.customer_id', '=', 'c.user_id')
             ->leftJoin('mst_product as d', 'b.product_id', '=', 'd.id')
             ->select(
                 'a.id',
