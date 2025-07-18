@@ -144,9 +144,13 @@ Route::get('/cash-balances/open-shift', function () {
     return Inertia::render('cash-balance/OpenShift');
 })->middleware(['auth'])->name('cash-balance.openshift');
 
-Route::get('/cash-balances/closing', function () {
-    return Inertia::render('cash-balance/Closing');
+
+Route::get('/cash-balances/{id}/closing', function ($id) {
+    return Inertia::render('cash-balance/Closing', [
+        'id' => (int) $id,
+    ]);
 })->middleware(['auth'])->name('cash-balance.closing');
+
 
 Route::get('/konveksi/model/create', function () {
     return Inertia::render('konveksi/CreateModel');
