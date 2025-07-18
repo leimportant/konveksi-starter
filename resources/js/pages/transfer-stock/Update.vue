@@ -346,11 +346,24 @@ const submit = async () => {
     toast.success('Transfer berhasil disimpan')
     router.visit('/transfer-stock')
   } catch (error: any) {
-    if (error.response?.status === 422) {
-      Object.assign(errors, error.response.data.errors)
-    } else {
-      toast.error('Gagal menyimpan transfer')
-    }
+     if (error.response?.status === 422 && error.response?.data?.errors) {
+      errors.value = error.response.data.errors;
+
+      // Iterate and display all error messages
+      for (const key in errors) {
+        const errorMessages = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
+        errorMessages.forEach((errorMsg: string) => {
+          toast.error(errorMsg);
+        });
+      }
+    } 
+     // Jika ada message dari backend (misal error 400, 500, dll)
+      else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+          toast.error('Terjadi kesalahan saat menyimpan data');
+        }
+    
   }
 }
 

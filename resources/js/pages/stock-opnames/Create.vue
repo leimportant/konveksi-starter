@@ -16,12 +16,12 @@ const formData = ref({
   id: '',
   location_id: '',
   product_id: '',
-  sloc_id: '', 
-  uom_id: '', 
+  sloc_id: '',
+  uom_id: '',
   remark: '',
   stock_opname_items: [] as Array<{
-    size_id: string; 
-    qty_system: number; 
+    size_id: string;
+    qty_system: number;
     qty_physical: number;
     difference: number;
     note: string;
@@ -109,7 +109,7 @@ const clearError = (field: string) => {
 const submitForm = async () => {
   try {
     loading.value = true;
-    
+
     // Reset errors
     Object.keys(errors.value).forEach(key => {
       errors.value[key] = '';
@@ -160,24 +160,26 @@ const submitForm = async () => {
     toast.success('Stock opname created successfully');
     router.visit('/stock-opnames');
   } catch (error: any) {
-    console.error('Error submitting form:', error);
-    toast.error('Failed to create stock opname');
-    
+
     // Handle validation errors from backend
-    if (error.response && error.response.status === 422) {
-      const validationErrors = error.response.data.errors;
-      
-      // Map backend errors to our error object
-      Object.keys(validationErrors).forEach(key => {
-        if (key.startsWith('stock_opname_items.')) {
-          // Handle nested errors
-          const errorKey = key.split('.')[0] + '.' + key.split('.')[2];
-          errors.value[errorKey] = validationErrors[key][0];
-        } else {
-          errors.value[key] = validationErrors[key][0];
-        }
-      });
+    if (error.response?.status === 422 && error.response?.data?.errors) {
+      errors.value = error.response.data.errors;
+
+      // Iterate and display all error messages
+      for (const key in errors.value) {
+        const errorMessages = Array.isArray(errors.value[key]) ? errors.value[key] : [errors.value[key]];
+        errorMessages.forEach((errorMsg: string) => {
+          toast.error(errorMsg);
+        });
+      }
     }
+    // Jika ada message dari backend (misal error 400, 500, dll)
+    else if (error.response?.data?.message) {
+      toast.error(error.response.data.message);
+    } else {
+      toast.error('Terjadi kesalahan saat menyimpan data');
+    }
+
   } finally {
     loading.value = false;
   }
@@ -229,13 +231,13 @@ const onLocationChange = async () => {
     // Map inventories to products dropdown using nested product object
     console.log(res.data);
     products.value = Array.isArray(res.data)
-      ? res.data.map((inv: { product_id: string|number, product_name: string, sloc_id?: string, uom_id?: string, sizes: Array<{ size_id: string, qty: number }> }) => ({
-          id: inv.product_id,
-          name: inv.product_name,
-          sloc_id: inv.sloc_id || '',
-          uom_id: inv.uom_id || '',
-          sizes: inv.sizes || []
-        }))
+      ? res.data.map((inv: { product_id: string | number, product_name: string, sloc_id?: string, uom_id?: string, sizes: Array<{ size_id: string, qty: number }> }) => ({
+        id: inv.product_id,
+        name: inv.product_name,
+        sloc_id: inv.sloc_id || '',
+        uom_id: inv.uom_id || '',
+        sizes: inv.sizes || []
+      }))
       : [];
     formData.value.product_id = '';
     formData.value.stock_opname_items = [];
@@ -249,11 +251,12 @@ const onLocationChange = async () => {
 </script>
 
 <template>
+
   <Head title="Create Stock Opname" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-4 py-4">
       <h1 class="text-sm font-bold mb-4">Create Stock Opname</h1>
-      
+
       <div class="bg-white rounded-md shadow p-6">
         <form @submit.prevent="submitForm">
           <!-- Main Form -->
@@ -261,12 +264,8 @@ const onLocationChange = async () => {
             <!-- Location -->
             <div>
               <Label for="location_id">Location</Label>
-              <select 
-                v-model="formData.location_id" 
-                id="location_id" 
-                class="w-full border rounded p-2" 
-                @change="onLocationChange"
-              >
+              <select v-model="formData.location_id" id="location_id" class="w-full border rounded p-2"
+                @change="onLocationChange">
                 <option value="" disabled>Select location</option>
                 <option v-for="location in locations" :key="location.id" :value="location.id">
                   {{ location.name }}
@@ -274,16 +273,12 @@ const onLocationChange = async () => {
               </select>
               <p v-if="errors.location_id" class="text-red-600 text-sm mt-1">{{ errors.location_id }}</p>
             </div>
-          
+
             <!-- Product -->
             <div>
               <Label for="product_id">Product</Label>
-              <select 
-                v-model="formData.product_id" 
-                id="product_id" 
-                class="w-full border rounded p-2" 
-                @change="onProductChange"
-              >
+              <select v-model="formData.product_id" id="product_id" class="w-full border rounded p-2"
+                @change="onProductChange">
                 <option value="" disabled>Select product</option>
                 <option v-for="product in products" :key="product.id" :value="product.id">
                   {{ product.name }}
@@ -291,47 +286,33 @@ const onLocationChange = async () => {
               </select>
               <p v-if="errors.product_id" class="text-red-600 text-sm mt-1">{{ errors.product_id }}</p>
             </div>
-              
+
             <!-- Storage Location -->
             <div>
               <Label for="sloc_id">Storage Location</Label>
-              <Input 
-                v-model="formData.sloc_id" 
-                id="sloc_id" 
-                readonly
-                class="w-full border rounded p-2" 
-                @input="clearError('sloc_id')"
-              />
+              <Input v-model="formData.sloc_id" id="sloc_id" readonly class="w-full border rounded p-2"
+                @input="clearError('sloc_id')" />
               <p v-if="errors.sloc_id" class="text-red-600 text-sm mt-1">{{ errors.sloc_id }}</p>
             </div>
-            
+
             <!-- UOM -->
             <div>
               <Label for="uom_id">Unit of Measure</Label>
-              <Input 
-                v-model="formData.uom_id" 
-                id="uom_id" 
-                readonly
-                class="w-full border rounded p-2" 
-                @change="clearError('uom_id')"
-              />
+              <Input v-model="formData.uom_id" id="uom_id" readonly class="w-full border rounded p-2"
+                @change="clearError('uom_id')" />
               <p v-if="errors.uom_id" class="text-red-600 text-sm mt-1">{{ errors.uom_id }}</p>
             </div>
-            
+
             <!-- Remark -->
             <div class="md:col-span-2">
               <Label for="remark">Remark</Label>
-              <Input 
-                v-model="formData.remark" 
-                id="remark" 
-                placeholder="Enter remark"
-              />
+              <Input v-model="formData.remark" id="remark" placeholder="Enter remark" />
             </div>
           </div>
-          
+
           <!-- Items Table -->
           <div class="mb-6">
-                       
+
             <div class="overflow-x-auto">
               <table class="w-full border-collapse">
                 <thead>
@@ -347,61 +328,40 @@ const onLocationChange = async () => {
                   <tr v-for="(item, index) in formData.stock_opname_items" :key="index" class="border-b">
                     <!-- Size -->
                     <td class="border p-2">
-                      <Input
-                        type="text" 
-                        v-model="item.size_id" 
-                        class="w-full border rounded p-1" 
-                        readonly
-                      />
+                      <Input type="text" v-model="item.size_id" class="w-full border rounded p-1" readonly />
                       <p v-if="index === 0 && errors['stock_opname_items.size_id']" class="text-red-600 text-xs mt-1">
                         {{ errors['stock_opname_items.size_id'] }}
                       </p>
                     </td>
-                    
+
                     <!-- System Qty -->
                     <td class="border p-2">
-                      <Input 
-                        type="number" 
-                        v-model="item.qty_system" 
-                        class="w-full" 
-                        @input="calculateDifference(index)"
-                      />
+                      <Input type="number" v-model="item.qty_system" class="w-full"
+                        @input="calculateDifference(index)" />
                     </td>
-                    
+
                     <!-- Physical Qty -->
                     <td class="border p-2">
-                      <Input 
-                        type="number" 
-                        v-model="item.qty_physical" 
-                        class="w-full" 
-                        @input="calculateDifference(index)"
-                      />
+                      <Input type="number" v-model="item.qty_physical" class="w-full"
+                        @input="calculateDifference(index)" />
                     </td>
-                    
+
                     <!-- Difference -->
                     <td class="border p-2">
-                      <Input 
-                        type="number" 
-                        v-model="item.difference" 
-                        class="w-full" 
-                        readonly
-                      />
+                      <Input type="number" v-model="item.difference" class="w-full" readonly />
                     </td>
-                    
+
                     <!-- Note -->
                     <td class="border p-2">
-                      <Input 
-                        v-model="item.note" 
-                        class="w-full"
-                      />
+                      <Input v-model="item.note" class="w-full" />
                     </td>
-                
+
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
-          
+
           <!-- Form Actions -->
           <div class="flex justify-end gap-4">
             <Button type="button" variant="outline" @click="router.visit('/stock-opnames')">
