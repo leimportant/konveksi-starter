@@ -4,12 +4,29 @@ export function useCurrencyInput(initialValue: number = 0) {
   const internalValue = ref(initialValue);
   const formattedValue = ref('');
 
-  const formatRupiah = (value: number | string): string => {
-    if (value === null || value === undefined || value === '') return '';
-    const numberValue = typeof value === 'string' ? parseFloat(value.replace(/[^\d,-]/g, '').replace(/,/g, '.')) : value;
-    if (isNaN(numberValue)) return '';
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(numberValue);
+const formatRupiah = (
+  value: number | string,
+  withPrefix: boolean = false
+): string => {
+  if (value === null || value === undefined || value === '') return '';
+  const numberValue = typeof value === 'string'
+    ? parseFloat(value.replace(/[^\d,-]/g, '').replace(/,/g, '.'))
+    : value;
+  if (isNaN(numberValue)) return '';
+
+  const options: Intl.NumberFormatOptions = {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   };
+
+  if (withPrefix) {
+    options.style = 'currency';
+    options.currency = 'IDR';
+  }
+
+  return new Intl.NumberFormat('id-ID', options).format(numberValue);
+};
+
 
   const parseRupiah = (value: string): number => {
     const parsed = parseFloat(value.replace(/[^\d,-]/g, '').replace(/,/g, '.'));
