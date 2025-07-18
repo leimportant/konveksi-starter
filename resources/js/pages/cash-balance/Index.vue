@@ -4,6 +4,7 @@ import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-vue-next';
 import {
   Table,
   TableBody,
@@ -92,7 +93,16 @@ const prevPage = () => {
                   <span v-if="item.closing_balance !== null">
                     Rp {{ item.closing_balance.toLocaleString() }}
                   </span>
-                  <span v-else class="italic text-gray-400">N/A</span>
+                  <span v-else class="italic text-gray-400">
+                     <Button
+                    variant="ghost"
+                    size="icon"
+                    class="hover:bg-gray-100"
+                    @click="$inertia.visit(`/cash-balances/${item.id}/close`)"
+                  >
+                    <Edit class="h-4 w-4 text-gray-600" />
+                  </Button>
+                  </span>
                 </TableCell>
                 <TableCell>
                   <span
