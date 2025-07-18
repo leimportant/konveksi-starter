@@ -237,7 +237,7 @@ async function submitShipping() {
     <Head title="Riwayat Order" />
     <AppLayout>
          <div class="px-4 py-4">
-        <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white min-h-screen overflow-x-auto">
+        <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white">
             <Input
             v-model="filterName"
             placeholder="Search"
