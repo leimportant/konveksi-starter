@@ -92,7 +92,7 @@ export const useCashBalanceStore = defineStore('cashBalance', {
 
         async closing(id: number, payload: CashBalanceClosePayload) {
             try {
-                const response = await axios.post(`/api/cash-balance/${id}/close`, payload)
+                const response = await axios.put(`/api/cash-balance/${id}/close`, payload)
                 this.error = null
                 return response.data
             } catch (error) {
