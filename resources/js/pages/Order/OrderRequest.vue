@@ -46,11 +46,15 @@ const perPage = ref(10);
 
 const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 1)));
 
+const tableContainer = ref<HTMLElement | null>(null);
+
 const handleScroll = () => {
-    const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight - 100; // 100px from bottom
-    if (bottomOfWindow && !isLoading.value && scrollPage.value < totalPages.value) {
-        scrollPage.value++;
-        fetchOrderRequest({ status: activeTab.value, page: scrollPage.value, per_page: perPage.value, append: true });
+    if (tableContainer.value) {
+        const { scrollTop, scrollHeight, clientHeight } = tableContainer.value;
+        if (scrollTop + clientHeight >= scrollHeight - 100 && !isLoading.value && scrollPage.value < totalPages.value) {
+            scrollPage.value++;
+            fetchOrderRequest({ status: activeTab.value, page: scrollPage.value, per_page: perPage.value, append: true });
+        }
     }
 };
 
@@ -81,11 +85,15 @@ onMounted(() => {
     fetchBankAccount();
     fetchOrderRequest({ status: activeTab.value, page: scrollPage.value, per_page: perPage.value, name: filterName.value });
 
-    window.addEventListener('scroll', handleScroll);
+    if (tableContainer.value) {
+        tableContainer.value.addEventListener('scroll', handleScroll);
+    }
 });
 
 onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll);
+    if (tableContainer.value) {
+        tableContainer.value.removeEventListener('scroll', handleScroll);
+    }
 });
 
 watch(activeTab, (newTab) => {
@@ -230,7 +238,7 @@ async function submitShipping() {
     <Head title="Riwayat Order" />
     <AppLayout>
          <div class="px-4 py-4">
-        <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white min-h-screen">
+        <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white min-h-screen overflow-x-auto">
             <Input
             v-model="filterName"
             placeholder="Search"
@@ -271,7 +279,7 @@ async function submitShipping() {
             <div v-else-if="error" class="text-center text-red-500 text-sm py-6">{{ error }}</div>
             <div v-else-if="filteredOrders.length === 0" class="text-center text-gray-500 text-sm py-6">Tidak ada
                 pesanan ditemukan.</div>
-            <div v-else class="overflow-x-auto border rounded h-[calc(100vh-250px)] overflow-y-auto">
+            <div v-else ref="tableContainer" class="overflow-x-auto border rounded h-[calc(100vh-250px)] overflow-y-auto">
                 <Table class="w-full">
                     <TableHeader>
                         <TableRow class="bg-gray-100">
