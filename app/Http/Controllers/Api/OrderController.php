@@ -53,21 +53,20 @@ class OrderController extends Controller
 
         // Handle CART status secara khusus
         if ($request->input('status') === 'cart') {
-            $cartItems = CartItem::with('creator', 'product')
-                ->paginate($perPage);
-
-            // FILTER berdasarkan `name` atau lainnya
+            $query = CartItem::with('creator', 'product');
+                // FILTER sebelum paginate
             if ($request->filled('name')) {
                 $search = strtolower($request->input('name'));
 
-                $cartItems = $cartItems->filter(function ($item) use ($search) {
-                    return
-                        strpos(strtolower($item->product->name ?? ''), $search) !== false ||
-                        strpos((string) $item->id, $search) !== false ||
-                        strpos((string) $item->quantity, $search) !== false ||
-                        strpos(strtolower($item->creator->name ?? ''), $search) !== false;
-                });
+                $query->whereHas('product', function ($q) use ($search) {
+                    $q->whereRaw('LOWER(name) LIKE ?', ["%$search%"]);
+                })->orWhereHas('creator', function ($q) use ($search) {
+                    $q->whereRaw('LOWER(name) LIKE ?', ["%$search%"]);
+                })->orWhereRaw('LOWER(id) LIKE ?', ["%$search%"])
+                ->orWhereRaw('LOWER(quantity) LIKE ?', ["%$search%"]);
             }
+
+            $cartItems = $query->paginate($perPage);
 
             $fakeOrders = $cartItems->map(function ($item) use ($user) {
                 $totalAmount = ($item->price_sell ?? 0) * $item->quantity;
