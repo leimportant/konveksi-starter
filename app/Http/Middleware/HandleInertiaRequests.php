@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use Inertia\Inertia; 
 
 class HandleInertiaRequests extends Middleware
 {
@@ -37,19 +38,47 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        // Optional: Log jika ada request JSON (misalnya dari fetch/axios luar Inertia)
+        if ($request->expectsJson() && !Inertia::isInertiaRequest()) {
+            \Log::warning('Non-Inertia JSON request hit share()', [
+                'url' => $request->url(),
+                'user' => $request->user()?->id,
+            ]);
+        }
+
+        // Optional: pisahkan quote agar tidak dikirim saat API/json
+        $quote = null;
+        if (!$request->expectsJson()) {
+            [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+            $quote = ['message' => trim($message), 'author' => trim($author)];
+        }
 
         return [
             ...parent::share($request),
-            'name' => config('app.name'),
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
+
+            // Global config
+            'appName' => config('app.name'),
+
+            // Optional quote (hanya kirim saat request normal)
+            'quote' => $quote,
+
+            // Auth info
             'auth' => [
                 'user' => $request->user(),
             ],
-            'ziggy' => [
+
+            // Ziggy route info (untuk Vue routing helper)
+            'ziggy' => fn() => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+
+            // Flash messages (rekomendasi)
+            'flash' => [
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
+            ],
         ];
     }
+
 }
