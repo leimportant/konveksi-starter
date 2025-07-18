@@ -59,7 +59,6 @@ const handleScroll = () => {
 };
 
 
-
 const {  fetchBankAccount } = useOrdersCustomer();
 const statusLabel = (status: number) => {
   const statuses = {
