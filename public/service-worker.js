@@ -1,12 +1,12 @@
-const CACHE_NAME = 'aninkafashion-cache-v1';
+const CACHE_NAME = 'aninkafashion-cache-v2';
 
 const urlsToCache = [
     '/',
     '/index.php',
 
 
-    '/images/icons/icon-192x192.svg',
-    '/images/icons/icon-512x512.svg',
+    '/images/icons/icon-192x192-2.svg',
+    '/images/icons/icon-512x512-2.svg',
     '/manifest.json'
 ];
 
@@ -34,19 +34,23 @@ self.addEventListener('fetch', event => {
             })
     );
 });
-
 self.addEventListener('activate', event => {
-    console.log('Service Worker: Activating...');
-    const cacheWhitelist = [CACHE_NAME];
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
+  console.log('Service Worker: Activating...');
+  const cacheWhitelist = [CACHE_NAME];
+
+  event.waitUntil(
+    (async () => {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map(cacheName => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            console.log(`Service Worker: Deleting old cache - ${cacheName}`);
+            return caches.delete(cacheName);
+          }
         })
-    );
+      );
+      // Ambil kendali atas halaman segera
+      await self.clients.claim();
+    })()
+  );
 });

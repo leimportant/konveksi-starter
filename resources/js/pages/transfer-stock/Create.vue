@@ -262,9 +262,25 @@ onMounted(async () => {
     locations.push(...locRes.data.data)
     slocs.push(...slocRes.data.data)
     products.push(...prodRes.data.data)
-  } catch (err) {
-    console.error(err)
-    toast.error('Gagal memuat data')
+  } catch (error: any) {
+     if (error.response?.status === 422 && error.response?.data?.errors) {
+      errors.value = error.response.data.errors;
+
+      // Iterate and display all error messages
+      for (const key in errors) {
+        const errorMessages = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
+        errorMessages.forEach((errorMsg: string) => {
+          toast.error(errorMsg);
+        });
+      }
+    } 
+     // Jika ada message dari backend (misal error 400, 500, dll)
+      else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+          toast.error('Terjadi kesalahan saat menyimpan data');
+      }
+    
   }
 })
 watch(() => form.location_id, () => {

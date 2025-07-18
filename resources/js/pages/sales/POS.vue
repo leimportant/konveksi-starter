@@ -357,7 +357,7 @@
             </Modal>
 
             <Modal :show="showReprintDialog" @close="closeReprintDialog" title="RePrint Struk">
-                <div class="space-y-1 p-3 sm:p-4 text-sm">
+                <div class="space-y-1 p-1 sm:p-1 text-sm">
 
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <Input v-model="searchTransaction" class="flex-1 sm:w-64" placeholder="Cari transaksi..."

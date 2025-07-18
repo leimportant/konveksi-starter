@@ -73,6 +73,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useCashBalanceStore } from '@/stores/useCashBalanceStore'
 import { useToast } from '@/composables/useToast'
+// import Tab from 'primevue/tab'
 
 interface ShiftForm {
   shift_number: number
@@ -136,8 +137,17 @@ const handleSubmit = async () => {
   } catch (error: any) {
     console.error('Shift creation error:', error)
     
-    if (error.response?.data?.errors) {
-      errors.value = { ...errors.value, ...error.response.data.errors }
+    // Handle validation errors from backend
+    if (error.response?.status === 422 && error.response?.data?.errors) {
+      errors.value = error.response.data.errors;
+
+      toast.error(error.response.data.message);
+    }
+    // Jika ada message dari backend (misal error 400, 500, dll)
+    else if (error.response?.data?.message) {
+      toast.error(error.response.data.message);
+    } else {
+      toast.error('Terjadi kesalahan saat menyimpan data');
     }
   } finally {
     loading.value = false
