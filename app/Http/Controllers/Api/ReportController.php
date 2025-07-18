@@ -22,7 +22,7 @@ class ReportController extends Controller
         $query = DB::table('t_orders as a')
             ->leftJoin('t_order_items as b', 'a.id', '=', 'b.order_id')
             ->leftJoin('mst_product as c', 'b.product_id', '=', 'c.id')
-            ->leftJoin('mst_customer as d', 'a.customer_id', '=', 'd.id')
+            ->leftJoin('mst_customer as d', 'a.customer_id', '=', 'd.user_id')
             ->select('a.customer_id', 'a.payment_method', 'a.status', 'b.product_id', 'c.name as product_name', 'b.qty', 'b.uom_id', 'b.size_id', 'b.discount', 'b.price', 'b.price_final')
             ->whereBetween(DB::raw('DATE(a.created_at)'), [$startDate, $endDate])
             ->where('a.status', '!=', '1');
