@@ -37,7 +37,6 @@ class DashboardController extends Controller
 
         return response()->json($data);
     }
-
     public function indexCustomer(Request $request)
     {
         $userId = Auth::id();
@@ -48,12 +47,13 @@ class DashboardController extends Controller
             ->where('customer_id', $userId)
             ->get();
 
-        // Hitung total produk unik dari semua orderItem user
-        $uniqueProductIds = $transactions->flatMap(function ($transaction) {
-            return $transaction->orderItems->pluck('product_id');
-        })->unique();
+        // Ambil semua orderItem
+        $allOrderItems = $transactions->flatMap(function ($transaction) {
+            return $transaction->orderItems;
+        });
 
-        $totalProduk = $uniqueProductIds->count();
+          // Hitung total quantity dari semua order item
+        $totalQtyProduk = $allOrderItems->sum('quantity');
 
         // Total order = jumlah transaksi
         $totalOrder = $transactions->count();
@@ -62,13 +62,14 @@ class DashboardController extends Controller
         $totalPembelian = $transactions->sum('total_amount');
 
         $data = [
-            'totalProduk' => $totalProduk,
+            'totalProdukUnik' => $totalQtyProduk,
             'totalOrder' => $totalOrder,
             'totalPembelian' => $totalPembelian,
         ];
 
         return response()->json($data);
     }
+
 
 
     public function getBadgeCounts(Request $request)
