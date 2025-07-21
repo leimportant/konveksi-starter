@@ -5,8 +5,10 @@ import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useTransferStockStore } from '@/stores/useTransferStockStore';
 import { Head, usePage } from '@inertiajs/vue3';
+import { Input } from '@/components/ui/input'
 import { Edit, Eye, Plus, Trash2 } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
+import debounce from 'lodash-es/debounce';
 import { onMounted, computed, watch, ref } from 'vue';
 
 const toast = useToast();
@@ -15,16 +17,17 @@ const { transfers, filters, loading, currentPage, lastPage } = storeToRefs(store
 
 const perPage = ref(10);
 
+const debouncedFetchTransfers = debounce(() => {
+    store.fetchTransfers(1, perPage.value);
+}, 500);
+
 onMounted(() => {
     store.fetchTransfers(currentPage.value, perPage.value);
 });
 
 watch(
-    filters,
-    async () => {
-        await store.fetchTransfers(1, perPage.value);
-    },
-    { deep: true },
+    () => filters.value.productName,
+    debouncedFetchTransfers,
 );
 
 watch(currentPage, async (newPage) => {

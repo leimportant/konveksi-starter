@@ -208,6 +208,23 @@ const handleUploadTransfer = (orderId: string) => {
     showUploadTransfer.value = true;
 };
 
+const statusLabel = (status: number) => {
+  const statuses = {
+    1: 'Pending',
+    2: 'Menunggu Pembayaran',
+    3: 'Menunggu Konfirmasi',
+    4: 'On Progress',
+    5: 'Sedang Dikemas',
+    6: 'Selesai',
+    7: 'Dibatalkan',
+    8: 'Konfirmasi Pembatalan',
+    9: 'Dikirim',
+    10: 'Disetujui',
+    11: 'Ditolak'
+  };
+  return statuses[status as keyof typeof statuses] || '-';
+};
+
 const submitTransfer = async () => {
     if (!paymentProofFile.value) {
         toast.error('Silahkan pilih file bukti transfer terlebih dahulu.');
@@ -383,15 +400,13 @@ const submitTransfer = async () => {
                                         }).format(Number(order.total_amount))
                                     }}
                                 </TableCell>
-                                <TableCell class="text-gray-800 text-sm space-y-1">
-
-                                    <span class="text-xs font-semibold" :class="{
+                                  <TableCell>
+                                    <span :class="{
                                         'text-yellow-600': order.status === 1,
                                         'text-green-600': order.status === 2,
                                         'text-red-600': order.status === 3,
                                     }">
-                                        {{ order.status === 1 ? 'Pending' : order.status === 2 ? 'Selesai' : order.status === 3 ? 'Menunggu Konfirmasi' : order.status === 4 ? 'On Progress' : order.status === 5 ? 'Sedang di kemas' :
-                                        'Dikirim' }}
+                                        {{ statusLabel(order.status) }} 
                                     </span>
                                 </TableCell>
 

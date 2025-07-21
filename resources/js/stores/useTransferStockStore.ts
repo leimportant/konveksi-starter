@@ -98,7 +98,7 @@ export const useTransferStockStore = defineStore('transferStock', {
         const params = {
           page,
           per_page: perPage,
-          'filter[product_name]': this.filters.productName,
+          search: this.filters.productName,
         };
         const res = await axios.get('/api/transfer-stock', { params });
         this.transfers = res.data.data;

@@ -128,14 +128,18 @@ watch(activeTab, (newTab) => {
 
 
 watch(filterName, debounce((newValue) => {
-    orders.value = []; // Clear orders when filter changes
-    scrollPage.value = 1;
-    setFilterOrderRequest('name', newValue, { status: activeTab.value, page: scrollPage.value, per_page: perPage.value, append: false });
+  scrollPage.value = 1;
+  setFilterOrderRequest('name', newValue, {
+    status: activeTab.value,
+    page: scrollPage.value,
+    per_page: perPage.value,
+    append: false,
+  });
 }, 400));
 
-    const filteredOrders = computed(() => {
-        return orders.value;
-    });
+const filteredOrders = computed(() => {
+    return orders.value;
+});
 
 const openMessageModal = (ids: string[], targetReceiverId: number) => {
     receiverId.value = targetReceiverId;
@@ -304,7 +308,13 @@ async function submitShipping() {
             <div v-else-if="error" class="text-center text-red-500 text-sm py-6">{{ error }}</div>
             <div v-else-if="filteredOrders.length === 0" class="text-center text-gray-500 text-sm py-6">Tidak ada
                 pesanan ditemukan.</div>
-            <div v-else ref="tableContainer" @scroll="handleScroll" class="relative overflow-y-auto h-[calc(100vh-250px)]">
+            <div
+                ref="tableContainer"
+                @scroll="handleScroll"
+                class="relative overflow-y-auto h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] lg:h-[calc(100vh-250px)]"
+
+                >
+
                 <Table class="w-full text-sm">
                     <TableHeader>
                         <TableRow class="bg-gray-100 text-sm leading-tight py-1">
