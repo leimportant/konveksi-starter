@@ -12,7 +12,7 @@ const props = defineProps<{
     data-sidebar="content"
     :class="cn(
       // Base layout
-      'flex flex-1 flex-col gap-2 min-h-0 overflow-auto',
+      'flex flex-1 flex-col gap-2 min-h-0 min-h-screen flex flex-col',
       // Responsiveness when collapsed
       'group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-0',
       // Optional classes
