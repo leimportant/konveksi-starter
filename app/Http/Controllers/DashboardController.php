@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 
 class DashboardController extends Controller
@@ -40,6 +41,7 @@ class DashboardController extends Controller
     public function indexCustomer(Request $request)
     {
         $userId = Auth::id();
+        Log::info($userId);
 
         // Ambil semua transaksi user
         $transactions = PosTransaction::with('orderItems')
@@ -60,11 +62,9 @@ class DashboardController extends Controller
         $totalPembelian = $transactions->sum('total_amount');
 
         $data = [
-            'stats' => [
-                'totalProduk' => $totalProduk,
-                'totalOrder' => $totalOrder,
-                'totalPembelian' => $totalPembelian,
-            ],
+            'totalProduk' => $totalProduk,
+            'totalOrder' => $totalOrder,
+            'totalPembelian' => $totalPembelian,
         ];
 
         return response()->json($data);
