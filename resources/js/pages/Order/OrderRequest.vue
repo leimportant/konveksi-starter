@@ -267,7 +267,7 @@ async function submitShipping() {
     <Head title="Riwayat Order" />
     <AppLayout>
          <div class="px-4 py-4">
-        <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white">
+        <section class="fixed px-2 py-2 sm:px-4 sm:py-4 bg-white">
             <Input
             v-model="filterName"
             placeholder="Search"
@@ -311,7 +311,7 @@ async function submitShipping() {
             <div
                 ref="tableContainer"
                 @scroll="handleScroll"
-                class="relative overflow-y-auto h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] lg:h-[calc(100vh-250px)]"
+                class="relative overflow-auto h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] lg:h-[calc(100vh-250px)]"
 
                 >
 
