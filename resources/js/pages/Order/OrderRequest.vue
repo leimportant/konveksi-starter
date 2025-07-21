@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { DateInput } from '@/components/ui/date-input';
 import { useOrdersCustomer } from '@/stores/useOrderCustomer';
 import { Head } from '@inertiajs/vue3';
-import { computed, onMounted, onUnmounted, watch, ref } from 'vue';
+import { computed, onMounted, onUnmounted, watch, ref, nextTick } from 'vue';
 import axios from 'axios';
 // import { useOrderCustomer } from '../../composables/useOrderCustomer'; // Remove this line
 
@@ -44,19 +44,43 @@ const shippingOrderId = ref<string | null>(null);
 const scrollPage = ref(1);
 const perPage = ref(10);
 
-const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 1)));
+const totalPages = computed(() => {
+    return pagination.value?.total || 1;
+});
 
 const tableContainer = ref<HTMLElement | null>(null);
 
 const handleScroll = () => {
-    if (tableContainer.value) {
-        const { scrollTop, scrollHeight, clientHeight } = tableContainer.value;
-        if (scrollTop + clientHeight >= scrollHeight - 100 && !isLoading.value && scrollPage.value < totalPages.value) {
-            scrollPage.value++;
-            fetchOrderRequest({ status: activeTab.value, page: scrollPage.value, per_page: perPage.value, append: true });
-        }
+  if (tableContainer.value) {
+    const { scrollTop, scrollHeight, clientHeight } = tableContainer.value;
+
+    if (
+      scrollTop + clientHeight >= scrollHeight - 200 &&
+      !isLoading.value &&
+      scrollPage.value < totalPages.value
+    ) {
+      const previousScrollHeight = scrollHeight;
+
+      scrollPage.value++;
+
+      fetchOrderRequest({
+        status: activeTab.value,
+        page: scrollPage.value,
+        per_page: perPage.value,
+        append: true,
+      }).then(() => {
+        // Kembalikan posisi scroll setelah data ditambahkan
+        nextTick(() => {
+          if (tableContainer.value) {
+            const newScrollHeight = tableContainer.value.scrollHeight;
+            tableContainer.value.scrollTop += newScrollHeight - previousScrollHeight;
+          }
+        });
+      });
     }
+  }
 };
+
 
 
 const {  fetchBankAccount } = useOrdersCustomer();
@@ -97,6 +121,8 @@ onUnmounted(() => {
 
 watch(activeTab, (newTab) => {
     scrollPage.value = 1;
+    console.log('ScrollPage:', scrollPage.value, 'TotalPages:', totalPages.value);
+
     fetchOrderRequest({ status: newTab, page: scrollPage.value, per_page: perPage.value, name: filterName.value });
 });
 
@@ -278,10 +304,10 @@ async function submitShipping() {
             <div v-else-if="error" class="text-center text-red-500 text-sm py-6">{{ error }}</div>
             <div v-else-if="filteredOrders.length === 0" class="text-center text-gray-500 text-sm py-6">Tidak ada
                 pesanan ditemukan.</div>
-            <div v-else ref="tableContainer" class="overflow-x-auto border rounded h-[calc(100vh-250px)] overflow-y-auto">
-                <Table class="w-full">
+            <div v-else ref="tableContainer" @scroll="handleScroll" class="relative overflow-y-auto h-[calc(100vh-250px)]">
+                <Table class="w-full text-sm">
                     <TableHeader>
-                        <TableRow class="bg-gray-100">
+                        <TableRow class="bg-gray-100 text-sm leading-tight py-1">
                             <TableHead class="w-[5%]">#</TableHead>
                             <TableHead class="w-[10%]">No. Order</TableHead>
                             <TableHead class="w-[10%]">Customer</TableHead>

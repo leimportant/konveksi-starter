@@ -7,15 +7,38 @@ import { useTransferStockStore } from '@/stores/useTransferStockStore';
 import { Head, usePage } from '@inertiajs/vue3';
 import { Edit, Eye, Plus, Trash2 } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
-import { onMounted } from 'vue';
+import { onMounted, computed, watch, ref } from 'vue';
 
 const toast = useToast();
 const store = useTransferStockStore();
-const { transfers } = storeToRefs(store);
+const { transfers, filters, loading, currentPage, lastPage } = storeToRefs(store);
+
+const perPage = ref(10);
 
 onMounted(() => {
-    store.fetchTransfers();
+    store.fetchTransfers(currentPage.value, perPage.value);
 });
+
+watch(
+    filters,
+    async () => {
+        await store.fetchTransfers(1, perPage.value);
+    },
+    { deep: true },
+);
+
+watch(currentPage, async (newPage) => {
+    await store.fetchTransfers(newPage, perPage.value);
+});
+
+const totalPages = computed(() => lastPage.value || 1);
+const goToPage = async (page: number) => {
+    if (page < 1 || page > totalPages.value) return;
+    currentPage.value = page;
+};
+
+const nextPage = () => goToPage(currentPage.value + 1);
+const prevPage = () => goToPage(currentPage.value - 1);
 
 const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this transfer?')) return;
@@ -41,21 +64,31 @@ const user = page.props.auth.user as User;
 const locationId = user.location_id;
 
 const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
+
+
+
+
 </script>
 
 <template>
     <Head title="Transfer Stocks" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="px-4 py-4">
+
+             <!-- Top bar -->
             <div class="mb-6 flex items-center justify-between">
-                <Button
-                    @click="$inertia.visit(`/transfer-stock/create`)"
-                    class="rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                >
-                    <Plus class="mr-2 h-4 w-4" />
-                    Add
+                <Button @click="$inertia.visit(`/transfer-stock/create`)" class="gap-2 bg-blue-600 text-white hover:bg-blue-700">
+                    <Plus class="h-4 w-4" /> Add
                 </Button>
+                <Input
+                    v-model="filters.productName"
+                    placeholder="Search"
+                    class="w-64 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    aria-label="Search"
+                    :disabled="loading"
+                />
             </div>
+
 
             <div class="rounded-md border">
                 <Table>
@@ -120,6 +153,34 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                         </TableRow>
                     </TableBody>
                 </Table>
+            </div>
+            <!-- Pagination -->
+            <div class="mt-4 flex justify-end space-x-2">
+                <button
+                    @click="prevPage"
+                    :disabled="currentPage === 1"
+                    class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                >
+                    Previous
+                </button>
+                <template v-for="page in totalPages" :key="page">
+                    <button
+                        @click="goToPage(page)"
+                        :class="[
+                            'rounded border px-3 py-1 text-sm',
+                            page === currentPage ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100',
+                        ]"
+                    >
+                        {{ page }}
+                    </button>
+                </template>
+                <button
+                    @click="nextPage"
+                    :disabled="currentPage === totalPages"
+                    class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                >
+                    Next
+                </button>
             </div>
         </div>
     </AppLayout>
