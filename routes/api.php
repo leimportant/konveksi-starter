@@ -81,6 +81,7 @@ Route::middleware('auth')->group(function () {
     Route::get('api/dashboard', [DashboardController::class, 'index']);
     Route::get('api/dashboard/sales', [DashboardController::class, 'getSalesData']);
     Route::get('api/dashboard/sales/amount', [DashboardController::class, 'getSalesByOmsetData']);
+    Route::get('api/dashboard/customer', [DashboardController::class, 'indexCustomer']);
     // User management
     
     Route::apiResource('api/users', controller: UserController::class);
