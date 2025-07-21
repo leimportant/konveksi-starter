@@ -62,7 +62,7 @@ class DashboardController extends Controller
         $totalPembelian = $transactions->sum('total_amount');
 
         $data = [
-            'totalProdukUnik' => $totalQtyProduk,
+            'totalProduk' => $totalQtyProduk,
             'totalOrder' => $totalOrder,
             'totalPembelian' => $totalPembelian,
         ];
