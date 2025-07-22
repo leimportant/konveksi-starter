@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 use Inertia\Inertia; 
+// use Illuminate\Support\Facades\Log;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,12 +40,12 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         // Optional: Log jika ada request JSON (misalnya dari fetch/axios luar Inertia)
-       if ($request->expectsJson() && !$request->header('X-Inertia')) {
-            \Log::debug('[Inertia Share] JSON fallback response dipanggil', [
-                'url' => $request->url(),
-                'headers' => $request->headers->all(),
-            ]);
-        }
+        // if ($request->expectsJson() && !$request->header('X-Inertia')) {
+        //      Log::debug('[Inertia Share] JSON fallback response dipanggil', [
+        //          'url' => $request->url(),
+        //          'headers' => $request->headers->all(),
+        //      ]);
+        // }
 
 
         // Optional: pisahkan quote agar tidak dikirim saat API/json

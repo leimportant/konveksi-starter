@@ -14,7 +14,7 @@ const { breadcrumbs = [] } = defineProps<{
 // Chat Store
 const chatStore = useChatStore();
 const { unreadCount } = storeToRefs(chatStore);
-const unreadMessageCount = unreadCount;
+const unreadMessageCount = unreadCount.value;
 
 // Navigation
 
