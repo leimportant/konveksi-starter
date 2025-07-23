@@ -57,12 +57,19 @@ export function useOrdersCustomer() {
     }
   };
 
-    const fetchOrders = async (params?: { status?: string; page?: number; per_page?: number; append?: boolean }) => {
+    const fetchOrders = async (params?: { status?: string; page?: number; per_page?: number; append?: boolean; name?: string }) => {
         isLoading.value = true;
         error.value = null;
         try {
             const response = await axios.get<PaginatedResponse<OrderItem>>('/api/orders/customer', { params });
             pagination.value = response.data;
+
+            // Optional: Early return untuk kasus append tapi data kosong
+            if (params?.append && response.data.data.length === 0) {
+                isLoading.value = false;
+                return;
+            }
+
             if (params?.append) {
                 orders.value = [...orders.value, ...response.data.data];
             } else {
@@ -178,7 +185,7 @@ export function useOrdersCustomer() {
 
     const filters = ref<Record<string, string>>({});
 
-    const setFilter = (field: string, value: string, params?: { page?: number; per_page?: number; append?: boolean }) => {
+    const setFilter = (field: string, value: string, params?: { page?: number; per_page?: number; append?: boolean; name?: string }) => {
         filters.value[field] = value;
         fetchOrders({ [field]: value, ...params });
     };

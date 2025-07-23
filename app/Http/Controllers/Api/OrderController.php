@@ -587,6 +587,16 @@ class OrderController extends Controller
             });
         }
 
+         if ($request->has('name')) {
+            $search = $request->input('name');
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                    ->orWhereHas('orderItems.product', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         $orders = $query->orderBy('created_at', 'desc')->paginate(10);
         return response()->json($orders, 201);
     }

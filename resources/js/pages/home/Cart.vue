@@ -1,14 +1,13 @@
 <template>
 
     <Head title="Belanja" />
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbs">
         <!-- Product Catalog -->
         <section class="flex flex-col md:col-span-4 lg:col-span-4">
             <div class="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <!-- Product Catalog -->
                 <section class="w-full space-y-4 bg-white p-4">
                     <div class="mb-4 flex flex-col gap-2 px-2 sm:flex-row sm:items-center sm:justify-between">
-                        <h2 class="text-sm font-bold text-gray-800 dark:text-gray-500">Katalog Produk</h2>
                         <input type="text" v-model="searchText" @input="onSearchInput" placeholder="Cari produk..."
                             class="w-full rounded border px-3 py-1 text-sm sm:ml-auto sm:w-52" />
                     </div>
@@ -376,6 +375,11 @@ const fullscreenImageUrl = ref('');
 
 const showCart = ref(false);
 const toggleCart = () => (showCart.value = !showCart.value);
+
+
+const breadcrumbs = [
+  { title: 'Katalog Produk', href: '/home' }
+];
 
 const getImageUrl = (path: string) => {
     if (!path) return '';
