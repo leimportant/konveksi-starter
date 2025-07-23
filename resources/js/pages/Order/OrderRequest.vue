@@ -44,9 +44,7 @@ const shippingOrderId = ref<string | null>(null);
 const scrollPage = ref(1);
 const perPage = ref(10);
 
-const totalPages = computed(() => {
-    return pagination.value?.total || 1;
-});
+const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 10)));
 
 const tableContainer = ref<HTMLElement | null>(null);
 
@@ -68,6 +66,7 @@ const handleScroll = () => {
         page: scrollPage.value,
         per_page: perPage.value,
         append: true,
+        name: filterName.value,
       }).then(() => {
         // Kembalikan posisi scroll setelah data ditambahkan
         nextTick(() => {

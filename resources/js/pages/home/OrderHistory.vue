@@ -10,8 +10,10 @@ import { useOrdersCustomer } from '@/stores/useOrderCustomer';
 import { useBankAccountStore } from '@/stores/useBankAccountStore';
 import { Head } from '@inertiajs/vue3';
 import { QrCode } from 'lucide-vue-next';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { Input } from '@/components/ui/input';
+import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue';
 import axios from 'axios';
+import { debounce } from '@/lib/debounce';
 
 const showQr = ref(false);
 const showShipping = ref(false);
@@ -19,50 +21,166 @@ const showMessageModal = ref(false);
 const message = ref('');
 const currentQrId = ref('');
 const selectedOrders = ref<string[]>([]);
-const { orders, isLoading, error, pagination, fetchOrders } = useOrdersCustomer();
+const { orders, isLoading, error, pagination, fetchOrders, setFilter } = useOrdersCustomer();
 const activeTab = ref<'pending' | 'done' | 'cancel'>('pending');
+const isFetchingMore = ref(false);
 
+const filterName = ref('');
 
 const { cancelOrder, checkShipping } = useOrdersCustomer();
-
 const bankAccount = useBankAccountStore();
 const shippingInfo = ref<any>(null);
 
 const toast = useToast();
 const scrollPage = ref(1);
+const perPage = ref(10);
+// const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 1)));
 
-const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 1)));
+const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 10)));
+
+
+const bottomMarker = ref<HTMLElement | null>(null);
+const tableContainer = ref<HTMLElement | null>(null);
+
+const handleScroll2 = () => {
+  if (tableContainer.value) {
+    const { scrollTop, scrollHeight, clientHeight } = tableContainer.value;
+
+    if (
+      scrollTop + clientHeight >= scrollHeight - 200 &&
+      !isLoading.value &&
+      scrollPage.value < totalPages.value
+    ) {
+      const previousScrollHeight = scrollHeight;
+
+      scrollPage.value++;
+
+      fetchOrders({
+        status: activeTab.value,
+        page: scrollPage.value,
+        per_page: perPage.value,
+        append: true,
+        name: filterName.value,
+      }).then(() => {
+        // Kembalikan posisi scroll setelah data ditambahkan
+        nextTick(() => {
+          if (tableContainer.value) {
+            const newScrollHeight = tableContainer.value.scrollHeight;
+            tableContainer.value.scrollTop += newScrollHeight - previousScrollHeight;
+          }
+        });
+      });
+    }
+  }
+};
+
+let observer = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting && !isLoading.value && pagination.value?.next_page_url) {
+        loadMoreOrders(); // fetch next page
+    }
+}, {
+    rootMargin: '200px', // ← tambahkan buffer agar tidak terlalu cepat
+});
+
+const loadMoreOrders = async () => {
+  if (
+    isLoading.value ||
+    !pagination.value ||
+    pagination.value.current_page >= pagination.value.last_page
+  ) {
+    return; // Sudah halaman terakhir, atau masih loading
+  }
+
+  scrollPage.value += 1;
+
+  await fetchOrders({
+    status: activeTab.value,
+    page: scrollPage.value,
+    name: filterName.value,
+    append: true, // penting!
+  });
+};
 
 onMounted(() => {
     orders.value = []; // Clear orders on mount
     scrollPage.value = 1;
-    fetchOrders({ status: activeTab.value, page: scrollPage.value });
+
+    
+     observer = new IntersectionObserver(async (entries) => {
+  if (
+    entries[0].isIntersecting &&
+    !isLoading.value &&
+    !isFetchingMore.value &&
+    scrollPage.value < totalPages.value
+  ) {
+    isFetchingMore.value = true;
+
+    scrollPage.value += 1;
+    await fetchOrders({
+        page: scrollPage.value,
+        per_page: 10,
+        append: true,
+        status: activeTab.value,
+        name: filterName.value,
+      });
+
+      isFetchingMore.value = false;
+  }
+});
+
+
+  if (bottomMarker.value) {
+    observer.observe(bottomMarker.value);
+  }
+
+    // 🟢 Initial fetch
+  fetchOrders({
+    page: scrollPage.value,
+    per_page: 10,
+    append: false,
+    status: activeTab.value,
+    name: filterName.value,
+  });
     bankAccount.fetchBankAccount();
     fetchDashboardData();
-    window.addEventListener('scroll', handleScroll);
+    // window.addEventListener('scroll', handleScroll);
+    if (tableContainer.value) {
+        tableContainer.value.addEventListener('scroll', handleScroll2);
+        tableContainer.value.addEventListener('scroll', handleScroll);
+    }
 });
 
-onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll);
+onBeforeUnmount(() => {
+  if (bottomMarker.value) {
+    observer.unobserve(bottomMarker.value);
+  }
 });
-
+// onUnmounted(() => {
+//     window.removeEventListener('scroll', handleScroll);
+// });
 watch(activeTab, (status) => {
-    orders.value = []; // Clear orders when tab changes
+    orders.value = [];
     scrollPage.value = 1;
-    fetchOrders({ status, page: scrollPage.value });
-});
+    fetchOrders({
+        status,
+        page: scrollPage.value,
+        per_page: 10,
+        append: false,
+        name: filterName.value,
+    });
+}, { immediate: true });
+
+
 
 
 const filteredOrders = computed(() => orders.value);
-
-
-
 
 const handleScroll = () => {
     const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight - 100; // 100px from bottom
     if (bottomOfWindow && !isLoading.value && scrollPage.value < totalPages.value) {
         scrollPage.value++;
-        fetchOrders({ status: activeTab.value, page: scrollPage.value, append: true });
+        fetchOrders({ status: activeTab.value, page: scrollPage.value, per_page: 10, append: true, name: filterName.value });
+
     }
 };
 
@@ -134,7 +252,9 @@ async function handleCancel(orderId: string) {
         setTimeout(() => {
             orders.value = [];
             scrollPage.value = 1;
-            fetchOrders({ status: activeTab.value, page: scrollPage.value });
+            fetchOrders({ status: activeTab.value, page: scrollPage.value, per_page: 10, append: false, name: filterName.value });
+
+
         }, 500); // 0.5 detik
     } catch (err) {
         console.log(err);
@@ -241,13 +361,21 @@ const submitTransfer = async () => {
         await uploadPaymentProof(orderId, paymentProofFile.value); // ✅ FIXED
         toast.success('Bukti transfer berhasil diunggah!');
         showUploadTransfer.value = false;
-        fetchOrders({ status: activeTab.value });
+        fetchOrders({ status: activeTab.value, page: scrollPage.value, per_page: 10 });
     } catch (error) {
         console.error(error);
         toast.error('Gagal mengunggah bukti transfer.');
     }
 };
 
+const debouncedHandleSearch = debounce(async () => {
+  setFilter('status', activeTab.value, {
+    page: scrollPage.value,
+    per_page: 10,
+    append: false,
+    name: filterName.value,
+  });
+}, 500);
 
 
 </script>
@@ -276,8 +404,16 @@ const submitTransfer = async () => {
                 </div>
             </div>
 
+              <Input
+                    v-model="filterName"
+                    placeholder="Search"
+                    class="w-64"
+                    @input="debouncedHandleSearch"
+                    aria-label="Search"
+                    />
             <!-- Tabs -->
             <div class="mb-4 flex flex-wrap gap-2 border-b">
+
                 <button @click="activeTab = 'pending'" :class="[
                     'rounded-t px-4 py-2 text-sm md:',
                     activeTab === 'pending' ? 'border-b-2 text-indigo-400 border-indigo-600 font-semibold' : 'text-gray-500',
@@ -435,7 +571,7 @@ const submitTransfer = async () => {
                             <TableRow>
                                 <TableCell colspan="6" class="rounded-md border border-blue-100 bg-blue-50 p-3">
                                     <h4 class="mb-1 text-sm font-semibold">Detail Pesanan:</h4>
-                                    <div class="space-y-1">
+                                    <div class="space-y-1 min-h-[20px]">
                                         <OrderItem v-for="item in order.order_items" :key="item.id" :item="item" />
                                     </div>
                                     <div class="mt-1 text-right font-semibold">
@@ -453,6 +589,8 @@ const submitTransfer = async () => {
                     </TableBody>
                 </Table>
             </div>
+            <!-- Sentinel untuk trigger infinite scroll -->
+                     <div ref="bottomMarker" style="height: 1px;"></div>
         </section>
 
         <!-- Modal Kirim Pesan -->
@@ -535,3 +673,4 @@ const submitTransfer = async () => {
 
     </AppLayout>
 </template>
+
