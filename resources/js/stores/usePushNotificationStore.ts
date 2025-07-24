@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+const VAPID_PUBLIC_KEY = import.meta.env.VAPID_PUBLIC_KEY;
 
 function urlBase64ToUint8Array(base64String: string) {
   if (!base64String) throw new Error('VAPID public key is missing!');

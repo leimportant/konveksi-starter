@@ -4,6 +4,27 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Customer;
+use App\Models\User;
+use App\Notifications\PushNotification;
+Route::get('/test-push', function () {
+    $user = User::find(30003);
+
+    $subs = $user->pushSubscriptions()->get();
+    // dd('User subscriptions:', ['count' => $subs->count(), 'subs' => $subs]);
+
+    if ($subs->count() > 0) {
+        $user->notify(new PushNotification('Judul', 'Isi', url('/')));
+        return 'Notifikasi berhasil dikirim.';
+    } else {
+        return 'User belum subscribe push notification.';
+    }
+});
+
+Route::get('/push', function () {
+    return Inertia::render('push/SubscribePage', [ // A page that uses the component
+        'vapidPublicKey' => config('webpush.vapid.public_key')
+    ]);
+})->middleware('auth')->name('push.page');
 
 
 Route::get('/', function () {

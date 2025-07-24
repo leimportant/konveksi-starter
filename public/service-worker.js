@@ -54,3 +54,52 @@ self.addEventListener('activate', event => {
     })()
   );
 });
+
+
+self.addEventListener('push', event => {
+    try {
+        const data = event.data.json();
+
+        // It's a good practice to validate the payload.
+        if (!data || !data.title || !data.body || !data.url) {
+            console.error('Push message is missing required data.', data);
+            return;
+        }
+
+        const options = {
+            body: data.body,
+            icon: '/icon.png', // Make sure this icon exists in your public folder.
+            badge: '/badge.png', // A monochrome icon for the status bar (optional).
+            data: {
+                url: data.url
+            }
+        };
+
+        event.waitUntil(
+            self.registration.showNotification(data.title, options)
+        );
+    } catch (e) {
+        console.error('Error processing push event:', e);
+    }
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+
+    // Use new URL to handle relative URLs from the push payload.
+    const urlToOpen = new URL(event.notification.data.url, self.location.origin).href;
+
+    event.waitUntil(
+        clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true
+        }).then(windowClients => {
+            // Check if a window with the target URL is already open.
+            const matchingClient = windowClients.find(client => client.url === urlToOpen);
+
+            // If so, focus it. Otherwise, open a new window.
+            return matchingClient ? matchingClient.focus() : clients.openWindow(urlToOpen);
+        })
+    );
+});
+
