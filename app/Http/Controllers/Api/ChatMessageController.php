@@ -85,6 +85,18 @@ class ChatMessageController extends Controller
             Mail::to($receiver->email)->send(new ChatMessageNotification($chat));
         }
 
+        // ✅ Tambahkan Push Notification ke Receiver
+    if ($receiver) {
+        $title = 'Pesan Baru';
+        $body = $validated['message'];
+        $url = url('/chat/' . $chat->order_id); // Atau URL ke chat detail
+
+        if ($receiver && $receiver->pushSubscriptions()->exists()) {
+          $receiver->notify(new \App\Notifications\PushNotification($title, $body, $url));
+        }
+
+    }
+
         return response()->json([
             'message' => $validated['message'] ?? 'Message sent',
             'data' => $chat,
