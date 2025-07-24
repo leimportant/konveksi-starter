@@ -26,6 +26,12 @@ Route::get('/push', function () {
     ]);
 })->middleware('auth')->name('push.page');
 
+Route::get('/push/demo', function () {
+    return Inertia::render('push/Demo', [
+        'vapidPublicKey' => config('webpush.vapid.public_key')
+    ]);
+})->middleware('auth')->name('push.demo');
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome');

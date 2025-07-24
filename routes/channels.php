@@ -16,5 +16,10 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('chat.{orderId}', function ($user, $orderId) {
     // You can add authorization logic here to check if the user belongs to this order
     // For now, we'll allow all authenticated users to listen to any chat channel.
+    \Illuminate\Support\Facades\Log::info('Channel authorization check', [
+        'user_id' => $user->id,
+        'order_id' => $orderId,
+        'channel' => 'chat.' . $orderId
+    ]);
     return true;
 });

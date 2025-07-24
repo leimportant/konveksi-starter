@@ -47,4 +47,27 @@ class ChatMessageSent implements ShouldBroadcast
     {
         return 'message.sent';
     }
+    
+    /**
+     * Get the data to broadcast.
+     *
+     * @return array
+     */
+    public function broadcastWith()
+    {
+        // Load the sender relationship if not already loaded
+        if (!$this->chatMessage->relationLoaded('sender')) {
+            $this->chatMessage->load('sender');
+        }
+        
+        // Log the broadcast data for debugging
+        \Illuminate\Support\Facades\Log::info('Broadcasting chat message', [
+            'channel' => 'chat.' . $this->chatMessage->order_id,
+            'event' => 'message.sent',
+            'message_id' => $this->chatMessage->id,
+            'order_id' => $this->chatMessage->order_id
+        ]);
+        
+        return ['chatMessage' => $this->chatMessage];
+    }
 }
