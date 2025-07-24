@@ -138,16 +138,36 @@ watch(selectedOrderId, (newOrderId, oldOrderId) => {
     if (newOrderId) {
         chatStore.fetchMessages(newOrderId);
         // Subscribe to Pusher channel
-        window.Echo.private(`chat.${newOrderId}`).listen('ChatMessageSent', (e: any) => {
-            chatStore.addMessage(e.chatMessage as ChatMessage);
-        });
+        console.log(`Subscribing to chat.${newOrderId} channel`);
+        
+        // First unsubscribe if already subscribed to avoid duplicate listeners
+        try {
+            window.Echo.leave(`chat.${newOrderId}`);
+        } catch (error: any) {
+            console.log('Error unsubscribing from previous channel:', error);
+            console.log('No previous subscription to leave');
+        }
+        
+        // Subscribe to the channel and listen for the message.sent event
+        window.Echo.private(`chat.${newOrderId}`)
+            .listen('.message.sent', (e: any) => {
+                console.log('Received message from Pusher:', e);
+                if (e.chatMessage) {
+                    chatStore.addMessage(e.chatMessage as ChatMessage);
+                    scrollToBottom();
+                }
+            })
+            .error((error: any) => {
+                console.error('Echo connection error:', error);
+            });
 
-        // Optional: Set up interval for periodic historical data retrieval
+        // Optional: Set up interval for periodic historical data retrieval as fallback
         // intervalId = setInterval(() => {
         //   chatStore.fetchMessages(newOrderId);
         // }, 30000); // Fetch every 30 seconds
     } else if (oldOrderId) {
         // Unsubscribe from old channel when orderId changes to null or newOrderId
+        console.log(`Unsubscribing from chat.${oldOrderId} channel`);
         window.Echo.leave(`chat.${oldOrderId}`);
     }
 });

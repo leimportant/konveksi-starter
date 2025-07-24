@@ -69,6 +69,7 @@ Route::get('api/health', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::post('api/push/subscribe', [PushController::class, 'subscribe']);
+    Route::post('api/push/unsubscribe', [PushController::class, 'unsubscribe']);
     Route::post('api/push/send', [PushController::class, 'send']);
 });
 

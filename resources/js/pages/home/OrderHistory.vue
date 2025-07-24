@@ -571,7 +571,7 @@ const debouncedHandleSearch = debounce(async () => {
                             <TableRow>
                                 <TableCell colspan="6" class="rounded-md border border-blue-100 bg-blue-50 p-3">
                                     <h4 class="mb-1 text-sm font-semibold">Detail Pesanan:</h4>
-                                    <div class="space-y-1 min-h-[20px]">
+                                    <div class="space-y-1 min-h-[30px]">
                                         <OrderItem v-for="item in order.order_items" :key="item.id" :item="item" />
                                     </div>
                                     <div class="mt-1 text-right font-semibold">
@@ -590,7 +590,7 @@ const debouncedHandleSearch = debounce(async () => {
                 </Table>
             </div>
             <!-- Sentinel untuk trigger infinite scroll -->
-                     <div ref="bottomMarker" style="height: 1px;"></div>
+                     <div ref="bottomMarker" class="min-h-[2px]"></div>
         </section>
 
         <!-- Modal Kirim Pesan -->

@@ -39,13 +39,45 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 window.Pusher = Pusher;
 
+// Initialize Echo with Pusher for real-time communication
+const pusherKey = import.meta.env.VITE_PUSHER_APP_KEY;
+const pusherCluster = import.meta.env.VITE_PUSHER_APP_CLUSTER ?? 'mt1';
+
+console.log('Initializing Echo with Pusher:', {
+    key: pusherKey,
+    cluster: pusherCluster,
+    broadcaster: 'pusher'
+});
+
 window.Echo = new Echo({
     broadcaster: 'pusher',
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER ?? 'mt1',
-    wsHost: import.meta.env.VITE_PUSHER_HOST ? import.meta.env.VITE_PUSHER_HOST : `ws-${import.meta.env.VITE_PUSHER_APP_CLUSTER}.pusher.com`,
+    key: pusherKey,
+    cluster: pusherCluster,
+    wsHost: import.meta.env.VITE_PUSHER_HOST ? import.meta.env.VITE_PUSHER_HOST : `ws-${pusherCluster}.pusher.com`,
     wsPort: import.meta.env.VITE_PUSHER_PORT ?? 80,
     wssPort: import.meta.env.VITE_PUSHER_PORT ?? 443,
     forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
     enabledTransports: ['ws', 'wss'],
+    authEndpoint: '/broadcasting/auth',
+    auth: {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'Accept': 'application/json'
+        }
+    },
+    disableStats: true
+});
+
+// Add global error handler for Pusher
+window.Pusher.logToConsole = true;
+window.Echo.connector.pusher.connection.bind('error', (err: any) => {
+    console.error('Pusher connection error:', err);
+});
+
+window.Echo.connector.pusher.connection.bind('connected', () => {
+    console.log('Successfully connected to Pusher');
+});
+
+window.Echo.connector.pusher.connection.bind('disconnected', () => {
+    console.log('Disconnected from Pusher');
 });
