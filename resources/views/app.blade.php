@@ -22,6 +22,8 @@
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json?v=2" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/icons/icon-192x192.png">
+
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon-192x192.svg" />
@@ -32,6 +34,13 @@
 
     <!-- Theme Handling Script -->
     <script>
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('[SW] Registered', reg))
+        .catch(err => console.error('[SW] Failed', err));
+    }
+
       (function () {
         const appearance = '{{ $appearance ?? "system" }}';
         if (appearance === 'system') {

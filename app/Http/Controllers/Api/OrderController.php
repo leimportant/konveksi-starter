@@ -48,26 +48,25 @@ class OrderController extends Controller
                     $q->where('customer_id', $user->id)
                         ->orWhere('created_by', $user->id);
                 })
-                ->paginate($perPage);
+                ->orderBy('created_at', 'desc')->paginate($perPage);
         }
 
         // Handle CART status secara khusus
         if ($request->input('status') === 'cart') {
-            $cartItems = CartItem::with('creator', 'product')
-                ->paginate($perPage);
-
-            // FILTER berdasarkan `name` atau lainnya
+            $query = CartItem::with('creator', 'product');
+                // FILTER sebelum paginate
             if ($request->filled('name')) {
                 $search = strtolower($request->input('name'));
 
-                $cartItems = $cartItems->filter(function ($item) use ($search) {
-                    return
-                        strpos(strtolower($item->product->name ?? ''), $search) !== false ||
-                        strpos((string) $item->id, $search) !== false ||
-                        strpos((string) $item->quantity, $search) !== false ||
-                        strpos(strtolower($item->creator->name ?? ''), $search) !== false;
-                });
+                $query->whereHas('product', function ($q) use ($search) {
+                    $q->whereRaw('LOWER(name) LIKE ?', ["%$search%"]);
+                })->orWhereHas('creator', function ($q) use ($search) {
+                    $q->whereRaw('LOWER(name) LIKE ?', ["%$search%"]);
+                })->orWhereRaw('LOWER(id) LIKE ?', ["%$search%"])
+                ->orWhereRaw('LOWER(quantity) LIKE ?', ["%$search%"]);
             }
+
+            $cartItems = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
             $fakeOrders = $cartItems->map(function ($item) use ($user) {
                 $totalAmount = ($item->price_sell ?? 0) * $item->quantity;
@@ -580,6 +579,16 @@ class OrderController extends Controller
 
         if ($request->has('search')) {
             $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                    ->orWhereHas('orderItems.product', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+         if ($request->has('name')) {
+            $search = $request->input('name');
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
                     ->orWhereHas('orderItems.product', function ($q) use ($search) {

@@ -191,7 +191,7 @@
                             <p class="text-sm text-gray-500 font-medium">Pelanggan</p>
                             <p class="text-xs text-gray-800">
                                 {{ selectedCustomerName }} <span class="text-xs text-gray-600">(#{{ selectedCustomerId
-                                }})</span>
+                                    }})</span>
                             </p>
                         </div>
 
@@ -210,7 +210,7 @@
                             class="focus:ring-primary-500 w-full rounded-lg border border-gray-300 p-1 text-xs focus:outline-none focus:ring-2">
                             <option value="">Pilih metode pembayaran</option>
                             <option v-for="method in paymentMethods" :key="method.id" :value="method.id">{{ method.name
-                            }}</option>
+                                }}</option>
                         </select>
                     </div>
 
@@ -254,7 +254,7 @@
                 <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
                     <h3 class="mb-4 text-lg font-semibold">Masukkan Jumlah Bayar</h3>
                     <input type="number" min="0" v-model.number="paidAmount"
-                        class="mb-4 w-full rounded border px-3 py-2 text-lg" placeholder="Masukkan jumlah bayar" />
+                        class="mb-4 w-full rounded border px-3 py-2 text-lg"  placeholder="Masukkan jumlah bayar" />
                     <div class="mb-4 flex justify-between">
                         <div>Total:</div>
                         <div class="font-semibold">{{ formattedTotalAmount }}</div>
@@ -357,50 +357,51 @@
             </Modal>
 
             <Modal :show="showReprintDialog" @close="closeReprintDialog" title="RePrint Struk">
-                <div class="space-y-1 p-1 sm:p-1 text-sm">
+                <!-- Pencarian -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-4">
+                    <Input v-model="searchTransaction" class="w-full sm:w-64 text-sm" placeholder="Cari transaksi..."
+                        aria-label="Search" />
+                    <Button @click="searchprintTransaction()" class="sm:w-auto w-full text-sm px-4 py-2">
+                        Cari
+                    </Button>
+                </div>
 
-                    <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <Input v-model="searchTransaction" class="flex-1 sm:w-64" placeholder="Cari transaksi..."
-                            aria-label="Search" />
-                        <Button @click="searchprintTransaction()" class="px-4 py-2">
-                            Cari
-                        </Button>
-                    </div>
+                <!-- Tabel Transaksi -->
+                <div class="overflow-auto max-h-[60vh] border border-gray-200 rounded-lg shadow-sm">
+                    <Table class="min-w-full text-sm">
+                        <TableHeader>
+                            <TableRow class="bg-gray-100 text-gray-600 uppercase text-xs">
+                                <TableHead class="whitespace-nowrap px-2 py-2">Aksi</TableHead>
+                                <TableHead class="whitespace-nowrap px-2 py-2">Tanggal</TableHead>
+                                <TableHead class="whitespace-nowrap px-2 py-2">Customer</TableHead>
+                                <TableHead class="whitespace-nowrap px-2 py-2">Total</TableHead>
+                                <TableHead class="whitespace-nowrap px-2 py-2">Pembayaran</TableHead>
+                                <TableHead class="whitespace-nowrap px-2 py-2">Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow v-for="transaction in transactions" :key="transaction.id"
+                                class="hover:bg-gray-50 cursor-pointer transition">
+                                <TableCell class="px-2 py-1">
+                                    <Button variant="outline" size="sm" @click="selectTransactionForPrint(transaction)">
+                                        Cetak
+                                    </Button>
+                                </TableCell>
+                                <TableCell class="px-2 py-1">{{ formatDate(transaction.created_at) }}</TableCell>
+                                <TableCell class="px-2 py-1">{{ transaction.customer }}</TableCell>
+                                <TableCell class="px-2 py-1">{{ formatRupiah(Number(transaction.total_amount)) }}
+                                </TableCell>
+                                <TableCell class="px-2 py-1">{{ transaction.payment_method }}</TableCell>
+                                <TableCell class="px-2 py-1">{{ transaction.status }}</TableCell>
+                            </TableRow>
 
-
-                    <!-- Table -->
-                    <div class="overflow-auto max-h-[50vh] border rounded-md">
-                        <Table class="min-w-full">
-                            <TableHeader>
-                                <TableRow class="bg-gray-100 text-gray-600 text-xs uppercase">
-                                    <TableHead>Aksi</TableHead>
-                                    <TableHead>Tanggal</TableHead>
-                                    <TableHead>Customer</TableHead>
-                                    <TableHead>Total</TableHead>
-                                    <TableHead>Pembayaran</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="transaction in transactions" :key="transaction.id"
-                                    class="hover:bg-gray-50 cursor-pointer">
-                                    <TableCell class="text-xs">
-                                        <Button variant="outline" @click="selectTransactionForPrint(transaction)">Cetak</Button>
-                                    </TableCell>
-                                    <TableCell class="text-xs">{{ formatDate(transaction.created_at) }}</TableCell>
-                                    <TableCell class="text-xs">{{ transaction.customer }}</TableCell>
-                                    <TableCell class="text-xs">{{ formatRupiah(Number(transaction.total_amount)) }}</TableCell>
-                                    <TableCell class="text-xs">{{ transaction.payment_method }}</TableCell>
-                                    <TableCell class="text-xs">{{ transaction.status }}</TableCell>
-                                </TableRow>
-                                <TableRow v-if="transactions.length === 0">
-                                    <TableCell colspan="5" class="text-center text-xs text-gray-400 py-3">Tidak ada
-                                        transaksi
-                                        ditemukan.</TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
+                            <TableRow v-if="transactions.length === 0">
+                                <TableCell colspan="6" class="text-center text-xs text-gray-400 py-3">
+                                    Tidak ada transaksi ditemukan.
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </div>
             </Modal>
 
@@ -537,6 +538,7 @@ import 'vue3-select/dist/vue3-select.css';
 import CustomerDialog from '@/components/CustomerDialog.vue';
 import Modal from '@/components/Modal.vue';
 import { QrcodeStream } from 'vue-qrcode-reader';
+import { useCurrencyInput } from '@/composables/useCurrencyInput'
 
 interface ProductSize {
     size_id: string;
@@ -637,6 +639,8 @@ const selectedProducts = ref<Product[]>([]);
 const paymentMethods = ref<PaymentMethod[]>([]);
 const selectedPaymentMethod = ref<string | null>(null);
 const isLoading = ref({ placingOrder: false });
+
+const paymentInput = useCurrencyInput(0);
 
 const searchText = ref('');
 const currentPage = ref(1);
@@ -1326,9 +1330,25 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
         console.log('Produk dalam pesanan:', products);
 
 
+        // ini sesuai list tidak di merge
+        // products.forEach((product) => {
+        //     selectedProducts.value.push({ ...product });
+        // });
+
         products.forEach((product) => {
-            selectedProducts.value.push({ ...product });
+            const existingIndex = selectedProducts.value.findIndex(
+                (p) =>
+                    (p.product_id ?? p.id) === (product.product_id ?? product.id) &&
+                    p.size_id === product.size_id
+            );
+
+            if (existingIndex > -1) {
+                selectedProducts.value[existingIndex].quantity += product.quantity;
+            } else {
+                selectedProducts.value.push({ ...product });
+            }
         });
+
 
         toast.success('Order items added to cart!');
 
@@ -1372,13 +1392,16 @@ watch(
     { deep: true }
 );
 
+watch(paymentInput.internalValue, (newValue) => {
+  paidAmount.value = newValue;
+});
 
 function doPrintKasir80mm() {
     // QZ Tray integration for direct thermal printing
     // @ts-expect-ignore
     const qz = (window as any).qz;
     // Ambil nama kasir dari user login
-    const kasirName = name ?? name ?? 'Kasir';
+    const kasirName = cashierName.value;
     if (qz) {
         const totalQty = lastOrderItems.value.reduce((sum, item) => sum + item.quantity, 0);
         const sisa = (lastOrderTotal.value || totalAmount.value) - (paidAmount.value || 0);

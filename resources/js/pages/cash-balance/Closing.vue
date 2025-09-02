@@ -66,6 +66,7 @@ import { useCurrencyInput } from '@/composables/useCurrencyInput'
 const store = useCashBalanceStore()
 const toast = useToast()
 
+
 const page = usePage()
 const id = page.props.id as number
 

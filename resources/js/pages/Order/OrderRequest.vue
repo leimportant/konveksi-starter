@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { DateInput } from '@/components/ui/date-input';
 import { useOrdersCustomer } from '@/stores/useOrderCustomer';
 import { Head } from '@inertiajs/vue3';
-import { computed, onMounted, onUnmounted, watch, ref } from 'vue';
+import { computed, onMounted, onUnmounted, watch, ref, nextTick } from 'vue';
 import axios from 'axios';
 // import { useOrderCustomer } from '../../composables/useOrderCustomer'; // Remove this line
 
@@ -44,14 +44,40 @@ const shippingOrderId = ref<string | null>(null);
 const scrollPage = ref(1);
 const perPage = ref(10);
 
-const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 1)));
+const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 10)));
+
+const tableContainer = ref<HTMLElement | null>(null);
 
 const handleScroll = () => {
-    const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight - 100; // 100px from bottom
-    if (bottomOfWindow && !isLoading.value && scrollPage.value < totalPages.value) {
-        scrollPage.value++;
-        fetchOrderRequest({ status: activeTab.value, page: scrollPage.value, per_page: perPage.value, append: true });
+  if (tableContainer.value) {
+    const { scrollTop, scrollHeight, clientHeight } = tableContainer.value;
+
+    if (
+      scrollTop + clientHeight >= scrollHeight - 200 &&
+      !isLoading.value &&
+      scrollPage.value < totalPages.value
+    ) {
+      const previousScrollHeight = scrollHeight;
+
+      scrollPage.value++;
+
+      fetchOrderRequest({
+        status: activeTab.value,
+        page: scrollPage.value,
+        per_page: perPage.value,
+        append: true,
+        name: filterName.value,
+      }).then(() => {
+        // Kembalikan posisi scroll setelah data ditambahkan
+        nextTick(() => {
+          if (tableContainer.value) {
+            const newScrollHeight = tableContainer.value.scrollHeight;
+            tableContainer.value.scrollTop += newScrollHeight - previousScrollHeight;
+          }
+        });
+      });
     }
+  }
 };
 
 
@@ -81,28 +107,38 @@ onMounted(() => {
     fetchBankAccount();
     fetchOrderRequest({ status: activeTab.value, page: scrollPage.value, per_page: perPage.value, name: filterName.value });
 
-    window.addEventListener('scroll', handleScroll);
+    if (tableContainer.value) {
+        tableContainer.value.addEventListener('scroll', handleScroll);
+    }
 });
 
 onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll);
+    if (tableContainer.value) {
+        tableContainer.value.removeEventListener('scroll', handleScroll);
+    }
 });
 
 watch(activeTab, (newTab) => {
     scrollPage.value = 1;
+    console.log('ScrollPage:', scrollPage.value, 'TotalPages:', totalPages.value);
+
     fetchOrderRequest({ status: newTab, page: scrollPage.value, per_page: perPage.value, name: filterName.value });
 });
 
 
 watch(filterName, debounce((newValue) => {
-    orders.value = []; // Clear orders when filter changes
-    scrollPage.value = 1;
-    setFilterOrderRequest('name', newValue, { status: activeTab.value, page: scrollPage.value, per_page: perPage.value, append: false });
+  scrollPage.value = 1;
+  setFilterOrderRequest('name', newValue, {
+    status: activeTab.value,
+    page: scrollPage.value,
+    per_page: perPage.value,
+    append: false,
+  });
 }, 400));
 
-    const filteredOrders = computed(() => {
-        return orders.value;
-    });
+const filteredOrders = computed(() => {
+    return orders.value;
+});
 
 const openMessageModal = (ids: string[], targetReceiverId: number) => {
     receiverId.value = targetReceiverId;
@@ -230,7 +266,7 @@ async function submitShipping() {
     <Head title="Riwayat Order" />
     <AppLayout>
          <div class="px-4 py-4">
-        <section class="px-2 py-2 sm:px-4 sm:py-4 bg-white min-h-screen overflow-x-auto">
+        <section class="fixed px-2 py-2 sm:px-4 sm:py-4 bg-white">
             <Input
             v-model="filterName"
             placeholder="Search"
@@ -271,10 +307,16 @@ async function submitShipping() {
             <div v-else-if="error" class="text-center text-red-500 text-sm py-6">{{ error }}</div>
             <div v-else-if="filteredOrders.length === 0" class="text-center text-gray-500 text-sm py-6">Tidak ada
                 pesanan ditemukan.</div>
-            <div v-else class="overflow-x-auto border rounded">
-                <Table class="max-h-screen w-full">
+            <div
+                ref="tableContainer"
+                @scroll="handleScroll"
+                class="relative overflow-auto h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] lg:h-[calc(100vh-250px)]"
+
+                >
+
+                <Table class="w-full text-sm">
                     <TableHeader>
-                        <TableRow class="bg-gray-100">
+                        <TableRow class="bg-gray-100 text-sm leading-tight py-1">
                             <TableHead class="w-[5%]">#</TableHead>
                             <TableHead class="w-[10%]">No. Order</TableHead>
                             <TableHead class="w-[10%]">Customer</TableHead>

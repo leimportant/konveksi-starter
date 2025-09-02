@@ -10,6 +10,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             MenuSeeder::class,
+            PushNotificationMenuSeeder::class,
         ]);
 
         // \App\Models\User::factory(10)->create();

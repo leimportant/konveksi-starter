@@ -99,10 +99,6 @@ class User extends Authenticatable
         return $this->roles()->where('name', $roleName)->exists();
     }
 
-    public function pushSubscription()
-    {
-        return $this->hasOne(PushSubscription::class);
-    }
 
 
 }

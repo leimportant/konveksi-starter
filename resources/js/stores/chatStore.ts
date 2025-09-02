@@ -17,7 +17,7 @@ export interface ChatMessage {
   message: string;
   created_at: string;
   order_id: string;
-  content_data?: string | string[] | any[]; // tambahkan ini
+  content_data?: string | string[] | any[];
 }
 
 export interface ChatConversation {
@@ -31,6 +31,7 @@ export const useChatStore = defineStore('chat', {
     messages: [] as ChatMessage[],
     conversations: [] as ChatConversation[],
     unreadCount: 0,
+    currentOrderId: null as string | null,
   }),
 
   actions: {
@@ -38,13 +39,15 @@ export const useChatStore = defineStore('chat', {
       if (!orderId) return;
       const { data } = await axios.get(`/api/chat/messages?order_id=${orderId}`);
       this.messages = data;
+      this.currentOrderId = orderId;
+      await this.markAsRead(orderId); // Mark as read when viewing
     },
 
     async sendMessage(payload: {
       sender_type: string;
       receiver_id: number;
       sender_name: string;
-      content_data : string;
+      content_data: string;
       message: string;
       order_id?: string;
     }) {
@@ -55,30 +58,60 @@ export const useChatStore = defineStore('chat', {
     async fetchConversations() {
       const { data } = await axios.get('/api/chat/conversations');
       this.conversations = data;
+      this.updateUnreadCount();
     },
 
-   // Di dalam chatStore
-   async markAsRead(orderId: string) {
-      const conv = this.conversations.find(c => c.order_id === orderId);
+    updateUnreadCount() {
+      this.unreadCount = this.conversations.reduce(
+        (sum, conv) => sum + (conv.unread_count || 0),
+        0
+      );
+    },
+
+    async markAsRead(orderId: string) {
+      const conv = this.conversations.find((c) => c.order_id === orderId);
       if (conv) {
         conv.unread_count = 0;
+        this.updateUnreadCount();
       }
-
-      // Optional: kasih tahu server
-      await axios.post(`/api/chat/messages/${orderId}/read`);
+      try {
+        await axios.post(`/api/chat/messages/${orderId}/read`);
+      } catch (error) {
+        console.error('Mark as read failed:', error);
+      }
     },
-
 
     clearMessages() {
       this.messages = [];
+      this.currentOrderId = null;
     },
 
     addMessage(message: ChatMessage) {
       this.messages.push(message);
+
+      const conv = this.conversations.find((c) => c.order_id === message.order_id);
+
+      // Jika pesan masuk bukan dari order yang sedang dibuka
+      const isCurrentOpen = this.currentOrderId === message.order_id;
+
+      if (conv) {
+        conv.last_message = message.message;
+        if (!isCurrentOpen) {
+          conv.unread_count += 1;
+        }
+      } else {
+        this.conversations.push({
+          order_id: message.order_id,
+          last_message: message.message,
+          unread_count: isCurrentOpen ? 0 : 1,
+        });
+      }
+
+      this.updateUnreadCount();
     },
 
     listOrderIds() {
-      return this.conversations.map(conv => conv.order_id);
+      return this.conversations.map((conv) => conv.order_id);
     },
   },
 });

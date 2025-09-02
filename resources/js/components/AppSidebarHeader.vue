@@ -14,7 +14,7 @@ const { breadcrumbs = [] } = defineProps<{
 // Chat Store
 const chatStore = useChatStore();
 const { unreadCount } = storeToRefs(chatStore);
-const unreadMessageCount = unreadCount;
+const unreadMessageCount = unreadCount.value;
 
 // Navigation
 
@@ -40,13 +40,14 @@ const unreadMessageCount = unreadCount;
         class="relative h-9 w-9 p-0 hover:bg-gray-200 transition"
          @click="$inertia.visit('/messages')"
       >
-        <MessageCircle class="w-5 h-5 text-gray-700" />
+       <MessageCircle class="w-5 h-5 text-gray-700 relative" />
         <span
           v-if="unreadMessageCount > 0"
-          class="absolute -top-1 -right-1 h-4 w-4 text-[10px] leading-none rounded-full bg-red-600 text-white flex items-center justify-center"
+          class="absolute -top-0.5 -right-0.4 h-5 w-5 text-[11px] leading-none rounded-full bg-red-600 text-white flex items-center justify-center"
         >
           {{ unreadMessageCount }}
         </span>
+
       </Button>
     </div>
   </header>

@@ -60,6 +60,10 @@ interface State {
   loading: boolean;
   error: string | null;
   products: Product[];
+  currentPage: number;
+  lastPage: number;
+  total: number;
+  filters: { productName: string };
 }
 
 export const useTransferStockStore = defineStore('transferStock', {
@@ -69,6 +73,10 @@ export const useTransferStockStore = defineStore('transferStock', {
     loading: false,
     error: null,
     products: [],
+    currentPage: 1,
+    lastPage: 1,
+    total: 0,
+    filters: { productName: '' },
   }),
 
   actions: {
@@ -84,11 +92,19 @@ export const useTransferStockStore = defineStore('transferStock', {
         this.loading = false;
       }
     },
-    async fetchTransfers() {
+    async fetchTransfers(page: number = 1, perPage: number = 10) {
       this.loading = true;
       try {
-        const res = await axios.get('/api/transfer-stock');
+        const params = {
+          page,
+          per_page: perPage,
+          search: this.filters.productName,
+        };
+        const res = await axios.get('/api/transfer-stock', { params });
         this.transfers = res.data.data;
+        this.currentPage = res.data.current_page;
+        this.lastPage = res.data.last_page;
+        this.total = res.data.total;
         this.error = null;
       } catch (e: any) {
         this.error = e.response?.data?.message || 'Failed to fetch transfers';

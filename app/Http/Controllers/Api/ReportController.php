@@ -31,7 +31,7 @@ class ReportController extends Controller
             $query->where('c.name', 'like', "%" . $searchKey . "%");
         }
 
-        $results = $query->get();
+        $results = $query->orderBy('a.created_at', 'DESC')->get();
 
         return response()->json($results);
     }
@@ -71,7 +71,7 @@ class ReportController extends Controller
             });
         }
 
-        $data = $query->get();
+        $data = $query->orderBy('a.created_at', 'DESC')->get();
         $pivot = [];
         $activityTotals = [];
 
@@ -141,7 +141,7 @@ class ReportController extends Controller
         GROUP BY 
             DATE_FORMAT(transaction_date, '%d/%m/%Y'), payment_method
         ORDER BY 
-            DATE_FORMAT(transaction_date, '%d/%m/%Y') ASC, payment_method ASC
+            DATE_FORMAT(transaction_date, '%d/%m/%Y') DESC, payment_method ASC
     ", [
             'startDate' => $startDate,
             'endDate' => $endDate,
@@ -226,7 +226,7 @@ class ReportController extends Controller
                     ->orWhere('f.name', 'like', '%' . $searchKey . '%')
                     ->orWhere('b.variant', 'like', '%' . $searchKey . '%');
             })
-            ->get();
+            ->orderBy('a.created_at', 'DESC')->get();
 
         // Hitung total per row
         foreach ($rawData as $row) {
@@ -376,7 +376,7 @@ class ReportController extends Controller
             })
 
             ->orderBy('c.name')
-            ->orderBy('a.transaction_date')
+            ->orderBy('a.transaction_date', 'DESC')
             ->get();
 
         return $data;

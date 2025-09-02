@@ -14,7 +14,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const handleClosing = () => {
-  router.visit(`/cash-balances/closing`);
+  router.visit(`/cash-balances`);
 };
 
 const handleOpenShift = () => {

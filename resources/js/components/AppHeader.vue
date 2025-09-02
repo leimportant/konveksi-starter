@@ -49,7 +49,7 @@ const resolveIcon = async (iconName: string | LucideIcon | undefined): Promise<C
 <template>
     <div>
         
-        <div class="border-b border-sidebar-border/0">
+        <div class="fixed border-b border-sidebar-border/0">
             
             <div class="fixed left-0 right-0 top-0 z-[999] mx-auto flex h-4 items-center bg-background px-2 md:max-w-7xl">
                 <!-- Mobile Menu -->

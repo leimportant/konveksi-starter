@@ -47,14 +47,37 @@ class PushNotification extends Notification
      */
     public function toWebPush($notifiable)
     {
+        // Log notification attempt
+        \Illuminate\Support\Facades\Log::info('Preparing web push notification', [
+            'title' => $this->title,
+            'body' => substr($this->body, 0, 100) . (strlen($this->body) > 100 ? '...' : ''),
+            'url' => $this->url,
+            'user_id' => $notifiable->id ?? 'unknown'
+        ]);
+        
+        // Create the base message with required properties
         $message = (new WebPushMessage)
             ->title($this->title)
             ->body($this->body)
-            ->data(['url' => $this->url, 'body' => $this->body])
-            ->options(['TTL' => 1000]);
+            ->icon('/images/icons/icon-192x192.png') // Default icon path
+            ->badge('/images/icons/badge-72x72.png') // Badge for notification tray
+            ->tag('notification-' . md5($this->title . $this->body)) // Tag for grouping similar notifications
+            ->renotify(true) // Important for iOS to show multiple notifications
+            ->requireInteraction(true) // Keep notification visible until user interacts with it
+            ->vibrate([100, 50, 100]) // Vibration pattern for Android
+            ->data([
+                'url' => $this->url, 
+                'body' => $this->body,
+                'timestamp' => time(),
+                'id' => uniqid('push_')
+            ])
+            ->options(['TTL' => 86400]); // 24 hours TTL
 
+        // Add actions if URL is provided
         if (!empty($this->url)) {
-            $message->action('View', url($this->url));
+            $message->action('View', $this->url);
+            $message->action('Dismiss', 'dismiss');
+            $message->data(['action_url' => $this->url]);
         }
 
         return $message;

@@ -75,6 +75,7 @@ Route::get('api/health', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::post('api/push/subscribe', [PushController::class, 'subscribe']);
+    Route::post('api/push/unsubscribe', [PushController::class, 'unsubscribe']);
     Route::post('api/push/send', [PushController::class, 'send']);
 });
 
@@ -87,6 +88,7 @@ Route::middleware('auth')->group(function () {
     Route::get('api/dashboard', [DashboardController::class, 'index']);
     Route::get('api/dashboard/sales', [DashboardController::class, 'getSalesData']);
     Route::get('api/dashboard/sales/amount', [DashboardController::class, 'getSalesByOmsetData']);
+    Route::get('api/dashboard/customer', [DashboardController::class, 'indexCustomer']);
     // User management
     
     Route::apiResource('api/users', controller: UserController::class);
@@ -101,7 +103,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/api/transfer-stock/{transferId}/accept', [TransferStockController::class, 'accept']);
     Route::put('/api/transfer-stock/{transferId}/reject', [TransferStockController::class, 'reject']);
 
-     Route::get('api/cash-balance', action: [CashBalanceController::class, 'index']); // Get list of cash balances
+    Route::get('api/cash-balance', action: [CashBalanceController::class, 'index']); // Get list of cash balances
     Route::post('api/cash-balance/open', [CashBalanceController::class, 'openShift']); // Open a shift
     Route::put('api/cash-balance/{id}/close', [CashBalanceController::class, 'closeShift']); // Close a shift
 
