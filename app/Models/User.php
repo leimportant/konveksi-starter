@@ -10,7 +10,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasPushSubscriptions;
+    use HasApiTokens, HasFactory, Notifiable, HasPushSubscriptions;
 
     protected $table = 'users';
 
@@ -105,4 +105,4 @@ class User extends Authenticatable
     }
 
 
-}   
+}

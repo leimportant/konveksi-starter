@@ -56,15 +56,18 @@ createInertiaApp({
     vueApp.component('Order', Order);
     vueApp.component('OrderItem', OrderItem);
     vueApp.component('PWAInstallPrompt', PWAInstallPrompt);
-
+    
     // Install plugins
     vueApp
       .use(plugin)
       .use(ZiggyVue)
       .use(Toast)
       .use(createPinia())
-      .use(PrimeVue)
-      .mount(el);
+      .use(PrimeVue);
+
+  
+
+    vueApp.mount(el);
 
     // 📱 Handle install prompt for PWA
     const pwaStore = usePWAStore();

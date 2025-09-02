@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use Illuminate\Support\Facades\Log;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,17 +40,24 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        return [
+        $sharedProps = [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge($request->user()->toArray(), [
+                    'jwt_token' => $request->user()->createToken('aninkafashion-token')->plainTextToken,
+                ]) : null,
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
         ];
+
+        // Log the shared auth user data for debugging
+        Log::info('Inertia Shared Auth User Data', ['auth' => $sharedProps['auth']]);
+
+        return $sharedProps;
     }
 }

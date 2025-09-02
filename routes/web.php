@@ -57,6 +57,10 @@ Route::get('/checkout', function () {
     return Inertia::render('Home/Checkout');
 })->middleware(['auth', 'verified'])->name('checkout');
 
+Route::get('/chatbot-ai', function () {
+    return Inertia::render('Home/ChatbotPage');
+})->middleware(['auth', 'verified'])->name('chatbot');
+
 Route::get('dashboard', function () {
      $user = Auth::user();
     if ($user->employee_status === 'customer') {
@@ -197,6 +201,10 @@ Route::get('/stock-opnames', function () {
 Route::get('/stock-opnames/create', function () {
     return Inertia::render('stock-opnames/Create');
 })->middleware(['auth'])->name('stock-opnames.create');
+
+Route::get('/chatbot', function () {
+    return Inertia::render('ChatbotPage');
+})->middleware(['auth'])->name('chatbot.index');
 
 Route::get('/stock-opnames/{id}/view', function ($id) {
     return Inertia::render('stock-opnames/View', [

@@ -279,7 +279,7 @@ public function stockMonitoring(Request $request)
      * @param  \App\Models\Inventory  $inventory
      * @return \Illuminate\Http\Response
      */
-    public function show(Inventory $inventory)
+    public function show(Inventory $inventory): JsonResponse    
     {
         return response()->json($inventory->load(['product', 'location', 'sloc', 'uom']));
     }
