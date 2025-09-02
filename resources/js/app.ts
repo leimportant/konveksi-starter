@@ -128,5 +128,6 @@ createInertiaApp({
   },
 });
 
+
 // 🌓 Init theme
 initializeTheme();
