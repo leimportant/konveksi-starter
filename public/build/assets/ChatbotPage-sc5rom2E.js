@@ -1,0 +1,1 @@
+import{d as o,o as t}from"./app-PmdPt8-y.js";const s=o({__name:"ChatbotPage",setup(e){const n="http://aninkafashion.eu-4.evennode.com";return t(()=>{window.location.href=n}),()=>{}}});export{s as default};
