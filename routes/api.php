@@ -1,4 +1,5 @@
 <?php
+use App\Models\Faq;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\KasbonPaymentController;
@@ -39,6 +40,11 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ChatMessageController;
 use App\Http\Controllers\Api\BankAccountController;
 use App\Http\Controllers\Api\PurchaseOrderController;
+use App\Http\Controllers\Api\TokenController;
+use App\Http\Controllers\ApiTokenController;
+use App\Http\Controllers\Api\FaqController;
+use App\Http\Controllers\Api\OrdersStatusController;
+use App\Http\Controllers\Api\ProductCatalogController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -136,6 +142,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/{id}', [ModelRefController::class, 'update']);
         Route::delete('/{id}', [ModelRefController::class, 'destroy']);
     });
+
+    Route::apiResource('api/faq', FaqController::class);
     Route::apiResource('api/activity-roles', ActivityRoleController::class);
     Route::apiResource('pos-products', PosProductController::class);
     Route::apiResource('api/price-types', PriceTypeController::class);
@@ -181,6 +189,18 @@ Route::prefix('approvals')->group(function () {
     Route::post('/{id}/approve', [ApprovalServiceController::class, 'approve']);
     Route::post('/{id}/reject', [ApprovalServiceController::class, 'reject']);
     Route::get('/history', [ApprovalServiceController::class, 'getApprovalHistory']);
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/token', [TokenController::class, 'store']);
+    Route::get('/token/check', [TokenController::class, 'checkToken']);
+    Route::post('/tokens/create', [ApiTokenController::class, 'createToken']);
+
+    Route::get('/products-catalog', [ProductCatalogController::class, 'getCatalog']);
+    Route::get('/orders/status', [OrdersStatusController::class, 'getOrder']);
+    Route::get('/faqs/answer', [FaqController::class, 'getAnswer']);
+
 });
 
 

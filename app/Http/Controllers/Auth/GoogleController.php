@@ -73,7 +73,26 @@ class GoogleController extends Controller
 
             // 4. Login dan redirect
             Auth::login($user);
-            return redirect()->intended('/home');
+
+            $token = $user->createToken('aninkafashion-token');
+            
+            // 6. Set HTTP Only Cookie with token
+            $cookie = cookie('aninkafashion-token', $token->plainTextToken, 60 * 24 * 30, null, null, true, true); // 30 days
+
+            Log::info("token: {$token->plainTextToken}");
+             // 🔹 Decide: JSON response for API, or redirect for web
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'user'   => [
+                        'name'  => $user->name,
+                        'email' => $user->email,
+                    ],
+                    'redirect' => '/home'
+                ])->withCookie($cookie);
+            }
+
+            return redirect()->intended('/home')->withCookie($cookie);
 
         } catch (Exception $e) {
             Log::error('Google Login Error: ' . $e->getMessage());

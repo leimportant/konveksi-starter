@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Primary Meta Tags -->
-    <title inertia>Aninka Fashion — Daster Chibi Rayon Twill & One Set Monica</title>
-    <meta name="title" content="Aninka Fashion — Daster Chibi Rayon Twill & One Set Monica" />
+    <title inertia>Aninka Fashion — Platform E-Commerce</title>
+    <meta name="title" content="Aninka Fashion — Platform E-Commerce" />
     <meta name="description" content="Temukan koleksi Daster Chibi Jumbo, One Set Twill Monica, dan fashion wanita trendy hanya di Aninka Fashion. Bahan nyaman, cocok untuk harian." />
 
     <!-- SEO Keywords -->
@@ -61,6 +61,7 @@
         background-color: oklch(0.145 0 0);
       }
     </style>
+
 
     @routes
     @vite(['resources/js/app.ts'])

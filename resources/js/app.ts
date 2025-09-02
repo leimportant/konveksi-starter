@@ -58,7 +58,7 @@ createInertiaApp({
     vueApp.component('Order', Order);
     vueApp.component('OrderItem', OrderItem);
     vueApp.component('PWAInstallPrompt', PWAInstallPrompt);
-
+    
     // Install plugins
     vueApp
       .use(plugin)
@@ -127,6 +127,7 @@ createInertiaApp({
     color: '#4B5563',
   },
 });
+
 
 // 🌓 Init theme
 initializeTheme();

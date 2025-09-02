@@ -6,8 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
-use Inertia\Inertia; 
-// use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -55,7 +54,7 @@ class HandleInertiaRequests extends Middleware
             $quote = ['message' => trim($message), 'author' => trim($author)];
         }
 
-        return [
+        $sharedProps = [
             ...parent::share($request),
 
             // Global config
@@ -66,7 +65,9 @@ class HandleInertiaRequests extends Middleware
 
             // Auth info
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge($request->user()->toArray(), [
+                    'jwt_token' => $request->user()->createToken('aninkafashion-token')->plainTextToken,
+                ]) : null,
             ],
 
             // Ziggy route info (untuk Vue routing helper)
@@ -81,6 +82,11 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn() => $request->session()->get('error'),
             ],
         ];
+
+        // Log the shared auth user data for debugging
+        Log::info('Inertia Shared Auth User Data', ['auth' => $sharedProps['auth']]);
+
+        return $sharedProps;
     }
 
 }
