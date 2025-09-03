@@ -10,4 +10,6 @@ onMounted(() => {
   // Mulai transfer cookie saat halaman dimuat
   storeCookies.transferCookies(assistantUrl);
 });
+
+
 </script>

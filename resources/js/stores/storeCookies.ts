@@ -22,6 +22,9 @@ export const useStoreCookies = defineStore('storeCookies', () => {
 
       const xsrfToken = getCookie('XSRF-TOKEN');
 
+      const aninkafashionToken = getCookie('aninkafashion-token');
+      console.log('aninkafashion_session:', aninkafashionToken);
+
       console.log('XSRF-TOKEN:', xsrfToken);
       // POST transfer cookie
       const response = await fetch('/api/transfer-cookies', {
@@ -40,7 +43,7 @@ export const useStoreCookies = defineStore('storeCookies', () => {
       }
 
       transferSuccess.value = true;
-      window.location.href = childUrl;
+      window.location.href = childUrl + '?_token=' + (xsrfToken || '');
 
     } catch (err: any) {
       transferError.value = err?.message || 'Network or CSRF error';
