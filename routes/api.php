@@ -45,6 +45,7 @@ use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\OrdersStatusController;
 use App\Http\Controllers\Api\ProductCatalogController;
+use App\Http\Controllers\Api\CrossDomainAuthController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -197,11 +198,15 @@ Route::middleware(['auth:sanctum', 'web'])->group(function () {
     Route::get('/token/check', [TokenController::class, 'checkToken']);
     Route::post('/tokens/create', [ApiTokenController::class, 'createToken']);
 
+     // Cross-domain authentication routes
+    Route::post('api/transfer-cookies', [CrossDomainAuthController::class, 'transferAuth']);
+    
     Route::get('/products-catalog', [ProductCatalogController::class, 'getCatalog']);
     Route::get('/orders/status', [OrdersStatusController::class, 'getOrder']);
     Route::get('/faqs/answer', [FaqController::class, 'getAnswer']);
 
 });
+
 
 
 

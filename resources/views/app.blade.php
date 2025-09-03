@@ -35,21 +35,21 @@
     <!-- Theme Handling Script -->
     <script>
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => console.log('[SW] Registered', reg))
-        .catch(err => console.error('[SW] Failed', err));
-    }
+    // if ('serviceWorker' in navigator) {
+    //   navigator.serviceWorker.register('/service-worker.js')
+    //     .then(reg => console.log('[SW] Registered', reg))
+    //     .catch(err => console.error('[SW] Failed', err));
+    // }
 
-      (function () {
-        const appearance = '{{ $appearance ?? "system" }}';
-        if (appearance === 'system') {
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (prefersDark) {
-            document.documentElement.classList.add('dark');
-          }
-        }
-      })();
+    //   (function () {
+    //     const appearance = '{{ $appearance ?? "system" }}';
+    //     if (appearance === 'system') {
+    //       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    //       if (prefersDark) {
+    //         document.documentElement.classList.add('dark');
+    //       }
+    //     }
+    //   })();
     </script>
 
     <!-- Quick Background Fallback -->
