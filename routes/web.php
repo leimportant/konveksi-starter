@@ -84,9 +84,9 @@ Route::get('/checkout', function () {
     return Inertia::render('Home/Checkout');
 })->middleware(['auth', 'verified'])->name('checkout');
 
-Route::get('/chatbot-ai', function () {
+Route::get('/assistant-ai', function () {
     return Inertia::render('Home/ChatbotPage');
-})->middleware(['auth', 'verified'])->name('chatbot');
+})->middleware(['auth', 'verified'])->name('assistant.ai');
 
 Route::get('dashboard', function () {
      $user = Auth::user();
