@@ -42,6 +42,7 @@ export const useStoreCookies = defineStore('storeCookies', () => {
         throw new Error(data.message || 'Transfer failed');
       }
 
+      // pakai redirect dengan token di query string
       transferSuccess.value = true;
       window.location.href = childUrl + '?_token=' + (xsrfToken || '');
 
