@@ -50,7 +50,7 @@ const isActive = (path: string) => cleanPath(currentUrl) === path;
       <!-- Chatbot AI -->
 
       <Link
-        href="/chatbot-ai"
+        href="/assistant-ai"
         class="flex flex-col items-center justify-center px-4 py-2"
         :class="isActive('/chatbot-ai') 
           ? 'text-green-600 font-semibold' 
