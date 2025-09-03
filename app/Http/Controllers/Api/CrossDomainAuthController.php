@@ -16,6 +16,8 @@ class CrossDomainAuthController extends Controller
      */
     public function transferAuth(Request $request)
     {
+        Log::info('Starting cross-domain auth transfer');   
+        
         // Ambil raw cookie langsung dari header, bukan dari helper cookie()
         $rawCookies = $request->header('cookie');
         preg_match('/aninkafashion-token=([^;]+)/', $rawCookies, $matches);
@@ -27,6 +29,7 @@ class CrossDomainAuthController extends Controller
 
         // Kirim token terenkripsi ke child
         $childUrl = $request->input('childUrl');
+        Log::info('Sending token to child URL: ' . $childUrl);
         $response = Http::asJson()->post($childUrl . '/auth/set-cookie', [
             'token' => $encryptedToken
         ]);
