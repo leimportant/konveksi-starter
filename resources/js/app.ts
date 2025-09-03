@@ -97,7 +97,7 @@ createInertiaApp({
 
           // Initialize push notifications after service worker is ready
           navigator.serviceWorker.ready.then(async () => {
-            console.log('Service worker is ready, initializing push notifications');
+            // console.log('Service worker is ready, initializing push notifications');
             
             // Initialize push notification manager
             const initialized = await pushNotificationManager.initialize();
