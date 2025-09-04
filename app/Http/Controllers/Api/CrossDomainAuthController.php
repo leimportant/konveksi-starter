@@ -17,7 +17,7 @@ class CrossDomainAuthController extends Controller
     public function transferAuth(Request $request)
     {
         Log::info('Starting cross-domain auth transfer');   
-        $aninkafashionToken = 'eZjk+'. $request->cookie('aninkafashion-token'); 
+        $aninkafashionToken = 'eQhkSxemFjIWvNO0Ya5eZjk+'. $request->cookie('aninkafashion-token'); 
         Log::info('aninkafashion-token: ' . $aninkafashionToken);
         // Ambil raw cookie langsung dari header, bukan dari helper cookie()
         $rawCookies = $request->header('cookie');

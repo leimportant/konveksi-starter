@@ -180,7 +180,12 @@ class ProductCatalogController extends Controller
             ->whereNull('deleted_at')
             ->orderBy('created_at', 'ASC')
             ->get()
-            ->groupBy('doc_id');
+            ->groupBy('doc_id')
+            ->map(function ($items) {
+                return $items->first(function ($item) {
+                    return preg_match('/\.(jpg|jpeg|png|webp|avif)$/i', $item->file_name);
+                });
+            });
 
         return $galleries; // Collection grouped by product_id
     }
