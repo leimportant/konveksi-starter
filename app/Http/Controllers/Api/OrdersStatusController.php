@@ -62,20 +62,30 @@ class OrdersStatusController extends Controller
         // Base query
         $query = Order::with('orderItems')->where('location_id', $locationId);
 
-        if ($request->filled('q') || $request->filled('keyword')) {
-            $keyword = trim($request->input('q', $request->input('keyword')));
-            $keywords = explode(' ', $keyword);
+        if ($request->filled('q')) {
+            $keyword = strtolower(trim($request->input('q')));
 
-            $query->where(function ($q) use ($keywords) {
-                foreach ($keywords as $word) {
-                    if (is_numeric($word)) {
-                        $q->orWhere('id', $word); // exact match untuk ID
+            if ($keyword === 'belum bayar' || $keyword === 'unpaid') {
+                $query->where('is_paid', 'N');
+            } else if ($keyword === 'sudah bayar' || $keyword === 'paid') {
+                $query->where('is_paid', 'Y');
+            } else if ($keyword === 'sudah selesai' || $keyword === 'closed' || $keyword === 'done' || $keyword === 'selesai' || $keyword === 'completed') {
+                $query->where('is_paid', 'Y')
+                        ->where('status', OrderStatusEnum::DONE->value);
+            } else {
+                $keywords = explode(' ', $keyword);
+
+                $query->where(function ($q) use ($keywords) {
+                    foreach ($keywords as $word) {
+                        if (is_numeric($word)) {
+                            $q->orWhere('id', $word);
+                        }
+                        $q->orWhere('id', 'like', "%{$word}%");
+                        $q->orWhere('resi_number', 'like', "%{$word}%");
+                        $q->orWhere('status', 'like', "%{$word}%");
                     }
-                    $q->orWhere('id', 'like', "%{$word}%");
-                    $q->orWhere('resi_number', 'like', "%{$word}%");
-                    $q->orWhere('status', 'like', "%{$word}%");
-                }
-            });
+                });
+            }
         }
 
         // Filter role
