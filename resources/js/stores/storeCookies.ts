@@ -37,14 +37,14 @@ export const useStoreCookies = defineStore('storeCookies', () => {
         body: JSON.stringify({ childUrl })
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || 'Transfer failed');
       }
 
       // pakai redirect dengan token di query string
       transferSuccess.value = true;
-      window.location.href = childUrl + '?_token=' + (aninkafashionToken || '');
+      window.location.href = childUrl + '?_token=' + (data._token || '');
 
     } catch (err: any) {
       transferError.value = err?.message || 'Network or CSRF error';
