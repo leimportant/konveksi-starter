@@ -178,14 +178,11 @@ class ProductCatalogController extends Controller
         $galleries = DB::table('tr_document_attachment')
             ->whereIn('doc_id', $productIds)
             ->whereNull('deleted_at')
+            ->whereIn('extension', ['jpg', 'jpeg', 'png', 'webp', 'avif'])
             ->orderBy('created_at', 'ASC')
             ->get()
-            ->groupBy('doc_id')
-            ->map(function ($items) {
-                return $items->first(function ($item) {
-                    return preg_match('/\.(jpg|jpeg|png|webp|avif)$/i', $item->filename);
-                });
-            });
+            ->groupBy('doc_id');
+            
 
         return $galleries; // Collection grouped by product_id
     }
