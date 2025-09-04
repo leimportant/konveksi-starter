@@ -183,7 +183,7 @@ class ProductCatalogController extends Controller
             ->groupBy('doc_id')
             ->map(function ($items) {
                 return $items->first(function ($item) {
-                    return preg_match('/\.(jpg|jpeg|png|webp|avif)$/i', $item->file_name);
+                    return preg_match('/\.(jpg|jpeg|png|webp|avif)$/i', $item->filename);
                 });
             });
 
