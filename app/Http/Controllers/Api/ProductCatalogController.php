@@ -64,6 +64,7 @@ class ProductCatalogController extends Controller
                 foreach ($keywords as $word) {
                     $q->orWhere('b.name', 'like', "%{$word}%")
                     ->orWhere('b.descriptions', 'like', "%{$word}%")
+                    ->orWhere('a.size_id', 'like', "%{$word}%")
                     ->orWhere('c.name', 'like', "%{$word}%");
                 }
             });

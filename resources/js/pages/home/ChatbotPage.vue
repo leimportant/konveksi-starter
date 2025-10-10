@@ -3,7 +3,7 @@ import { onMounted } from 'vue';
 import { useStoreCookies } from '@/stores/storeCookies';
 
 
-const assistantUrl = import.meta.env.VITE_APP_CHATBOT_URL || 'http://aninkafashion.eu-4.evennode.com';
+const assistantUrl = import.meta.env.VITE_APP_CHATBOT_URL || 'http://medinachat.eu-4.evennode.com';
 const storeCookies = useStoreCookies();
 
 onMounted(() => {
