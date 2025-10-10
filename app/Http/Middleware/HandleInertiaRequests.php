@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use Illuminate\Support\Facades\Log;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -37,19 +38,55 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        // Optional: Log jika ada request JSON (misalnya dari fetch/axios luar Inertia)
+        // if ($request->expectsJson() && !$request->header('X-Inertia')) {
+        //      Log::debug('[Inertia Share] JSON fallback response dipanggil', [
+        //          'url' => $request->url(),
+        //          'headers' => $request->headers->all(),
+        //      ]);
+        // }
 
-        return [
+
+        // Optional: pisahkan quote agar tidak dikirim saat API/json
+        $quote = null;
+        if (!$request->expectsJson()) {
+            [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+            $quote = ['message' => trim($message), 'author' => trim($author)];
+        }
+
+        $sharedProps = [
             ...parent::share($request),
-            'name' => config('app.name'),
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
+
+            // Global config
+            'appName' => config('app.name'),
+
+            // Optional quote (hanya kirim saat request normal)
+            'quote' => $quote,
+
+            // Auth info
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge($request->user()->toArray(), [
+                    'jwt_token' => $request->user()->createToken('aninkafashion-token')->plainTextToken,
+                ]) : null,
             ],
-            'ziggy' => [
+
+            // Ziggy route info (untuk Vue routing helper)
+            'ziggy' => fn() => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+
+            // Flash messages (rekomendasi)
+            'flash' => [
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
+            ],
         ];
+
+        // Log the shared auth user data for debugging
+        Log::info('Inertia Shared Auth User Data', ['auth' => $sharedProps['auth']]);
+
+        return $sharedProps;
     }
+
 }

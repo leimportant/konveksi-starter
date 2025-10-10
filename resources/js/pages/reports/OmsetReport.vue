@@ -70,8 +70,9 @@ const getBarWidth = (amount: string | number, max = 500000): number => {
 onMounted(() => {
     // Set default dates for demonstration or initial load
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    startDate.value = firstDayOfMonth.toISOString().split('T')[0];
+    // const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // startDate.value = firstDayOfMonth.toISOString().split('T')[0];
+    startDate.value =  today.toISOString().split('T')[0];
     endDate.value = today.toISOString().split('T')[0];
     fetchReport(currentPage.value, perPage.value);
 });

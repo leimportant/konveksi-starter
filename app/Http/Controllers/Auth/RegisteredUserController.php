@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +31,7 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -44,7 +45,6 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-         // 👇 Create related customer record
         Customer::create([
             'id' => $user->id,
             'name' => $user->name,
@@ -54,14 +54,39 @@ class RegisteredUserController extends Controller
             'is_active' => 'Y',
         ]);
 
-        // Optional: assign a default role
         DB::table('user_role')->insert([
             'user_id' => $user->id,
-            'role_id' => 7, // Default role ID for "customer"
+            'role_id' => 7,
         ]);
         
         event(new Registered($user));
         Auth::login($user);
-        return to_route('home');
+
+        $token = $user->createToken('aninkafashion-token');
+        
+        $cookie = cookie(
+            'aninkafashion-token', 
+            $token->plainTextToken, 
+            60 * 24 * 30,
+            null, 
+            null, 
+            true,
+            true
+        );
+
+        if ($request->wantsJson()) {
+            $response = new JsonResponse([
+                'status' => 'success',
+                'user' => [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ],
+                'redirect' => '/home'
+            ]);
+            return $response->withCookie($cookie);
+        }
+
+        $response = redirect()->intended('/home');
+        return $response->withCookie($cookie);
     }
 }

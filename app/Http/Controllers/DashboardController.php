@@ -7,17 +7,20 @@ use App\Models\Customer;
 use App\Models\ModelRef;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\PosTransaction;
+use App\Models\PosTransactionDetail;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-       
+
         // You can add any dashboard statistics or data here
         $total_order = ModelRef::count();
         $total_products = Product::count();
@@ -34,11 +37,45 @@ class DashboardController extends Controller
 
         return response()->json($data);
     }
+    public function indexCustomer(Request $request)
+    {
+        $userId = Auth::id();
+        Log::info($userId);
+
+        // Ambil semua transaksi user
+        $transactions = PosTransaction::with('orderItems')
+            ->where('customer_id', $userId)
+            ->get();
+
+        // Ambil semua orderItem
+        $allOrderItems = $transactions->flatMap(function ($transaction) {
+            return $transaction->orderItems;
+        });
+
+          // Hitung total quantity dari semua order item
+        $totalQtyProduk = $allOrderItems->sum('quantity');
+
+        // Total order = jumlah transaksi
+        $totalOrder = $transactions->count();
+
+        // Total pembelian = total dari semua transaksi
+        $totalPembelian = $transactions->sum('total_amount');
+
+        $data = [
+            'totalProduk' => $totalQtyProduk,
+            'totalOrder' => $totalOrder,
+            'totalPembelian' => $totalPembelian,
+        ];
+
+        return response()->json($data);
+    }
+
+
 
     public function getBadgeCounts(Request $request)
     {
         $cartItem = CartItem::count();
-        $order =  Order::whereNotIn('status', [6,11])->count();
+        $order = Order::whereNotIn('status', [6, 11])->count();
         return response()->json([
             'orders' => intval($order + $cartItem),
             'customers' => Customer::where('is_active', 'Y')->count(),
@@ -61,7 +98,7 @@ class DashboardController extends Controller
             ->orderBy('a.created_at', 'ASC')
             ->get();
 
-        return response()->json( ['data' => $salesData]);
+        return response()->json(['data' => $salesData]);
     }
 
     public function getSalesByOmsetData(Request $request)

@@ -20,9 +20,27 @@ use \Illuminate\Support\Facades\Log;
 
 class TransferStockController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $datas = TransferStock::with(['location', 'location_destination', 'transfer_detail'])->latest()->paginate(10);
+        $search = $request->input('search');
+        $query = TransferStock::with(['location', 'location_destination', 'transfer_detail']);
+        if ($search) {
+            $query->where('id', 'like', '%' . $search . '%')
+                    ->orWhere('transfer_date', 'like', '%' . $search . '%')
+                    ->orWhereHas('location', function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('location_destination', function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('transfer_detail', function ($q) use ($search) {
+                        $q->whereHas('product', function ($q) use ($search) {
+                            $q->where('name', 'like', '%' . $search . '%');
+                        });
+                    });
+        }
+
+        $datas = $query->latest()->paginate(10);
         return response()->json($datas);
     }
 

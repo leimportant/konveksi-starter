@@ -17,9 +17,15 @@ const formatCurrency = (value: number) => {
 </script>
 
 <template>
-  <div class="flex justify-between items-center text-sm text-gray-800">
-  <span>{{ item.qty }} x {{ item.product.name }}</span>
-  <span class="ml-auto">{{ formatCurrency(item.price_final * item.qty) }}</span>
-</div>
-
+  <div class="flex flex-wrap items-center justify-between text-sm text-gray-700 gap-2">
+    <div class="flex-1 min-w-0">
+      <span class="block font-sm truncate">
+        <span class="block font-sm truncate">{{ item.qty }} × {{ item.product.name }} Size: {{ item.size_id }}</span>
+      </span>
+      
+    </div>
+    <div class="text-right font-semibold whitespace-nowrap">
+      {{ formatCurrency(item.price_final * item.qty) }}
+    </div>
+  </div>
 </template>
