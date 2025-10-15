@@ -17,6 +17,7 @@ class Production extends Model
     protected $fillable = [
         'id',
         'model_id',
+        'employee_id',
         'activity_role_id',
         'remark',
         'qty',
@@ -44,7 +45,6 @@ class Production extends Model
         return $this->belongsTo(ActivityRole::class, 'activity_role_id');
     }
 
-    
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -54,7 +54,7 @@ class Production extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
-
+    
     public function deleter()
     {
         return $this->belongsTo(User::class, 'deleted_by');

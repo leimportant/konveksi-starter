@@ -19,6 +19,7 @@ class ModelRef extends BaseModel
         'estimation_qty',
         'start_date',
         'end_date', // ✅ tambahkan ini
+        'is_close',
         'created_by',
         'updated_by',
         'deleted_by'

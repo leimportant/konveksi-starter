@@ -15,7 +15,7 @@ class AllowIframe
         $response = $next($request);
 
         // Ganti dengan domain parent iframe kamu
-        $allowedDomain = "https://aninkafashion.com";
+        $allowedDomain = "https://aninkafashion.com, http://localhost:7000";
 
         // Atur Content-Security-Policy agar iframe bisa load dari parentdomain.com
         $response->headers->set(

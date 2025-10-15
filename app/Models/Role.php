@@ -11,6 +11,7 @@ class Role extends Model
 
     protected $fillable = [
         'name',
+        'all_employee',
         'created_by',
         'updated_by',
         'deleted_by'

@@ -88,14 +88,14 @@ class ModelRefController extends Controller
                     ]);
                 }
             }
-            
+
 
             // Store documents
-           
+
             $uniqId = $request->input('uniqId', null);
             $docs = DocumentAttachment::where('reference_id', $uniqId)
-                    ->where('reference_type', 'Model')
-                    ->get(); 
+                ->where('reference_type', 'Model')
+                ->get();
 
             if ($docs->isNotEmpty()) {
                 // update doc_id dan reference_id pada dokumen yang sudah ada
@@ -222,7 +222,7 @@ class ModelRefController extends Controller
             if (!empty($request->modelMaterials)) {
                 $model->modelMaterial()->forceDelete(); // Perubahan di sini: modelMaterials -> modelMaterial
                 foreach ($request->modelMaterials as $index => $modelMaterial) {
-                     $productId = is_array($modelMaterial['product_id'])
+                    $productId = is_array($modelMaterial['product_id'])
                         ? $modelMaterial['product_id']['id'] ?? null
                         : $modelMaterial['product_id'];
 
@@ -237,9 +237,9 @@ class ModelRefController extends Controller
                         'updated_by' => Auth::id()
                     ]);
                 }
-    
+
             }
-            
+
 
             DB::commit();
 
@@ -277,50 +277,96 @@ class ModelRefController extends Controller
         }
     }
 
-   public function list(Request $request)
-{
-    try {
-        $request->validate([
-            'search' => 'nullable|string',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
-            'sort_field' => 'nullable|string|in:created_at,start_date,description',
-            'sort_order' => 'nullable|in:asc,desc',
-            'per_page' => 'nullable|integer|min:1|max:100',
-        ]);
+    public function list(Request $request)
+    {
+        try {
+            $request->validate([
+                'search' => 'nullable|string',
+                'start_date' => 'nullable|date',
+                'end_date' => 'nullable|date',
+                'sort_field' => 'nullable|string|in:created_at,start_date,description',
+                'sort_order' => 'nullable|in:asc,desc',
+                'per_page' => 'nullable|integer|min:1|max:100',
+            ]);
 
-        $query = ModelRef::query();
+            $query = ModelRef::query();
 
-        if ($request->filled('search')) {
-            $query->where('description', 'like', '%' . $request->search . '%');
+            if ($request->filled('search')) {
+                $query->where('description', 'like', '%' . $request->search . '%');
+            }
+            if ($request->filled('start_date')) {
+                $query->whereDate('start_date', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->whereDate('start_date', '<=', $request->end_date);
+            }
+
+            if ($request->filled( 'is_close')) {
+                $query->where('is_close',  $request->is_close);
+            }
+
+            $sortField = $request->get('sort_field', 'created_at');
+            $sortOrder = $request->get('sort_order', 'desc');
+            $query->orderBy($sortField, $sortOrder);
+
+            $perPage = $request->get('per_page', 10);
+            $models = $query->with('sizes')->paginate($perPage);
+
+            return response()->json([
+                'message' => 'Data model berhasil diambil',
+                'data' => $models
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Model list error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat mengambil data model',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        if ($request->filled('start_date')) {
-            $query->whereDate('start_date', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('start_date', '<=', $request->end_date);
-        }
-
-        $sortField = $request->get('sort_field', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortField, $sortOrder);
-
-        $perPage = $request->get('per_page', 10);
-        $models = $query->with('sizes')->paginate($perPage);
-
-        return response()->json([
-            'message' => 'Data model berhasil diambil',
-            'data' => $models
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Model list error: ' . $e->getMessage());
-
-        return response()->json([
-            'message' => 'Terjadi kesalahan saat mengambil data model',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
+
+    public function updateClose($id)
+    {
+        try {
+            $model = ModelRef::findOrFail($id);
+
+            // Tentukan status baru
+            $newStatus = $model->is_close === 'Y' ? 'N' : 'Y';
+
+            // Update status dan siapa yang ubah
+            $model->update([
+                'is_close' => $newStatus,
+                'updated_by' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => $newStatus === 'Y'
+                    ? 'Model berhasil ditutup.'
+                    : 'Model berhasil dibuka kembali.',
+                'data' => [
+                    'id' => $model->id,
+                    'is_close' => $model->is_close,
+                    'updated_by' => $model->updated_by,
+                ],
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Model tidak ditemukan.',
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui status.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
 
 }

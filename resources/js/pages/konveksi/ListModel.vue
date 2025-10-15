@@ -37,6 +37,10 @@ const handleSearchInput = (event: Event) => {
     modelStore.setFilter('search', target.value);
 };
 
+const toggleStatus = async (id: number) => {
+  await modelStore.updateCloseStatus(id)
+}
+
 // const handleStartDateChange = (date: string | null) => {
 //     modelStore.setFilter('start_date', date);
 // };
@@ -110,6 +114,7 @@ const formatDate = (date: string | null | undefined) => {
                 <Table class="w-full text-sm md:table-auto">
                     <TableHeader>
                         <TableRow class="bg-gray-100 dark:bg-gray-800">
+                            <TableHead class="px-3 py-2 text-left">Status</TableHead>
                             <TableHead class="px-3 py-2 text-left">Nama Model</TableHead>
                             <TableHead class="px-3 py-2">Est Harga/Pcs</TableHead>
                             <TableHead class="px-3 py-2">Qty</TableHead>
@@ -118,57 +123,118 @@ const formatDate = (date: string | null | undefined) => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow
-                            v-for="item in models"
-                            :key="item.id"
-                            class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
-                        >
-                            <TableCell class="px-3 py-2 font-medium text-foreground">
-                                <div class="font-semibold">{{ item.description }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">Mulai: {{ formatDate(item.start_date) }}</div>
-                            </TableCell>
-                            <TableCell class="px-3 py-2">{{ formatPrice(item.estimation_price_pcs) }}</TableCell>
-                            <TableCell class="px-3 py-2">
-                                <template v-if="item.sizes?.length">
-                                    <div class="flex flex-col text-xs">
-                                        <span v-for="(size, index) in item.sizes" :key="index">
-                                            {{ size.size_id }} {{ size.variant }} ({{ size.qty }})
-                                            <template v-if="index !== item.sizes.length - 1"><br /> </template>
-                                        </span>
-                                    </div>
-                                </template>
-                                <span v-else>-</span>
-                            </TableCell>
+  <!-- ✅ Skeleton modern saat loading -->
+  <template v-if="loading">
+    <TableRow v-for="n in 5" :key="n" class="animate-pulse">
+      <TableCell class="py-3">
+        <div class="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </TableCell>
+      <TableCell class="py-3">
+        <div class="h-4 w-40 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+        <div class="h-3 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </TableCell>
+      <TableCell class="py-3">
+        <div class="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </TableCell>
+      <TableCell class="py-3">
+        <div class="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </TableCell>
+      <TableCell class="py-3 hidden md:table-cell">
+        <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </TableCell>
+      <TableCell class="py-3 text-right">
+        <div class="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded ml-auto"></div>
+      </TableCell>
+    </TableRow>
+  </template>
 
-                            <TableCell class="hidden px-3 py-2 text-sm text-gray-500 dark:text-gray-400 md:table-cell">
-                                {{ item.remark || '-' }}
-                            </TableCell>
-                            <TableCell class="space-x-1 px-3 py-2 text-right">
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    @click.stop="router.visit(`/konveksi/model/${item.id}/edit`)"
-                                >
-                                    <Edit class="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    @click.stop="handleDelete(item.id)"
-                                >
-                                    <Trash2 class="h-4 w-4 text-red-500" />
-                                </Button>
-                            </TableCell>
-                        </TableRow>
+  <!-- ✅ Data Table -->
+  <TableRow
+    v-else
+    v-for="item in models"
+    :key="item.id"
+    class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800 transition-colors duration-150"
+  >
+    <!-- Status Toggle -->
+    <TableCell class="text-center">
+      <Button
+  @click="toggleStatus(item.id)"
+  :disabled="modelStore.loading"
+  :class="[
+    'flex items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium shadow-sm transition-all duration-200',
+    item.is_close === 'Y'
+      ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300'
+      : 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300'
+  ]"
+>
+  <Loader2
+    v-if="modelStore.loading"
+    class="h-4 w-4 animate-spin"
+  />
+  <span v-else>
+    {{ item.is_close === 'Y' ? 'Close' : 'Open' }}
+  </span>
+</Button>
 
-                        <TableRow v-if="!modelStore.loading && models.length === 0">
-                            <TableCell colspan="5" class="px-3 py-6 text-center text-sm text-muted-foreground">
-                                Tidak ada model yang ditemukan.
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
+    </TableCell>
+
+    <!-- Nama Model -->
+    <TableCell class="px-3 py-2 font-medium text-foreground">
+      <div class="font-semibold">{{ item.description }}</div>
+      <div class="text-xs text-gray-500 dark:text-gray-400">
+        Mulai: {{ formatDate(item.start_date) }}
+      </div>
+    </TableCell>
+
+    <!-- Estimasi Harga -->
+    <TableCell class="px-3 py-2">{{ formatPrice(item.estimation_price_pcs) }}</TableCell>
+
+    <!-- Qty -->
+    <TableCell class="px-3 py-2">
+      <template v-if="item.sizes?.length">
+        <div class="flex flex-col text-xs">
+          <span v-for="(size, index) in item.sizes" :key="index">
+            {{ size.size_id }} {{ size.variant }} ({{ size.qty }})
+          </span>
+        </div>
+      </template>
+      <span v-else>-</span>
+    </TableCell>
+
+    <!-- Catatan -->
+    <TableCell class="hidden px-3 py-2 text-sm text-gray-500 dark:text-gray-400 md:table-cell">
+      {{ item.remark || '-' }}
+    </TableCell>
+
+    <!-- Action -->
+    <TableCell class="space-x-1 px-3 py-2 text-right">
+      <Button
+        size="icon"
+        variant="ghost"
+        class="hover:bg-gray-100 dark:hover:bg-gray-700"
+        @click.stop="router.visit(`/konveksi/model/${item.id}/edit`)"
+      >
+        <Edit class="h-4 w-4" />
+      </Button>
+      <Button
+        size="icon"
+        variant="ghost"
+        class="hover:bg-gray-100 dark:hover:bg-gray-700"
+        @click.stop="handleDelete(item.id)"
+      >
+        <Trash2 class="h-4 w-4 text-red-500" />
+      </Button>
+    </TableCell>
+  </TableRow>
+
+  <!-- ✅ State kosong -->
+  <TableRow v-if="!loading && models.length === 0">
+    <TableCell colspan="6" class="py-6 text-center text-gray-500 dark:text-gray-400">
+      Belum ada model yang ditemukan.
+    </TableCell>
+  </TableRow>
+</TableBody>
+
                 </Table>
                 <div v-if="loading" class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">Memuat data...</div>
             </div>
