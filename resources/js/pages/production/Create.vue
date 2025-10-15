@@ -6,17 +6,21 @@ import { useProductionStore } from '@/stores/useProductionStore';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { storeToRefs } from 'pinia';
 import { onMounted, ref, watch } from 'vue';
+import Vue3Select from 'vue3-select'
+import 'vue3-select/dist/vue3-select.css'
 import axios from 'axios';
 
 const toast = useToast();
 const modelStore = useModelStore();
-const { models } = storeToRefs(modelStore);
+const { models, employees } = storeToRefs(modelStore);
+
 
 const props = defineProps<{
   activity_role: string | number;
 }>();
 
 const selectedModelId = ref<number | null>(null);
+const selectedEmployeeId = ref<number | null>(null);
 const modelSizes = ref<{ size_id: string; size_name: string; qty: number, variant: string}[]>([]);
 const activityTasks = ref<any[]>([]);
 const selectedTasks = ref<number[]>([]);
@@ -39,12 +43,14 @@ const fetchActivityTasks = async (status = 'SEWING') => {
 
 onMounted(async () => {
   await modelStore.fetchModels();
+  
   if (props.activity_role === 'FINISHING') {
     await fetchActivityTasks('FINISHING');
   }
   if (props.activity_role === 'SEWING') {
     await fetchActivityTasks('SEWING');
   }
+  await modelStore.fetchActivityEmployee(String(props.activity_role));
 });
 
 watch(selectedModelId, async (id) => {
@@ -111,12 +117,29 @@ const submit = async () => {
 
       <div>
         <label class="mb-1 block font-medium">Pilih Desain Kerjaan</label>
-        <select v-model="selectedModelId" class="w-full rounded border p-2">
+         <Vue3Select id="model.id"
+         v-model="selectedModelId"
+         :reduce="(model: any) => model.id"
+         :options="models" 
+         label="description"
+                placeholder="Select Model" class="w-full" />
+
+        <!-- <select v-model="selectedModelId" class="w-full rounded border p-2">
           <option disabled value="">-- Choose a model --</option>
           <option v-for="model in models" :key="model.id" :value="model.id">
             {{ model.description }}
           </option>
-        </select>
+        </select> -->
+      </div>
+
+      <div>
+        <label class="mb-1 block font-medium">Karyawan</label>
+         <Vue3Select id="model.id"
+         v-model="selectedEmployeeId"
+         :options="employees" 
+         label="name"
+        placeholder="Select Employee" class="w-full" />
+
       </div>
 
       <div v-if="props.activity_role === 'QUALITY_CHECK'"

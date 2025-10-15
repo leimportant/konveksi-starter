@@ -13,6 +13,8 @@
     <meta name="keywords" content="Aninka Fashion, daster chibi, rayon twill, daster jumbo, twill monica, baju tidur wanita, fashion muslimah, daster adem" />
     <meta name="author" content="Aninka Fashion" />
     <meta name="robots" content="index, follow" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 
     <!-- Theme & App Settings -->
     <meta name="theme-color" content="#4CAF50" />

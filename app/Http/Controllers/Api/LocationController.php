@@ -27,7 +27,8 @@ class LocationController extends Controller
         $perPage = $request->input('perPage', 10);
         $locations = $query->paginate($perPage);
 
-        return response()->json($locations);
+        
+        return response($locations, 200);
     }
 
 
@@ -48,7 +49,7 @@ class LocationController extends Controller
         $location->created_by = Auth::id();
         $location->save();
 
-        return response()->json($location, 201);
+        return response($location, 201);
     }
 
     /**
@@ -59,7 +60,7 @@ class LocationController extends Controller
      */
     public function show(Location $location)
     {
-        return response()->json($location);
+        return response($location);
     }
 
     /**
@@ -79,7 +80,7 @@ class LocationController extends Controller
         $location->updated_by = Auth::id();
         $location->save();
 
-        return response()->json($location);
+        return response($location);
     }
 
     /**
