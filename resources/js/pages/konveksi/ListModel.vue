@@ -21,13 +21,13 @@ const breadcrumbs = [
 ];
 
 onMounted(() => {
-    modelStore.fetchModels();
+    modelStore.fetchModels(1, '-');
 });
 
 watch(
     filters,
     () => {
-        modelStore.fetchModels();
+        modelStore.fetchModels(1, '-');
     },
     { deep: true },
 );
@@ -55,7 +55,7 @@ const handleDelete = async (id: number) => {
     try {
         await modelStore.deleteModel(id);
         toast.success('Model deleted successfully');
-        await modelStore.fetchModels();
+        await modelStore.fetchModels(1, '-');
     } catch (error: any) {
         toast.error(error?.response?.data?.message ?? 'Failed to delete model');
     }
@@ -157,14 +157,15 @@ const formatDate = (date: string | null | undefined) => {
   >
     <!-- Status Toggle -->
     <TableCell class="text-center">
-      <Button
+     <Button
   @click="toggleStatus(item.id)"
   :disabled="modelStore.loading"
   :class="[
-    'flex items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium shadow-sm transition-all duration-200',
+    'flex items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium shadow-sm transition-all duration-200 cursor-pointer',
     item.is_close === 'Y'
-      ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300'
-      : 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300'
+      ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 hover:scale-105 hover:shadow-md'
+      : 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 hover:scale-105 hover:shadow-md',
+    modelStore.loading ? 'opacity-60 cursor-not-allowed' : ''
   ]"
 >
   <Loader2
@@ -175,6 +176,7 @@ const formatDate = (date: string | null | undefined) => {
     {{ item.is_close === 'Y' ? 'Close' : 'Open' }}
   </span>
 </Button>
+
 
     </TableCell>
 

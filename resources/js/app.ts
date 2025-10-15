@@ -36,6 +36,8 @@ axios.interceptors.response.use(
   }
 );
 
+axios.defaults.withCredentials = true;
+
 createInertiaApp({
   title: title => `${title} - ${appName}`,
   resolve: name => {

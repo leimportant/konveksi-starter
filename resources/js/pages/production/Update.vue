@@ -28,14 +28,15 @@ const form = useForm({
   id: null as number | null,
   model_id: null as number | null,
   activity_role_id: Number(props.activity_role),
-  items: [] as { size_id: string; qty: number }[]
+  items: [] as { size_id: string; qty: number; variant: string }[]
 });
 
 // Define the interface for the API response item
-interface ProductionItem {
+interface ProductionItemApiResponse {
   id: string;
   production_id: string;
   size_id: string;
+  variant: string;
   qty: number;
   size: {
     id: string;
@@ -60,16 +61,17 @@ const fetchProduction = async () => {
     // Set model sizes and form items together to maintain consistency
     if (Array.isArray(data.items)) {
       // First set the model sizes
-      modelSizes.value = data.items.map((item: ProductionItem) => ({
+      modelSizes.value = data.items.map((item: ProductionItemApiResponse) => ({
         size_id: String(item.size_id),
         size_name: item.size.name,
         qty: item.qty
       }));
 
       // Then set form items using the same data
-      form.items = data.items.map((item: ProductionItem) => ({
+      form.items = data.items.map((item: ProductionItemApiResponse) => ({
         size_id: String(item.size_id),
-        qty: item.qty || 0
+        qty: item.qty || 0,
+        variant: item.variant || ''
       }));
     } else {
       modelSizes.value = [];
@@ -96,7 +98,7 @@ watch(selectedModelId, async (id) => {
 
     form.model_id = modelData.id;
 
-    const existingItems = [...form.items];
+    const existingItems = [...form.items] as { size_id: string; qty: number; variant: string }[];
 
     if (Array.isArray(modelData.sizes)) {
       modelSizes.value = modelData.sizes.map((size: any) => ({
@@ -107,7 +109,8 @@ watch(selectedModelId, async (id) => {
 
       form.items = modelData.sizes.map((size: any) => ({
         size_id: String(size.id),
-        qty: existingItems.find(item => item.size_id === String(size.id))?.qty || 0
+        qty: existingItems.find(item => item.size_id === String(size.id))?.qty || 0,
+        variant: existingItems.find(item => item.size_id === String(size.id))?.variant || ''
       }));
     } else {
       modelSizes.value = [];
@@ -123,7 +126,7 @@ watch(selectedModelId, async (id) => {
 
 // Fetch activity role
 onMounted(async () => {
-  await modelStore.fetchModels();
+  await modelStore.fetchModels(1, 'N');
   try {
     const res = await activityRoleStore.getActivityRoleById(Number(props.activity_role));
     activityRole.value = res;
@@ -176,6 +179,7 @@ const submit = async () => {
           <thead>
             <tr class="bg-gray-100">
               <th class="border px-2 md:px-3 py-1 md:py-2 text-left">Size</th>
+              <th class="border px-2 md:px-3 py-1 md:py-2 text-left">Variant</th>
               <th class="border px-2 md:px-3 py-1 md:py-2 text-left">Qty</th>
             </tr>
           </thead>
@@ -183,6 +187,13 @@ const submit = async () => {
             <tr v-for="(size, index) in form.items" :key="`size-${index}-${size.size_id}`">
               <td class="border px-2 md:px-3 py-1 md:py-2">
                 {{ modelSizes.find(ms => ms.size_id === size.size_id)?.size_name || size.size_id }}
+              </td>
+              <td class="border px-2 md:px-3 py-1 md:py-2">
+                <input
+                  type="text"
+                  class="border rounded px-2 py-1 w-full"
+                  v-model="size.variant"
+                />
               </td>
               <td class="border px-2 md:px-3 py-1 md:py-2">
                 <input

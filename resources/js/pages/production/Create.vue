@@ -42,7 +42,7 @@ const fetchActivityTasks = async (status = 'SEWING') => {
 };
 
 onMounted(async () => {
-  await modelStore.fetchModels();
+  await modelStore.fetchModels(1, 'N');
   
   if (props.activity_role === 'FINISHING') {
     await fetchActivityTasks('FINISHING');
