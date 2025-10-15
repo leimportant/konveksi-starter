@@ -301,7 +301,7 @@ class ModelRefController extends Controller
                 $query->whereDate('start_date', '<=', $request->end_date);
             }
 
-            if ($request->filled( 'is_close')) {
+            if ($request->filled( 'is_close') != '-') {
                 $query->where('is_close',  $request->is_close);
             }
 
@@ -310,7 +310,7 @@ class ModelRefController extends Controller
             $query->orderBy($sortField, $sortOrder);
 
             $perPage = $request->get('per_page', 10);
-            $models = $query->with('sizes')->paginate($perPage);
+            $models = $query->with('sizes')->orderBy('created_at', 'desc')->paginate($perPage);
 
             return response()->json([
                 'message' => 'Data model berhasil diambil',

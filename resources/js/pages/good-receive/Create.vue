@@ -92,7 +92,7 @@ const breadcrumbs = [
 
 onMounted(async () => {
   await Promise.all([
-    modelStore.fetchModels(),
+    modelStore.fetchModels(1, 'N'),
     uomStore.fetchUoms()
   ]);
 });

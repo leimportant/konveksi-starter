@@ -96,11 +96,11 @@ export const useModelStore = defineStore('model', {
             }
         },
 
-        async fetchModels(page: number = 1) {
+        async fetchModels(page: number = 1, isClose: string) {
             try {
                 this.loading = true;
                 const params = { ...this.filters, page };
-                params.is_close = 'N';
+                params.is_close = isClose ? isClose : 'N';
                 const response = await axios.get('/api/models/list', { params });
                 this.models = response.data.data.data;
                 this.total = response.data.data.total;
@@ -131,23 +131,23 @@ export const useModelStore = defineStore('model', {
 
         setFilter(key: keyof FetchParams, value: any) {
             this.filters[key] = value;
-            this.fetchModels(1); // Reset to first page on filter change
+            this.fetchModels(1, '-'); // Reset to first page on filter change
         },
 
         goToPage(page: number) {
             if (page < 1 || page > this.lastPage) return;
-            this.fetchModels(page);
+            this.fetchModels(page, '-');
         },
 
         nextPage() {
             if (this.currentPage < this.lastPage) {
-                this.fetchModels(this.currentPage + 1);
+                this.fetchModels(this.currentPage + 1, '-');
             }
         },
 
         prevPage() {
             if (this.currentPage > 1) {
-                this.fetchModels(this.currentPage - 1);
+                this.fetchModels(this.currentPage - 1, '-');
             }
         },
 
