@@ -20,7 +20,6 @@ class ActivityRoleController extends Controller
         $roles = $query->paginate(10);
         return response()->json($roles);
     }
-
     public function store(Request $request)
     {
         $validated = $request->validate([

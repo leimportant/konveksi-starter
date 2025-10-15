@@ -9,6 +9,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Api\ComboController;
 use App\Http\Controllers\Api\ModelRefController;
 use App\Http\Controllers\Api\ActivityRoleController;
+use App\Http\Controllers\Api\ActivityGroupController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\BahanController;
@@ -142,10 +143,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}', [ModelRefController::class, 'show']);
         Route::put('/{id}', [ModelRefController::class, 'update']);
         Route::delete('/{id}', [ModelRefController::class, 'destroy']);
+        Route::patch('/{id}/close', [ModelRefController::class, 'updateClose']);
     });
 
     Route::apiResource('api/faq', FaqController::class);
     Route::apiResource('api/activity-roles', ActivityRoleController::class);
+    Route::apiResource('api/activity-group', ActivityGroupController::class);
+    Route::get('api/user-activity-group', [ActivityGroupController::class, 'getActivityGroupByUser']);
+    Route::get('api/employee-activity-group/{id}', [ActivityGroupController::class, 'getActivityEmployee']);
     Route::apiResource('pos-products', PosProductController::class);
     Route::apiResource('api/price-types', PriceTypeController::class);
     Route::apiResource('api/product-prices', ProductPriceController::class);

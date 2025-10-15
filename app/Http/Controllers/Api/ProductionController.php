@@ -77,6 +77,7 @@ class ProductionController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'model_id' => 'required|exists:tr_model,id',
+                'employee_id'=> 'required|exists:users,id',
                 'activity_role_id' => 'required', // validation for array handled below
                 'remark' => 'nullable|string|max:100',
                 'items' => 'required|array|min:1',
@@ -195,6 +196,7 @@ class ProductionController extends Controller
                 $production = Production::create([
                     'id' => 'PRD-' . uniqid(),
                     'model_id' => $request->model_id,
+                    'employee_id' => $request->employee_id,
                     'activity_role_id' => $activityRoleId,
                     'remark' => $request->remark,
                     'status' => 'waiting',
@@ -243,6 +245,7 @@ class ProductionController extends Controller
 
         $validator = Validator::make($request->all(), [
             'model_id' => 'required|exists:tr_model,id',
+            'employee_id'=> 'required|exists:users,id',
             'activity_role_id' => 'required|exists:mst_activity_role,id',
             'remark' => 'nullable|string|max:100',
             'items' => 'required|array|min:1',
@@ -340,7 +343,7 @@ class ProductionController extends Controller
 
         // Update production
         $production = Production::findOrFail($id);
-        $production->fill($request->only(['model_id', 'activity_role_id', 'remark']));
+        $production->fill($request->only(['model_id', 'employee_id', 'activity_role_id', 'remark']));
         $production->updated_by = Auth::id();
         $production->save();
 

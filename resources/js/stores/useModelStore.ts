@@ -33,6 +33,7 @@ interface ModelData {
     estimation_price_pcs: number;
     estimation_qty: number;
     start_date: string | null;
+    is_close: string | "N";
     // ← NEW:
     sizes: SizeItem[];
     activity: ActivityItem[];
@@ -56,6 +57,7 @@ interface FetchParams {
     sort_order?: 'asc' | 'desc';
     per_page?: number;
     page?: number;
+    is_close?: string;
 }
 
 export const useModelStore = defineStore('model', {
@@ -63,6 +65,7 @@ export const useModelStore = defineStore('model', {
         loading: false,
         error: null as string | null,
         models: [] as Model[],
+        employees: [] as any[],
         total: 0,
         currentPage: 1,
         lastPage: 1,
@@ -97,11 +100,26 @@ export const useModelStore = defineStore('model', {
             try {
                 this.loading = true;
                 const params = { ...this.filters, page };
+                params.is_close = 'N';
                 const response = await axios.get('/api/models/list', { params });
                 this.models = response.data.data.data;
                 this.total = response.data.data.total;
                 this.currentPage = response.data.data.current_page;
                 this.lastPage = response.data.data.last_page;
+                return response.data;
+            } catch (error: any) {
+                this.error = error.response?.data?.message || 'Terjadi kesalahan saat mengambil data model';
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async fetchActivityEmployee(id: string) {
+              try {
+                this.loading = true;
+                const response = await axios.get(`/api/employee-activity-group/${id}`);
+                this.employees = response.data.data;
                 return response.data;
             } catch (error: any) {
                 this.error = error.response?.data?.message || 'Terjadi kesalahan saat mengambil data model';
@@ -177,6 +195,32 @@ export const useModelStore = defineStore('model', {
             } finally {
                 this.loading = false;
             }
-        }
+        },
+
+        async updateCloseStatus(id: number) {
+            try {
+                this.loading = true
+                this.error = null
+
+                // 🔥 Panggil endpoint toggle (PATCH lebih semantik daripada PUT)
+                const response = await axios.patch(`/api/models/${id}/close`)
+
+                // 🔁 Update state lokal (jika model ditemukan)
+                const updatedModel = response.data.data
+                const index = this.models.findIndex(model => model.id === id)
+                if (index !== -1) {
+                this.models[index] = updatedModel
+                }
+
+                return response.data
+            } catch (error: any) {
+                this.error =
+                error.response?.data?.message ||
+                'Terjadi kesalahan saat memperbarui status model'
+                throw error
+            } finally {
+                this.loading = false
+            }
+            }
     }
 });
