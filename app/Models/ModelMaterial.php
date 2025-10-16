@@ -20,6 +20,7 @@ class ModelMaterial extends Model
         'product_id',
         'item',
         'remark',
+        'price',
         'qty',
         'uom_id',
         'created_by',

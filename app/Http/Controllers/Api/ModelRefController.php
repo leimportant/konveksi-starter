@@ -173,7 +173,13 @@ class ModelRefController extends Controller
             'sizes.*.qty' => 'required|integer|min:1',
             'activity' => 'required|array',
             'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
-            'activity.*.price' => 'required|numeric|min:0'
+            'activity.*.price' => 'required|numeric|min:0',
+            'modelMaterials' => 'required|array',
+            'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
+            'modelMaterials.*.qty' => 'required|numeric|min:0',
+            'modelMaterials.*.price' => 'required|numeric|min:0',
+            'modelMaterials.*.uom_id' => 'required|exists:mst_uom,id',
+            'modelMaterials.*.remark' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
