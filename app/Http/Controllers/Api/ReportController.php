@@ -54,6 +54,7 @@ class ReportController extends Controller
                 'a.start_date',
                 'a.end_date',
                 'b.activity_role_id',
+                'b.employee_id',
                 'd.name as activity_role_name',
                 'c.size_id',
                 'c.qty'
@@ -198,7 +199,7 @@ class ReportController extends Controller
         $rawData = DB::table('tr_production as a')
             ->join('tr_production_item as b', 'a.id', '=', 'b.production_id')
             ->join('tr_model as c', 'a.model_id', '=', 'c.id')
-            ->join('users as d', 'a.created_by', '=', 'd.id')
+            ->join('users as d', 'a.employee_id', '=', 'd.id')
             ->leftJoin('tr_model_activity as e', function ($join) {
                 $join->on('a.model_id', '=', 'e.model_id')
                     ->on('a.activity_role_id', '=', 'e.activity_role_id');
@@ -211,6 +212,7 @@ class ReportController extends Controller
                 'a.activity_role_id',
                 'f.name as activity_role_name',
                 'a.created_by',
+                'a.employee_id',
                 'd.name as staff_name',
                 'b.size_id',
                 'b.variant',
