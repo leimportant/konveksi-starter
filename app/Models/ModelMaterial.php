@@ -29,6 +29,7 @@ class ModelMaterial extends Model
     protected $casts = [
         'qty' => 'integer',
         'item' => 'integer',
+        'price' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'

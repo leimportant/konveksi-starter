@@ -45,6 +45,11 @@ class Production extends Model
         return $this->belongsTo(ActivityRole::class, 'activity_role_id');
     }
 
+    public function employee()
+    {
+        return $this->belongsTo(User::class, 'employee_id');
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
