@@ -38,55 +38,43 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        // Optional: Log jika ada request JSON (misalnya dari fetch/axios luar Inertia)
-        // if ($request->expectsJson() && !$request->header('X-Inertia')) {
-        //      Log::debug('[Inertia Share] JSON fallback response dipanggil', [
-        //          'url' => $request->url(),
-        //          'headers' => $request->headers->all(),
-        //      ]);
-        // }
-
-
-        // Optional: pisahkan quote agar tidak dikirim saat API/json
-        $quote = null;
-        if (!$request->expectsJson()) {
-            [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
-            $quote = ['message' => trim($message), 'author' => trim($author)];
-        }
-
-        $sharedProps = [
+        $shared = [
             ...parent::share($request),
-
-            // Global config
             'appName' => config('app.name'),
-
-            // Optional quote (hanya kirim saat request normal)
-            'quote' => $quote,
-
-            // Auth info
             'auth' => [
                 'user' => $request->user() ? array_merge($request->user()->toArray(), [
                     'jwt_token' => $request->user()->createToken('aninkafashion-token')->plainTextToken,
                 ]) : null,
             ],
-
-            // Ziggy route info (untuk Vue routing helper)
-            'ziggy' => fn() => [
-                ...(new Ziggy)->toArray(),
-                'location' => $request->url(),
-            ],
-
-            // Flash messages (rekomendasi)
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
                 'error' => fn() => $request->session()->get('error'),
             ],
         ];
 
-        // Log the shared auth user data for debugging
-        Log::info('Inertia Shared Auth User Data', ['auth' => $sharedProps['auth']]);
+        // Hanya tambahkan Ziggy / semua routes jika APP_DEBUG = true
+        if (config('app.debug')) {
+            $shared['ziggy'] = fn() => [
+                ...(new Ziggy)->toArray(),
+                'location' => $request->url(),
+            ];
 
-        return $sharedProps;
+            $shared['allRoutes'] = fn() => collect(\Illuminate\Support\Facades\Route::getRoutes())->map(fn($route) => [
+                'uri' => $route->uri(),
+                'name' => $route->getName(),
+                'methods' => $route->methods(),
+                'action' => $route->getActionName(),
+                'middleware' => $route->middleware(),
+            ]);
+        }
+
+        // Jika ada debug trigger via URL
+        if (config('app.debug') && $request->has('debug_inertia')) {
+            abort(response()->json($shared, 500)); // dark page JSON
+        }
+
+        return $shared;
     }
+
 
 }

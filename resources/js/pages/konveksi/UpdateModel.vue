@@ -123,6 +123,7 @@ import HPPTab from '@/components/HPPTab.vue';
 import { useModelStore } from '@/stores/useModelStore';
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
+import { Inertia } from '@inertiajs/inertia';
 
 // Props
 // Jika Anda menginginkan hanya tipe number:
@@ -253,6 +254,12 @@ onMounted(async () => {
       toast.error('Terjadi kesalahan saat membuat model');
     }
   }
+
+   // Menangani back button / tab switch di PWA
+  window.addEventListener('popstate', () => {
+    Inertia.visit(window.location.href, { preserveState: true });
+  });
+  
 });
 
 // Add getActivityName function

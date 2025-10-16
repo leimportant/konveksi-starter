@@ -151,7 +151,7 @@ import { useModelStore } from '@/stores/useModelStore';
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
 import ModelMaterialTab from '@/components/ModelMaterialTab.vue';
-
+import { Inertia } from '@inertiajs/inertia';
 
 // Props for edit mode
 const props = defineProps<{
@@ -233,6 +233,11 @@ onMounted(() => {
     modelMaterials.value = props.modelData.modelMaterials || [];
     uploadedDocuments.value = props.modelData.documents || [];
   }
+
+   // Menangani back button / tab switch di PWA
+  window.addEventListener('popstate', () => {
+    Inertia.visit(window.location.href, { preserveState: true });
+  });
 });
 
 watch(activeTab, (tab) => {

@@ -21,6 +21,7 @@ class ModelRefController extends Controller
             'estimation_price_pcs' => 'required|numeric|min:0',
             'estimation_qty' => 'required|integer|min:0',
             'start_date' => 'required|date',
+            'end_date' => 'nullable|date',
             'sizes' => 'required|array',
             'sizes.*.size_id' => 'required|exists:mst_size,id',
             'sizes.*.variant' => 'required|string|max:100',
@@ -46,6 +47,7 @@ class ModelRefController extends Controller
                 'estimation_price_pcs' => $validated['estimation_price_pcs'],
                 'estimation_qty' => $validated['estimation_qty'],
                 'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'] ?? null,
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id()
             ]);
@@ -201,6 +203,7 @@ class ModelRefController extends Controller
                 'estimation_price_pcs' => $request->estimation_price_pcs,
                 'estimation_qty' => $request->estimation_qty,
                 'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
                 'updated_by' => Auth::id()
             ]);
 
