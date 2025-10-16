@@ -29,4 +29,9 @@ class Role extends Model
     {
         return $this->belongsToMany(Menu::class, 'menus_role', 'role_id', 'menu_id');
     }
+
+    public function activityGroups()
+    {
+        return $this->hasMany(ActivityRoleRef::class, 'role_id', 'id');
+    }
 }

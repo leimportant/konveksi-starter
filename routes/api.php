@@ -151,6 +151,8 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/activity-group', ActivityGroupController::class);
     Route::get('api/user-activity-group', [ActivityGroupController::class, 'getActivityGroupByUser']);
     Route::get('api/employee-activity-group/{id}', [ActivityGroupController::class, 'getActivityEmployee']);
+    Route::post('api/roles/{id}/activity-groups', [ActivityGroupController::class, 'updateActivityGroups']);
+
     Route::apiResource('pos-products', PosProductController::class);
     Route::apiResource('api/price-types', PriceTypeController::class);
     Route::apiResource('api/product-prices', ProductPriceController::class);

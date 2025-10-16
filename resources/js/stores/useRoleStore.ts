@@ -2,9 +2,14 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 import type { NavItem } from '@/types/index.d';
 
+export interface ActivityGroup {
+  activity_group_id: string;
+}
+
 export interface Role {
   id: number;
   name: string;
+  activity_groups?: ActivityGroup[]; // many-to-many
   menus?: NavItem[];
 }
 
@@ -15,8 +20,8 @@ export const useRoleStore = defineStore('role', {
     }),
 
     actions: {
-        async fetchRoles() {
-            if (this.loaded) return;
+        async fetchRoles(force = false) {
+            if (this.loaded && !force) return;
 
             try {
                 const response = await axios.get('/api/roles');
