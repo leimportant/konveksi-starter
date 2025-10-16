@@ -1,7 +1,3 @@
+php8 D:\composer\php7\composer7.phar require maatwebsite/excel
 
-php 8.3.3
-laravel 12.16.0
-node 20
-
-* * * * * php /home/username/domain.com/artisan queue:work --quiet --no-interaction --timeout=60
- php8 artisan queue:work
+php8 D:\composer\php7\composer7.phar require barryvdh/laravel-dompdf

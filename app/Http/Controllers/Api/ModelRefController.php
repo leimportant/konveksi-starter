@@ -31,6 +31,7 @@ class ModelRefController extends Controller
             'modelMaterials' => 'required|array',
             'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
             'modelMaterials.*.qty' => 'required|numeric|min:0',
+            'modelMaterials.*.price' => 'required|numeric|min:0',
             'modelMaterials.*.uom_id' => 'required|exists:mst_uom,id',
             'modelMaterials.*.remark' => 'nullable|string|max:255',
         ]);
@@ -82,6 +83,7 @@ class ModelRefController extends Controller
                         'item' => $index + 1,
                         'remark' => $modelMaterial['remark'] ?? null,
                         'qty' => $modelMaterial['qty'],
+                        'price' => $modelMaterial['price'],
                         'uom_id' => $modelMaterial['uom_id'],
                         'created_by' => Auth::id(),
                         'updated_by' => Auth::id()
@@ -232,6 +234,7 @@ class ModelRefController extends Controller
                         'item' => $index + 1, // Increment the number for each model material
                         'remark' => $modelMaterial['remark'],
                         'qty' => $modelMaterial['qty'],
+                        'price' => $modelMaterial['price'],
                         'uom_id' => $modelMaterial['uom_id'],
                         'created_by' => Auth::id(),
                         'updated_by' => Auth::id()

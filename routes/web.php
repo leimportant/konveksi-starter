@@ -385,6 +385,11 @@ Route::get('/purchase-order/{id}/view', function ($id) {
     ]);
 })->middleware(['auth'])->name('purchase-order.view');
 
+
+Route::get('/payroll', function () {
+    return Inertia::render('payroll/Index');
+})->middleware(['auth'])->name('payroll.getIndex');
+
 Route::get('/reports/omset-per-payment', function () {
     return Inertia::render('reports/OmsetReport');
 })->middleware(['auth'])->name('reports.omset-per-payment');
