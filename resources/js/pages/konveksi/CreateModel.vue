@@ -197,6 +197,7 @@ const form = useForm({
   end_date: null,
   estimation_price_pcs: 0,
   estimation_qty: 1,
+  is_close: 'N',
 });
 const errors = ref<Record<string, string[]>>({});
 
@@ -226,6 +227,7 @@ onMounted(() => {
     form.end_date = props.modelData.end_date;
     form.estimation_price_pcs = props.modelData.estimation_price_pcs;
     form.estimation_qty = props.modelData.estimation_qty;
+    form.is_close = props.modelData.is_close;
     sizeItems.value = props.modelData.sizes || [];
     activityItems.value = props.modelData.activity || [];
     modelMaterials.value = props.modelData.modelMaterials || [];
@@ -259,6 +261,9 @@ const handleSubmit = async () => {
     toast.error('Tanggal mulai harus diisi');
     return;
   }
+
+  form.is_close = form.is_close ? 'Y' : 'N';
+
 
   try {
     if (isEditMode.value) {
