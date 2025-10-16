@@ -161,8 +161,8 @@ const cleanMaterialData = (materials: any[]) => {
 const form = useForm({
   description: '',
   remark: '',
-  start_date: null,
-  end_date: null,  // Added end_date
+  start_date: null as string | null,
+  end_date: null as string | null,
   estimation_price_pcs: 0,
   estimation_qty: 1,
 });
@@ -224,6 +224,7 @@ const handleSubmit = async () => {
     }
 };
 
+
 // Initialize data
 onMounted(async () => {
   try {
@@ -232,12 +233,14 @@ onMounted(async () => {
     if (model) {
       form.description = model.data.description;
       form.remark = model.data.remark;
+
       form.start_date = model.data.start_date
-        ? model.data.start_date.split('T')[0]
+        ? toLocalDateString(model.data.start_date)
         : '';
-      form.end_date = model.data.end_date  // Added end_date handling
-        ? model.data.end_date.split('T')[0]
+      form.end_date = model.data.end_date
+        ? toLocalDateString(model.data.end_date)
         : '';
+
       form.estimation_price_pcs = model.data.estimation_price_pcs;
       form.estimation_qty = model.data.estimation_qty;
 
@@ -267,4 +270,14 @@ const getActivityName = (activityRoleId: number) => {
   const activity = activityItems.value.find(item => item.activity_role_id === activityRoleId);
   return activity?.activity_name || `Activity ${activityRoleId}`;
 };
+
+function toLocalDateString(dateStr: string): string {
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+
 </script>
