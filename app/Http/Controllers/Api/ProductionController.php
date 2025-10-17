@@ -137,14 +137,14 @@ class ProductionController extends Controller
             // 6. Role Mapping: { current => [previous_1, previous_2, ...] }
             $previousRoleMap = [
                 // SEWING (2) dapat dari CUTTING (1) atau OBRAS DAN JAHIT (10)
-                2 => [1, 10], 
-                3 => [2], // FINISHING -> SEWING
-                4 => [2], // QUALITY_CHECK -> SEWING (Asumsi: Role 4 & 5 mengikuti Role 2)
-                5 => [2], 
-                6 => [1], // OBRAS -> CUTTING
-                7 => [2],
-                8 => [2],
-                9 => [2],
+                2 => [1], 
+                3 => [2, 10], // FINISHING -> SEWING
+                4 => [2, 10], // QUALITY_CHECK -> SEWING (Asumsi: Role 4 & 5 mengikuti Role 2)
+                5 => [2, 10], 
+                6 => [1, 10], // OBRAS -> CUTTING
+                7 => [2, 10],
+                8 => [2, 10],
+                9 => [2, 10],
                 10 => [1], // OBRAS DAN JAHIT -> CUTTING
             ];
 
@@ -492,14 +492,14 @@ class ProductionController extends Controller
             // 3. Role Mapping: { current => [previous_1, previous_2, ...] }
             $previousRoleMap = [
                 // SEWING (2) dapat dari CUTTING (1) atau OBRAS DAN JAHIT (10)
-                2 => [1, 10], 
-                3 => [2], 
-                4 => [2], // Sesuaikan ke [2] untuk konsistensi flow
-                5 => [2],
-                6 => [1], // Sesuaikan ke [1] untuk konsistensi flow
-                7 => [2],
-                8 => [2],
-                9 => [2],
+                2 => [1], 
+                3 => [2, 10], 
+                4 => [2, 10], // Sesuaikan ke [2] untuk konsistensi flow
+                5 => [2, 10],
+                6 => [1, 10], // Sesuaikan ke [1] untuk konsistensi flow
+                7 => [2, 10],
+                8 => [2, 10],
+                9 => [2, 10],
                 10 => [1],
             ];
 
