@@ -15,8 +15,8 @@ class ReportController extends Controller
 {
     public function reportSalesSummary(Request $request)
     {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
+        $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
         $searchKey = $request->input('search_key');
 
         $query = DB::table('t_orders as a')
@@ -126,8 +126,8 @@ class ReportController extends Controller
 
     public function reportOmsetPerPayment(Request $request)
     {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
+        $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
 
         $rawData = DB::select("
         SELECT 
@@ -189,8 +189,9 @@ class ReportController extends Controller
 
     public function reportProductionDetail(Request $request)
     {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
+        $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
+
         $searchKey = $request->input('search_key');
         $page = $request->input('page', 1);
         $perPage = $request->input('per_page', 10);

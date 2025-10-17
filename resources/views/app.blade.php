@@ -65,7 +65,7 @@
     </style>
 
 
-    @routes
+    <!-- @routes -->
     @vite(['resources/js/app.ts'])
     @inertiaHead
   </head>
