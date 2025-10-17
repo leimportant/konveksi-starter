@@ -5,7 +5,7 @@ import { useModelStore } from '@/stores/useModelStore';
 import { useProductionStore } from '@/stores/useProductionStore';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { storeToRefs } from 'pinia';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, Ref, watch } from 'vue';
 import Vue3Select from 'vue3-select'
 import 'vue3-select/dist/vue3-select.css'
 import axios from 'axios';
@@ -20,7 +20,8 @@ const props = defineProps<{
 }>();
 
 const selectedModelId = ref<number | null>(null);
-const selectedEmployeeId = ref<number | null>(null);
+const selectedEmployeeId: Ref<number | { id: number; name: string }> = ref(0);
+
 const modelSizes = ref<{ size_id: string; size_name: string; qty: number, variant: string}[]>([]);
 const activityTasks = ref<any[]>([]);
 const selectedTasks = ref<number[]>([]);
@@ -91,10 +92,17 @@ const submit = async () => {
         .filter((id): id is number => id !== null);
     }
 
+   const employeeId =
+  typeof selectedEmployeeId.value === 'number'
+    ? selectedEmployeeId.value
+    : selectedEmployeeId.value?.id ?? 0;
+
+
+
     await productionStore.createProduction({
       model_id: form.model_id!,
       activity_role_id: taskIds, // now can be number or number[]
-      employee_id: selectedEmployeeId.value!,
+      employee_id: employeeId, // send just the ID
       remark: form.remark || '',
       items: form.items.filter((item) => item.qty > 0),
     });
