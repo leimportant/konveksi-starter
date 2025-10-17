@@ -19,14 +19,14 @@ const fetchReport = () => {
     reportStore.fetchProductionSummary(startDate.value, endDate.value, searchKey.value);
 };
 
-const formatRupiah = (value: number): string => {
-    if (typeof value !== 'number' || isNaN(value)) return '0,00';
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-    }).format(value);
-};
+// const formatRupiah = (value: number): string => {
+//     if (typeof value !== 'number' || isNaN(value)) return '0,00';
+//     return new Intl.NumberFormat('id-ID', {
+//         style: 'currency',
+//         currency: 'IDR',
+//         minimumFractionDigits: 0,
+//     }).format(value);
+// };
 
 const allActivityRoles = computed(() => {
     const roleMap = new Map<number, string>();
@@ -81,8 +81,6 @@ onMounted(() => {
                                 <TableRow class="bg-gray-100">
                                     <TableHead>ID</TableHead>
                                     <TableHead>Description</TableHead>
-                                    <TableHead>Estimation Price/Pcs</TableHead>
-                                    <TableHead>Estimation Quantity</TableHead>
                                     <TableHead>Start Date</TableHead>
                                     <TableHead>End Date</TableHead>
                                     <TableHead v-for="role in allActivityRoles" :key="role.id">
@@ -96,8 +94,6 @@ onMounted(() => {
                                 <TableRow v-for="item in reportStore.productionSummary" :key="item.model_id">
                                     <TableCell>{{ item.model_id }}</TableCell>
                                     <TableCell>{{ item.description }}</TableCell>
-                                    <TableCell>{{ formatRupiah(item.estimation_price_pcs) }}</TableCell>
-                                    <TableCell>{{ item.estimation_qty }}</TableCell>
                                     <TableCell>{{ item.start_date }}</TableCell>
                                     <TableCell>{{ item.end_date ?? '-' }}</TableCell>
 

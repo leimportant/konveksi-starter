@@ -138,8 +138,8 @@ const handleDelete = async (id: string) => {
                 :key="item.id"
                 class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
-                <td class="px-3 py-2 max-w-[160px] truncate">
-                  {{ item.model?.description || '-' }}
+                <td class="px-3 py-2 max-w-[160px] whitespace-normal">
+                    {{ item.model?.description || '-' }}
                 </td>
                 <td class="px-3 py-2 truncate">
                   {{ item.activity_role?.name || '-' }}
