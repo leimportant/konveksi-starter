@@ -146,7 +146,7 @@ const submit = async () => {
       items: form.items.filter(item => item.qty > 0)
     });
     toast.success("Production updated successfully");
-    window.location.href = `/production/${form.activity_role_id}`;
+    window.location.href = `/konveksi`;
   } catch (error: any) {
     toast.error(error?.response?.data?.message ?? "Failed to update production");
   }
