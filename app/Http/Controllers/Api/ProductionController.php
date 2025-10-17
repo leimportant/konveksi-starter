@@ -74,6 +74,19 @@ class ProductionController extends Controller
             $activityRoleIds = is_array($request->activity_role_id)
                 ? $request->activity_role_id
                 : [$request->activity_role_id];
+            // jika activity_role_id : 2,6,10 active maka muncul error, Pilih salah 1
+            $conflictingRoles = [2, 6, 10];
+        
+            // Find the intersection between the submitted IDs and the conflicting IDs
+            $activeConflictingRoles = array_intersect($activityRoleIds, $conflictingRoles);
+            
+            // If more than one conflicting role is selected, return an error
+            if (count($activeConflictingRoles) > 1) {
+                DB::rollBack();
+                return redirect()->back()->withInput()->withErrors([
+                    'activity_role_id' => 'Pilih salah 1. ID aktivitas yang dikirim tidak boleh lebih dari satu di antara: ' . implode(', ', $conflictingRoles)
+                ]);
+            }
 
             $validator = Validator::make($request->all(), [
                 'model_id' => 'required|exists:tr_model,id',
@@ -85,6 +98,9 @@ class ProductionController extends Controller
                 'items.*.variant' => 'required',
                 'items.*.qty' => 'nullable|integer|min:1'
             ]);
+
+
+            
 
             if ($validator->fails()) {
                 return response()->json([
