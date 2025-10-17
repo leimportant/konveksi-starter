@@ -193,6 +193,7 @@ class ReportController extends Controller
         $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
 
         $searchKey = $request->input('search_key');
+        $searchModel = $request->input('search_model');
         $page = (int) $request->input('page', 1);
         $perPage = (int) $request->input('per_page', 50); // 
 
@@ -224,10 +225,12 @@ class ReportController extends Controller
                 $q->whereBetween('a.created_at', [$startDate, $endDate]);
             })
             ->when($searchKey, function ($q) use ($searchKey) {
-                $q->where('c.description', 'like', '%' . $searchKey . '%')
-                    ->orWhere('d.name', 'like', '%' . $searchKey . '%')
+                $q->where('d.name', 'like', '%' . $searchKey . '%')
                     ->orWhere('f.name', 'like', '%' . $searchKey . '%')
                     ->orWhere('b.variant', 'like', '%' . $searchKey . '%');
+            })
+            ->when($searchModel, function ($q) use ($searchModel) {
+                $q->where('c.description', 'like', '%' . $searchModel . '%');
             })
             ->orderBy('a.created_at', 'DESC')->get();
 

@@ -10,9 +10,10 @@ const reportStore = useReportStore();
 const startDate = ref('');
 const endDate = ref('');
 const searchKey = ref('');
+const searchModel = ref('');
 
 const fetchReport = () => {
-    reportStore.fetchProductionDetail(startDate.value, endDate.value, searchKey.value, reportStore.currentPage);
+    reportStore.fetchProductionDetail(startDate.value, endDate.value, searchKey.value, Number(reportStore.currentPage), searchModel.value);
 };
 const formatDate = (date: string | null | undefined) => {
     if (!date) return '-';
@@ -70,7 +71,8 @@ watch(() => reportStore.currentPage, fetchReport);
             <div class="mb-4 flex flex-wrap gap-2">
                 <input type="date" v-model="startDate" class="rounded border px-2 py-1" />
                 <input type="date" v-model="endDate" class="rounded border px-2 py-1" />
-                <input type="text" v-model="searchKey" placeholder="Search by product name" class="rounded border px-2 py-1" />
+                <input type="text" v-model="searchModel" placeholder="Cari Model" class="rounded border px-2 py-1" />
+                <input type="text" v-model="searchKey" placeholder="Search by product name / variant" class="rounded border px-2 py-1" />
                 <button @click="fetchReport" class="rounded bg-blue-600 px-4 py-1 text-white hover:bg-blue-700">Tampilkan</button>
             </div>
 

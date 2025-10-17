@@ -126,6 +126,7 @@ class ProductionController extends Controller
                 7 => 2,
                 8 => 2,
                 9 => 2,
+                10 => 1, // OBRAS DAN JAHIT -> CUTTING
             ];
 
             $productions = [];
