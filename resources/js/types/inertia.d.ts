@@ -15,7 +15,7 @@ declare module '@inertiajs/core' {
   export interface PageProps {
       component: string;
       props: {
-          ziggy: ZiggyConfig;
+          // ziggy: ZiggyConfig;
           [key: string]: any;
       };
       url: string;

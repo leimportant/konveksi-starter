@@ -22,14 +22,17 @@ const { isMobile, state } = useSidebar();
                         <ChevronsUpDown class="ml-auto size-4" />
                     </SidebarMenuButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                    class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg" 
-                    :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
-                    align="end" 
-                    :side-offset="4"
-                >
-                    <UserMenuContent :user="user" />
-                </DropdownMenuContent>
+                <DropdownMenuContent
+  class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg max-h-[80vh] overflow-y-auto"
+  :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
+  align="end"
+  :side-offset="4"
+  :avoid-collisions="true"
+  :collision-padding="8"
+>
+  <UserMenuContent :user="user" />
+</DropdownMenuContent>
+
             </DropdownMenu>
         </SidebarMenuItem>
     </SidebarMenu>
