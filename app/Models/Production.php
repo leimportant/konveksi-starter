@@ -69,7 +69,6 @@ class Production extends Model
         $finalPrice = $this->price_per_pcs ?? 0;
         $totalQty = $this->items->sum('qty');
         $total = $finalPrice * $totalQty;
-
         return 'Rp' . number_format($total, 0, ',', '.');
     }
 

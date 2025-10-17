@@ -177,7 +177,6 @@ class ProductionController extends Controller
                             $usedQty[$key] = ($usedQty[$key] ?? 0) + $item->qty;
                         }
                     }
-
                     // Validate request qty
                     foreach ($validItems as $item) {
                         $key = $item['size_id'] . '-' . $item['variant'];
@@ -194,7 +193,6 @@ class ProductionController extends Controller
                         }
                     }
                 }
-
                 // Simpan produksi
                 $production = Production::create([
                     'id' => 'PRD-' . uniqid(),
