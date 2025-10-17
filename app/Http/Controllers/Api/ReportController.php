@@ -25,8 +25,12 @@ class ReportController extends Controller
             ->leftJoin('mst_customer as d', 'a.customer_id', '=', 'd.user_id')
             ->select('a.customer_id', 'a.payment_method', 'a.status', 'b.product_id', 'c.name as product_name', 'b.qty', 'b.uom_id', 'b.size_id', 'b.discount', 'b.price', 'b.price_final')
             ->whereBetween(DB::raw('DATE(a.created_at)'), [$startDate, $endDate])
-            ->where('a.status', '!=', '1');
-
+            ->where('a.status', '!=', '1')
+            ->whereNull('a.deleted_at')
+            ->whereNull('b.deleted_at')
+            ->whereNull('c.deleted_at')
+            ->whereNull('d.deleted_at');
+            
         if ($searchKey) {
             $query->where('c.name', 'like', "%" . $searchKey . "%");
         }
@@ -232,6 +236,10 @@ class ReportController extends Controller
             ->when($searchModel, function ($q) use ($searchModel) {
                 $q->where('c.description', 'like', '%' . $searchModel . '%');
             })
+            ->whereNull('a.deleted_at')
+            ->whereNull('b.deleted_at')
+            ->whereNull('c.deleted_at')
+            ->whereNull('d.deleted_at')
             ->orderBy('a.created_at', 'DESC')->get();
 
         // Hitung total per row
