@@ -92,16 +92,19 @@ const submit = async () => {
         .filter((id): id is number => id !== null);
     }
 
+    if (props.activity_role == 'LUBANG_KANCING') {
+      taskIds = 4; // Assuming 'LUBANG_KANCING' maps to activity role ID 1
+    }
+
    const employeeId =
   typeof selectedEmployeeId.value === 'number'
     ? selectedEmployeeId.value
     : selectedEmployeeId.value?.id ?? 0;
 
-
-
     await productionStore.createProduction({
       model_id: form.model_id!,
       activity_role_id: taskIds, // now can be number or number[]
+      activity_role: String(props.activity_role),
       employee_id: employeeId, // send just the ID
       remark: form.remark || '',
       items: form.items.filter((item) => item.qty > 0),
