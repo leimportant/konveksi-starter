@@ -21,7 +21,7 @@ class ProductionController extends Controller
                 $activityRoleId = [1];
             }
             if ($activityRole == "SEWING") {
-                $activityRoleId = [2,6];
+                $activityRoleId = [2,6, 10];
             }
              if ($activityRole == "FINISHING") {
                 $activityRoleId = [3,4,5,8,9];
