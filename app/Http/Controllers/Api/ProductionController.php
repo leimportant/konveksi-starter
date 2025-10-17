@@ -82,6 +82,7 @@ class ProductionController extends Controller
                 'remark' => 'nullable|string|max:100',
                 'items' => 'required|array|min:1',
                 'items.*.size_id' => 'required|exists:mst_size,id',
+                'items.*.variant' => 'required',
                 'items.*.qty' => 'nullable|integer|min:1'
             ]);
 
@@ -172,15 +173,16 @@ class ProductionController extends Controller
                     $usedQty = [];
                     foreach ($existingProductions as $prod) {
                         foreach ($prod->items as $item) {
-                            $usedQty[$item->size_id] = ($usedQty[$item->size_id] ?? 0) + $item->qty;
+                            $usedQty[$item->size_id + $item->variant] = ($usedQty[$item->size_id] ?? 0) + $item->qty;
                         }
                     }
 
                     // Validate request qty
                     foreach ($validItems as $item) {
+                        $key = $item['size_id'] . '-' . $item['variant'];
                         $sizeId = $item['size_id'];
                         $requestedQty = $item['qty'];
-                        $maxAvailable = ($availableQty[$sizeId] ?? 0) - ($usedQty[$sizeId] ?? 0);
+                        $maxAvailable = ($availableQty[$key] ?? 0) - ($usedQty[$key] ?? 0);
 
                         if ($requestedQty > $maxAvailable) {
                             DB::rollBack();
@@ -250,6 +252,7 @@ class ProductionController extends Controller
             'remark' => 'nullable|string|max:100',
             'items' => 'required|array|min:1',
             'items.*.size_id' => 'required|exists:mst_size,id',
+            'items.*.variant' => 'required',
             'items.*.qty' => 'required|integer|min:1'
         ]);
 
@@ -306,7 +309,8 @@ class ProductionController extends Controller
             $availableQty = [];
             foreach ($previousProductions as $prod) {
                 foreach ($prod->items as $item) {
-                    $availableQty[$item->size_id] = ($availableQty[$item->size_id] ?? 0) + $item->qty;
+                    $key = $item->size_id . '-' . $item->variant;
+                    $availableQty[$key] = ($availableQty[$key] ?? 0) + $item->qty;
                 }
             }
 
@@ -320,16 +324,18 @@ class ProductionController extends Controller
             $usedQty = [];
             foreach ($existingProductions as $prod) {
                 foreach ($prod->items as $item) {
-                    $usedQty[$item->size_id] = ($usedQty[$item->size_id] ?? 0) + $item->qty;
+                    $key = $item->size_id . '-' . $item->variant;
+                    $usedQty[$key] = ($usedQty[$key] ?? 0) + $item->qty;
                 }
             }
 
             // Validasi qty untuk update
             foreach ($validItems as $item) {
+                $key = $item['size_id'] . '-' . $item['variant'];
                 $sizeId = $item['size_id'];
                 $requestedQty = $item['qty'];
 
-                $maxAvailable = ($availableQty[$sizeId] ?? 0) - ($usedQty[$sizeId] ?? 0);
+                $maxAvailable = ($availableQty[$key] ?? 0) - ($usedQty[$key] ?? 0);
 
                 if ($requestedQty > $maxAvailable) {
                     DB::rollBack();
