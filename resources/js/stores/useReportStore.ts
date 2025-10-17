@@ -102,7 +102,7 @@ interface ReportStoreState {
 interface ReportStoreActions {
     fetchSalesSummary: (startDate: string, endDate: string, searchKey?: string) => Promise<void>;
     fetchProductionSummary: (startDate: string, endDate: string, searchKey?: string) => Promise<void>;
-    fetchProductionDetail: (startDate: string, endDate: string, searchKey?: string, page?: number, perPage?: number) => Promise<void>;
+    fetchProductionDetail: (startDate: string, endDate: string, searchKey?: string, page?: number, searchModel?: string, perPage?: number) => Promise<void>;
     fetchOmsetPerPayment: (startDate: string, endDate: string, page?: number, perPage?: number) => Promise<void>;
     fetchOmsetPerCustomer: (customerId: number, searchKey: string, startDate: string, endDate: string, page?: number, itemsPerPage?: number) => Promise<void>;
 }
@@ -178,7 +178,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
         }
     }
 
-    async function fetchProductionDetail(startDate: string, endDate: string, searchKey: string = '', page: number = 1, itemsPerPage: number = 50) {
+    async function fetchProductionDetail(startDate: string, endDate: string, searchKey: string = '', page: number = 1, searchModel: string = '', itemsPerPage: number = 50,) {
         loading.value = true;
         error.value = null;
 
@@ -188,6 +188,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
                     start_date: startDate,
                     end_date: endDate,
                     search_key: searchKey,
+                    search_model: searchModel,
                     page: page,
                     per_page: itemsPerPage,
                 },

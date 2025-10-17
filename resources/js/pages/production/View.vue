@@ -114,12 +114,14 @@ onMounted(fetchData);
           <thead>
             <tr class="bg-gray-100">
               <th class="border px-2 md:px-3 py-1 md:py-2 text-left">Size</th>
+              <th class="border px-2 md:px-3 py-1 md:py-2 text-left">Variant</th> 
               <th class="border px-2 md:px-3 py-1 md:py-2 text-left">Qty</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="item in production.items" :key="item.size_id">
               <td class="border px-2 md:px-3 py-1 md:py-2">{{ item.size?.name || item.size_id }}</td>
+              <td class="border px-2 md:px-3 py-1 md:py-2">{{ item.variant || '-' }}</td>
               <td class="border px-2 md:px-3 py-1 md:py-2">{{ item.qty }}</td>
             </tr>
           </tbody>

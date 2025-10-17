@@ -8,13 +8,13 @@ import { useProductionStore } from '@/stores/useProductionStore';
 import { Head } from '@inertiajs/vue3';
 import { Edit, LucideView, Plus, Trash2 } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 
 const toast = useToast();
 const productionStore = useProductionStore();
-const { productions, loading } = storeToRefs(productionStore);
+const { productions, currentPage, lastPage, loading } = storeToRefs(productionStore);
 
-const currentPage = ref(1);
+
 const perPage = ref(10);
 const sortField = ref('created_at');
 const sortOrder = ref<'asc' | 'desc'>('desc');
@@ -24,6 +24,20 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs = [{ title: 'Production', href: `/production/${props.activity_role}` }];
+
+
+const totalPages = computed(() => lastPage.value || 1);
+
+const goToPage = async (page: number) => {
+  if (page < 1 || page > totalPages.value) return;
+  await productionStore.fetchProductions({
+    page,
+    per_page: perPage.value,
+    sort_field: sortField.value,
+})
+};
+const nextPage = () => goToPage(currentPage.value + 1);
+const prevPage = () => goToPage(currentPage.value - 1);
 
 const searchQuery = ref('');
 interface DateRange {
@@ -181,6 +195,38 @@ const handleDelete = async (id: string) => {
             </tbody>
           </table>
         </div>
+
+              <!-- Pagination -->
+      <div class="flex justify-end mt-4 space-x-2">
+        <button
+          @click="prevPage"
+          :disabled="currentPage === 1 || loading"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+
+        <template v-for="page in totalPages" :key="page">
+          <button
+            @click="goToPage(page)"
+            :class="[
+              'px-3 py-1 rounded border text-sm',
+              page === currentPage ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+            ]"
+            :disabled="loading"
+          >
+            {{ page }}
+          </button>
+        </template>
+
+        <button
+          @click="nextPage"
+          :disabled="currentPage === totalPages || loading"
+          class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
       </div>
     </div>
   </AppLayout>
