@@ -173,7 +173,8 @@ class ProductionController extends Controller
                     $usedQty = [];
                     foreach ($existingProductions as $prod) {
                         foreach ($prod->items as $item) {
-                            $usedQty[$item->size_id + $item->variant] = ($usedQty[$item->size_id] ?? 0) + $item->qty;
+                            $key = $item->size_id . '-' . $item->variant;
+                            $usedQty[$key] = ($usedQty[$key] ?? 0) + $item->qty;
                         }
                     }
 
