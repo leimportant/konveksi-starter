@@ -16,7 +16,7 @@ class ProductionController extends Controller
     {
         try {
             $activityRole = $request->input('activity_role_id');
-
+            $activityRoleId = [3,4,5,8,9];
             if ($activityRole == "CUTTING") {
                 $activityRoleId = [1];
             }
