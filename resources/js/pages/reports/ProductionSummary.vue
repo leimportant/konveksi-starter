@@ -112,7 +112,7 @@ onMounted(() => {
                             <!-- Optional: Add Footer for column totals -->
                             <tfoot>
                                 <TableRow>
-                                    <TableCell colspan="6" class="text-right font-bold">Total</TableCell>
+                                    <TableCell colspan="4" class="text-right font-bold">Total</TableCell>
                                     <TableCell v-for="role in allActivityRoles" :key="'footer-' + role.id" class="font-bold">
                                         {{
                                             reportStore.productionSummary.reduce((sum, item) => {
