@@ -28,6 +28,7 @@ const selectedTasks = ref<number[]>([]);
 const form = useForm({
   model_id: null as number | null,
   activity_role_id: Number(props.activity_role),
+  employee_id: null as number | null,
   items: [] as { size_id: string; qty: number, variant: string}[],
   remark: '', // <-- tambahkan properti remark di sini
 });
@@ -93,6 +94,7 @@ const submit = async () => {
     await productionStore.createProduction({
       model_id: form.model_id!,
       activity_role_id: taskIds, // now can be number or number[]
+      employee_id: selectedEmployeeId.value!,
       remark: form.remark || '',
       items: form.items.filter((item) => item.qty > 0),
     });
