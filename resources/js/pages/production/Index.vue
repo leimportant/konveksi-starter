@@ -147,7 +147,7 @@ const handleDelete = async (id: string) => {
                 <td class="px-3 py-2 whitespace-nowrap">
                   <div v-if="item.items?.length">
                     <div v-for="i in item.items" :key="i.id">
-                      {{ i.size_id }}: {{ i.qty }}
+                      {{ i.size_id }} - {{ i.variant }}: {{ i.qty }}
                     </div>
                   </div>
                   <div v-else>-</div>
