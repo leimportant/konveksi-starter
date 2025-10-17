@@ -157,7 +157,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
         }
     }
 
-    async function fetchOmsetPerPayment(startDate: string, endDate: string, page: number = 1, itemsPerPage: number = 10) {
+    async function fetchOmsetPerPayment(startDate: string, endDate: string, page: number = 1, itemsPerPage: number = 50) {
         loading.value = true;
         error.value = null;
         try {
@@ -178,7 +178,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
         }
     }
 
-    async function fetchProductionDetail(startDate: string, endDate: string, searchKey: string = '', page: number = 1, itemsPerPage: number = 10) {
+    async function fetchProductionDetail(startDate: string, endDate: string, searchKey: string = '', page: number = 1, itemsPerPage: number = 50) {
         loading.value = true;
         error.value = null;
 
@@ -213,7 +213,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
   startDate: string,
   endDate: string,
   page: number = 1,
-  itemsPerPage: number = 10
+  itemsPerPage: number = 50
 ) {
   loading.value = true;
   error.value = null;
