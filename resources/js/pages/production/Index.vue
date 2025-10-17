@@ -36,6 +36,15 @@ const dateRange = ref<DateRange>({
     to: null,
 });
 
+function formatRupiah(value: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(value);
+}
+
+
 const fetchData = async () => {
     try {
         await productionStore.fetchProductions({
@@ -103,6 +112,8 @@ const handleDelete = async (id: string) => {
                 <th class="px-3 py-2">Model</th>
                 <th class="px-3 py-2">Activity</th>
                 <th class="px-3 py-2">Size/Qty</th>
+                <th class="px-3 py-2 hidden">Price/PCS</th>
+                <th class="px-3 py-2 hidden">Total</th>
                 <th class="px-3 py-2">Created At</th>
                 <th class="px-3 py-2 text-right">Actions</th>
               </tr>
@@ -126,6 +137,12 @@ const handleDelete = async (id: string) => {
                     </div>
                   </div>
                   <div v-else>-</div>
+                </td>
+                <td class="px-3 py-2 max-w-[160px] truncate hidden">
+                  {{ formatRupiah(item?.price_per_pcs || 0) }}
+                </td>
+                <td class="px-3 py-2 max-w-[160px] truncate hidden">
+                  {{ item?.total_price || 0 }}
                 </td>
                 <td class="px-3 py-2 whitespace-nowrap">
                   {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }}

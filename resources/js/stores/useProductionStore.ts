@@ -14,6 +14,9 @@ interface Production {
   id: string;
   model_id: number;
   activity_role_id: number;
+  price_per_pcs: number | null;
+  total_price: number | null;
+  employee_id: number;
   remark: string | null;
   created_at: string;
   updated_at: string;

@@ -14,6 +14,8 @@ class Production extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $appends = ['price_per_pcs', 'total_price'];
+
     protected $fillable = [
         'id',
         'model_id',
@@ -21,6 +23,7 @@ class Production extends Model
         'activity_role_id',
         'remark',
         'qty',
+        'price',
         'created_by',
         'updated_by',
         'deleted_by'
@@ -45,6 +48,31 @@ class Production extends Model
         return $this->belongsTo(ActivityRole::class, 'activity_role_id');
     }
 
+    public function getPricePerPcsAttribute()
+    {
+        if ($this->price > 0) {
+            return (float) number_format($this->price, 0, '.', '');
+            ;
+        }
+
+        // contoh: ambil harga dari activity tertentu
+        $activity = $this->model->activities()
+            ->where('activity_role_id', $this->activity_role_id)
+            ->first();
+
+        $price = $activity?->price ?? 0;
+        return (float) number_format($price, 0, '.', '');
+    }
+
+    public function getTotalPriceAttribute()
+    {
+        $finalPrice = $this->price_per_pcs ?? 0;
+        $totalQty = $this->items->sum('qty');
+        $total = $finalPrice * $totalQty;
+
+        return 'Rp' . number_format($total, 0, ',', '.');
+    }
+
     public function employee()
     {
         return $this->belongsTo(User::class, 'employee_id');
@@ -59,7 +87,7 @@ class Production extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
-    
+
     public function deleter()
     {
         return $this->belongsTo(User::class, 'deleted_by');
