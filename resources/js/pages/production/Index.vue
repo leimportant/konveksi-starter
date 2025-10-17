@@ -138,10 +138,10 @@ const handleDelete = async (id: string) => {
                   </div>
                   <div v-else>-</div>
                 </td>
-                <td class="px-3 py-2 max-w-[160px] truncate hidden">
+                <td class="px-3 py-2 max-w-[160px] truncate">
                   {{ formatRupiah(item?.price_per_pcs || 0) }}
                 </td>
-                <td class="px-3 py-2 max-w-[160px] truncate hidden">
+                <td class="px-3 py-2 max-w-[160px] truncate">
                   {{ item?.total_price || 0 }}
                 </td>
                 <td class="px-3 py-2 whitespace-nowrap">

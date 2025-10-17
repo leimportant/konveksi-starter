@@ -94,13 +94,13 @@ onMounted(fetchData);
             {{ production?.created_at ? new Date(production.created_at).toLocaleDateString('en-GB') : '-' }}
           </div>
 
-          <div class="text-gray-500 dark:text-gray-400 font-medium hidden">Harga</div>
-          <div class="text-emerald-600 dark:text-emerald-400 font-semibold hidden">
+          <div class="text-gray-500 dark:text-gray-400 font-medium">Harga</div>
+          <div class="text-emerald-600 dark:text-emerald-400 font-semibold">
             {{ formatRupiah(production?.price_per_pcs || 0) }}
           </div>
 
-          <div class="text-gray-500 dark:text-gray-400 font-medium hidden">Total</div>
-          <div class="text-indigo-600 dark:text-indigo-400 font-bold hidden">
+          <div class="text-gray-500 dark:text-gray-400 font-medium">Total</div>
+          <div class="text-indigo-600 dark:text-indigo-400 font-bold">
             {{ production?.total_price || 0 }}
           </div>
         </div>
