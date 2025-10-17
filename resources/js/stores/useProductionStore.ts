@@ -96,6 +96,7 @@ export const useProductionStore = defineStore('production', {
     async createProduction(productionData: {
       model_id: number;
       activity_role_id: number | number[]; // allow multiple0
+      activity_role: string;
       employee_id: number | 0;
       remark?: string;
       items: ProductionItem[];
