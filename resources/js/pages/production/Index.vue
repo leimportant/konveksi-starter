@@ -112,8 +112,8 @@ const handleDelete = async (id: string) => {
                 <th class="px-3 py-2">Model</th>
                 <th class="px-3 py-2">Activity</th>
                 <th class="px-3 py-2">Size/Qty</th>
-                <th class="px-3 py-2 hidden">Price/PCS</th>
-                <th class="px-3 py-2 hidden">Total</th>
+                <th class="px-3 py-2">Price/PCS</th>
+                <th class="px-3 py-2">Total</th>
                 <th class="px-3 py-2">Created At</th>
                 <th class="px-3 py-2 text-right">Actions</th>
               </tr>
