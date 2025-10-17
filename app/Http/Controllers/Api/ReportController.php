@@ -193,8 +193,8 @@ class ReportController extends Controller
         $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
 
         $searchKey = $request->input('search_key');
-        $page = $request->input('page', 1);
-        $perPage = $request->input('per_page', 10);
+        $page = (int) $request->input('page', 1);
+        $perPage = (int) $request->input('per_page', 10); // 
 
         // Query dasar
         $rawData = DB::table('tr_production as a')

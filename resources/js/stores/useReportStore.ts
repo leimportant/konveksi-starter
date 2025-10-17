@@ -195,10 +195,10 @@ export const useReportStore = defineStore('report', (): ReportStore => {
 
             console.log('Production Detail Response:', response.data);
             productionDetailItem.value = response.data.data; // isi data per halaman
-            currentPage.value = response.data.current_page; // update current page
-             lastPage.value = response.data.last_page; // update last page
-             totalRecords.value = response.data.total; // update total records
-             perPage.value = response.data.per_page;
+            currentPage.value = response.data.pagination.current_page; // update current page
+            lastPage.value = response.data.pagination.last_page; // update last page
+            totalRecords.value = response.data.pagination.total; // update total records
+            perPage.value = response.data.pagination.per_page; // update per page
         } catch (err: any) {
             error.value = err;
             console.error('Error fetching production summary:', err);

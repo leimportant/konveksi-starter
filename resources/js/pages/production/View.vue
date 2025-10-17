@@ -25,6 +25,15 @@ const production = ref<any>(null);
 const activityRole = ref<any>(null);
 const model = ref<any>(null);
 
+
+function formatRupiah(value: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(value);
+}
+
 const fetchData = async () => {
   try {
     const prod = await productionStore.fetchProductionsById(props.id);
@@ -58,6 +67,7 @@ onMounted(fetchData);
 </script>
 
 <template>
+
   <Head title="View Production" />
   <AppLayout :breadcrumbs="[{ title: 'Production', href: `/production/${props.activity_role}` }]">
     <div id="print-area" class="p-4 md:p-6 space-y-4 md:space-y-6 print:bg-white">
@@ -70,11 +80,32 @@ onMounted(fetchData);
       </div>
 
       <!-- Production Info -->
-      <div class="space-y-2 text-sm md:">
-        <div><strong>Model :</strong> {{ production?.model?.description || '-' }}</div>
-        <div><strong>Activity :</strong> {{ activityRole?.name || '-' }}</div>
-        <div><strong>Tanggal :</strong> {{ production?.created_at ? new Date(production.created_at).toLocaleDateString('en-GB') : '-' }}</div>
+      <div
+        class="w-full max-w-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl shadow-sm p-4 text-sm md:text-base">
+        <div class="grid grid-cols-[150px_1fr] gap-y-2">
+          <div class="text-gray-500 dark:text-gray-400 font-medium">Model</div>
+          <div class="text-gray-900 dark:text-white font-semibold">{{ production?.model?.description || '-' }}</div>
+
+          <div class="text-gray-500 dark:text-gray-400 font-medium">Activity</div>
+          <div class="text-gray-900 dark:text-white font-semibold">{{ activityRole?.name || '-' }}</div>
+
+          <div class="text-gray-500 dark:text-gray-400 font-medium">Tanggal</div>
+          <div class="text-gray-900 dark:text-white font-semibold">
+            {{ production?.created_at ? new Date(production.created_at).toLocaleDateString('en-GB') : '-' }}
+          </div>
+
+          <div class="text-gray-500 dark:text-gray-400 font-medium hidden">Harga</div>
+          <div class="text-emerald-600 dark:text-emerald-400 font-semibold hidden">
+            {{ formatRupiah(production?.price_per_pcs || 0) }}
+          </div>
+
+          <div class="text-gray-500 dark:text-gray-400 font-medium hidden">Total</div>
+          <div class="text-indigo-600 dark:text-indigo-400 font-bold hidden">
+            {{ production?.total_price || 0 }}
+          </div>
+        </div>
       </div>
+
 
       <!-- Size Table -->
       <div v-if="production?.items?.length" class="overflow-x-auto">
@@ -97,17 +128,11 @@ onMounted(fetchData);
 
       <!-- Action Buttons -->
       <div class="flex gap-2 no-print">
-        <button
-          @click="printPage"
-          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
+        <button @click="printPage" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
           Print
         </button>
-        <button
-          @click="router.visit(`/production/${props.activity_role}`)"
-          type="button"
-          class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-        >
+        <button @click="router.visit(`/production/${props.activity_role}`)" type="button"
+          class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
           Back
         </button>
       </div>

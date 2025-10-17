@@ -382,7 +382,8 @@ class ProductionController extends Controller
     {
         try {
             $production = Production::with(['model', 'activityRole', 'items.size'])
-                ->findOrFail($id);
+                ->where('id',$id)
+                ->firstOrFail();
 
             return response()->json([
                 'status' => 'success',
