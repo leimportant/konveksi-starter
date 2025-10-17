@@ -177,7 +177,8 @@ class ProductionController extends Controller
                     $availableQty = [];
                     foreach ($previousProductions as $prod) {
                         foreach ($prod->items as $item) {
-                            $availableQty[$item->size_id] = ($availableQty[$item->size_id] ?? 0) + $item->qty;
+                            $key = $item->size_id . '-' . $item->variant;
+                            $availableQty[$key] = ($availableQty[$key] ?? 0) + $item->qty;
                         }
                     }
 
@@ -196,8 +197,9 @@ class ProductionController extends Controller
                     }
                     // Validate request qty
                     foreach ($validItems as $item) {
-                        $key = $item->size_id . '-' . $item->variant;
+                        $key = $item['size_id'] . '-' . $item['variant'];
                         $sizeId = $item['size_id'];
+                        $variant = $item['variant'];
                         $requestedQty = $item['qty'];
                         $maxAvailable = ($availableQty[$key] ?? 0) - ($usedQty[$key] ?? 0);
 
@@ -205,7 +207,7 @@ class ProductionController extends Controller
                             DB::rollBack();
                             return response()->json([
                                 'status' => 'error',
-                                'message' => "Qty untuk size $sizeId melebihi sisa yang tersedia ($maxAvailable) dari proses sebelumnya"
+                                'message' => "Qty untuk size $sizeId variant $variant melebihi sisa yang tersedia ($maxAvailable) dari proses sebelumnya"
                             ], 422);
                         }
                     }
@@ -347,7 +349,7 @@ class ProductionController extends Controller
 
             // Validasi qty untuk update
             foreach ($validItems as $item) {
-                $key = $item->size_id . '-' . $item->variant;
+                $key = $item['size_id'] . '-' . $item['variant'];
                 $sizeId = $item['size_id'];
                 $requestedQty = $item['qty'];
 
