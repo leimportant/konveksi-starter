@@ -173,7 +173,7 @@ class ReportController extends Controller
             ];
         }
 
-        $perPage = $request->input('per_page', 10); // Default to 10 items per page
+        $perPage = $request->input('per_page', 50); // Default to 10 items per page
         $page = $request->input('page', 1); // Default to page 1
 
         $paginatedResult = new LengthAwarePaginator(
@@ -194,7 +194,7 @@ class ReportController extends Controller
 
         $searchKey = $request->input('search_key');
         $page = (int) $request->input('page', 1);
-        $perPage = (int) $request->input('per_page', 10); // 
+        $perPage = (int) $request->input('per_page', 50); // 
 
         // Query dasar
         $rawData = DB::table('tr_production as a')
@@ -317,7 +317,7 @@ class ReportController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $page = $request->input('page', 1);
-        $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 50);
         $searchKey = $request->input('searchKey');
         $customer_id = $request->input('customer_id');
 
