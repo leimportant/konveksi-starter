@@ -90,6 +90,16 @@ class ActivityGroupController extends Controller
             ->exists();
 
         // Ambil semua role yang terkait dengan group tersebut
+
+        if (in_array($id, ['QUALITY_CHECK', 'FINISHING', 'PACKING'])) {
+            $roleIds = ActivityRoleRef::whereNotNull('activity_group_id')
+                ->pluck('role_id');
+        } else {
+            $roleIds = ActivityRoleRef::where('activity_group_id', $id)
+                ->pluck('role_id');
+        }
+
+
         $roleIds = ActivityRoleRef::where('activity_group_id', $id)
             ->pluck('role_id');
 
