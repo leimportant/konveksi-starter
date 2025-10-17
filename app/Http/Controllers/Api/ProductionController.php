@@ -196,7 +196,7 @@ class ProductionController extends Controller
                     }
                     // Validate request qty
                     foreach ($validItems as $item) {
-                        $key = $item['size_id'] . '-' . $item['variant'];
+                        $key = $item->size_id . '-' . $item->variant;
                         $sizeId = $item['size_id'];
                         $requestedQty = $item['qty'];
                         $maxAvailable = ($availableQty[$key] ?? 0) - ($usedQty[$key] ?? 0);
@@ -347,7 +347,7 @@ class ProductionController extends Controller
 
             // Validasi qty untuk update
             foreach ($validItems as $item) {
-                $key = $item['size_id'] . '-' . $item['variant'];
+                $key = $item->size_id . '-' . $item->variant;
                 $sizeId = $item['size_id'];
                 $requestedQty = $item['qty'];
 
