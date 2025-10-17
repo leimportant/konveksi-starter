@@ -13,7 +13,7 @@ const { isMobile, state } = useSidebar();
 </script>
 
 <template>
-    <SidebarMenu>
+    <SidebarMenu class="flex flex-col justify-between h-full">
         <SidebarMenuItem>
             <DropdownMenu>
                 <DropdownMenuTrigger as-child>
@@ -23,10 +23,10 @@ const { isMobile, state } = useSidebar();
                     </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-  class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg max-h-[80vh] overflow-y-auto"
+  class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg max-h-[50vh] overflow-y-auto"
   :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
   align="end"
-  :side-offset="4"
+  :side-offset="2"
   :avoid-collisions="true"
   :collision-padding="8"
 >
