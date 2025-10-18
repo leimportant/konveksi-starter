@@ -429,8 +429,8 @@ public function store(Request $request)
             $production->save();
 
             // 6. Replace item produksi
-            ProductionItem::where('production_id', $id)->delete();
-
+            
+            ProductionItem::where('production_id', $id)->forceDelete();
             $production->items()->createMany(
                 array_map(function ($item) {
                     return [
