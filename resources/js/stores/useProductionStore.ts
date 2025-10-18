@@ -13,6 +13,7 @@ interface ProductionItem {
 interface Production {
   id: string;
   model_id: number;
+  employee_name: string;
   activity_role_id: number;
   price_per_pcs: number | null;
   total_price: number | null;

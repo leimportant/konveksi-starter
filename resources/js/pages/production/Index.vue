@@ -30,14 +30,24 @@ const totalPages = computed(() => lastPage.value || 1);
 
 const goToPage = async (page: number) => {
   if (page < 1 || page > totalPages.value) return;
+
   await productionStore.fetchProductions({
     page,
     per_page: perPage.value,
     sort_field: sortField.value,
-})
+    sort_order: sortOrder.value,
+    activity_role_id: props.activity_role,   // ✅ penting!
+    search: searchQuery.value,               // ✅ ikutkan juga
+    date_from: dateRange.value.from?.toISOString(),
+    date_to: dateRange.value.to?.toISOString(),
+  });
+
+  currentPage.value = page; // pastikan currentPage ikut update
 };
+
 const nextPage = () => goToPage(currentPage.value + 1);
 const prevPage = () => goToPage(currentPage.value - 1);
+
 
 const searchQuery = ref('');
 interface DateRange {
@@ -59,10 +69,10 @@ function formatRupiah(value: number) {
 }
 
 
-const fetchData = async () => {
+const fetchData = async (page = 1) => {
     try {
         await productionStore.fetchProductions({
-            page: currentPage.value,
+            page: page ? page : currentPage.value,
             per_page: perPage.value,
             sort_field: sortField.value,
             sort_order: sortOrder.value,
@@ -84,7 +94,7 @@ const handleDelete = async (id: string) => {
     try {
         await productionStore.deleteProduction(id);
         toast.success('Production deleted successfully');
-        await fetchData();
+        await fetchData(1);
     } catch (error: any) {
         toast.error(error?.response?.data?.message ?? 'Failed to delete production');
     }
@@ -110,7 +120,7 @@ const handleDelete = async (id: string) => {
             v-model="searchQuery"
             placeholder="Search..."
             class="flex-1 text-sm"
-            @keyup.enter="fetchData"
+            @keyup.enter="fetchData(1)"
           />
         </div>
       </div>
@@ -123,6 +133,7 @@ const handleDelete = async (id: string) => {
           <table class="min-w-full table-auto text-sm text-left text-gray-800 dark:text-gray-100">
             <thead class="bg-gray-100 dark:bg-gray-800 text-xs font-semibold uppercase text-gray-600 dark:text-gray-300">
               <tr>
+                <th class="px-3 py-2">Karyawan</th>
                 <th class="px-3 py-2">Model</th>
                 <th class="px-3 py-2">Activity</th>
                 <th class="px-3 py-2">Size/Qty</th>
@@ -138,10 +149,13 @@ const handleDelete = async (id: string) => {
                 :key="item.id"
                 class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
-                <td class="px-3 py-2 max-w-[160px] whitespace-normal">
+                <td class="px-3 py-2 whitespace-nowrap align-top">
+                  {{ item.employee_name || '-' }}
+                </td>
+                <td class="px-3 py-2 max-w-[160px] whitespace-normal align-top">
                     {{ item.model?.description || '-' }}
                 </td>
-                <td class="px-3 py-2 truncate">
+                <td class="px-3 py-2 truncate align-top">
                   {{ item.activity_role?.name || '-' }}
                 </td>
                 <td class="px-3 py-2 whitespace-nowrap">
@@ -152,16 +166,16 @@ const handleDelete = async (id: string) => {
                   </div>
                   <div v-else>-</div>
                 </td>
-                <td class="px-3 py-2 max-w-[160px] truncate">
+                <td class="px-3 py-2 max-w-[160px] truncate align-top">
                   {{ formatRupiah(item?.price_per_pcs || 0) }}
                 </td>
-                <td class="px-3 py-2 max-w-[160px] truncate">
+                <td class="px-3 py-2 max-w-[160px] truncate align-top">
                   {{ item?.total_price || 0 }}
                 </td>
-                <td class="px-3 py-2 whitespace-nowrap">
+                <td class="px-3 py-2 whitespace-nowrap align-top">
                   {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }}
                 </td>
-                <td class="px-3 py-2 text-right">
+                <td class="px-3 py-2 text-right align-top">
                   <div class="flex justify-end gap-1 sm:gap-2">
                     <Button
                       v-if="item.status === 1 || item.status === 3"
