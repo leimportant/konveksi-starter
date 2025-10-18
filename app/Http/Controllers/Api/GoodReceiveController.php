@@ -16,7 +16,8 @@ class GoodReceiveController extends Controller
         $search = $request->input('name');
 
         $query = GoodReceive::with(['items', 'model'])
-            ->latest();
+                ->whereNull('deleted_at')
+                ->latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -122,10 +123,14 @@ class GoodReceiveController extends Controller
 
     public function destroy(GoodReceive $goodReceive)
     {
+        // Simpan siapa yang menghapus sebelum data dihapus
         $goodReceive->deleted_by = Auth::id();
         $goodReceive->save();
-        $goodReceive->delete();
+
+        // Lalu hapus secara permanen
+        $goodReceive->forceDelete();
 
         return response()->json(null, 204);
     }
+
 }

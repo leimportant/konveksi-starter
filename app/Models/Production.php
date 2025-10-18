@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Production extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'tr_production';
     protected $keyType = 'string';
@@ -47,6 +47,7 @@ class Production extends Model
     {
         return $this->belongsTo(ActivityRole::class, 'activity_role_id');
     }
+
 
     public function getPricePerPcsAttribute()
     {

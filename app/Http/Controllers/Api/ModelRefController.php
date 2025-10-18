@@ -18,8 +18,6 @@ class ModelRefController extends Controller
         $validated = $request->validate([
             'description' => 'required|string|max:255',
             'remark' => 'nullable|string',
-            'estimation_price_pcs' => 'required|numeric|min:0',
-            'estimation_qty' => 'required|integer|min:0',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date',
             'sizes' => 'required|array',
@@ -79,7 +77,6 @@ class ModelRefController extends Controller
                         ? $modelMaterial['product_id']['id'] ?? null
                         : $modelMaterial['product_id'];
 
-
                     $model->modelMaterial()->create([
                         'product_id' => $productId,
                         'item' => $index + 1,
@@ -92,8 +89,6 @@ class ModelRefController extends Controller
                     ]);
                 }
             }
-
-
             // Store documents
 
             $uniqId = $request->input('uniqId', null);
