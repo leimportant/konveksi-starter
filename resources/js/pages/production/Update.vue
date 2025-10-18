@@ -189,11 +189,7 @@ const submit = async () => {
                 {{ modelSizes.find(ms => ms.size_id === size.size_id)?.size_name || size.size_id }}
               </td>
               <td class="border px-2 md:px-3 py-1 md:py-2">
-                <input
-                  type="text"
-                  class="border rounded px-2 py-1 w-full"
-                  v-model="size.variant"
-                />
+                {{ size.variant }}
               </td>
               <td class="border px-2 md:px-3 py-1 md:py-2">
                 <input
