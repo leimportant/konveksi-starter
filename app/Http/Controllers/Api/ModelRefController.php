@@ -18,7 +18,9 @@ class ModelRefController extends Controller
         $validated = $request->validate([
             'description' => 'required|string|max:255',
             'remark' => 'nullable|string',
-            'start_date' => 'required|date',
+            'estimation_price_pcs' => 'required|numeric|min:0',
+            'estimation_qty' => 'required|integer|min:1',
+            'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'sizes' => 'required|array',
             'sizes.*.size_id' => 'required|exists:mst_size,id',
@@ -42,8 +44,8 @@ class ModelRefController extends Controller
             $model = ModelRef::create([
                 'description' => $validated['description'],
                 'remark' => $validated['remark'],
-                'estimation_price_pcs' => $validated['estimation_price_pcs'],
-                'estimation_qty' => $validated['estimation_qty'],
+                'estimation_price_pcs' => $validated['estimation_price_pcs'] ?? null,
+                'estimation_qty' => $validated['estimation_qty'] ?? null,
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'] ?? null,
                 'created_by' => Auth::id(),
