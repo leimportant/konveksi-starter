@@ -1,31 +1,30 @@
-import { defineStore } from 'pinia';
 import axios from 'axios';
-
+import { defineStore } from 'pinia';
 
 export interface SizeItem {
     size_id: string;
     variant: string;
     qty: number;
-  }
+}
 
-  export interface ActivityItem {
+export interface ActivityItem {
     activity_role_id: number;
     price: number;
-  }
-  
-  export interface DocumentData {
+}
+
+export interface DocumentData {
     id: string;
     url: string;
     filename: string;
-  }
+}
 
-  export interface ModelMaterialData {
+export interface ModelMaterialData {
     product_id: number;
     qty: number;
     uom_id: number;
     remark: string;
     price: number | null;
-  }
+}
 interface ModelData {
     description: string;
     remark: string | null;
@@ -33,7 +32,7 @@ interface ModelData {
     estimation_price_pcs: number;
     estimation_qty: number;
     start_date: string | null;
-    is_close: string | "N";
+    is_close: string | 'N';
     // ← NEW:
     sizes: SizeItem[];
     activity: ActivityItem[];
@@ -85,12 +84,19 @@ export const useModelStore = defineStore('model', {
                 }
                 const response = await axios.post('/api/models', {
                     ...data,
-                    start_date: data.start_date
+                    start_date: data.start_date,
                 });
                 return response.data;
             } catch (error: any) {
-                this.error = error.response?.data?.message || 'Terjadi kesalahan saat membuat model';
-                throw error;
+                const backendMessage = error.response?.data?.message;
+                const backendError = error.response?.data?.error;
+
+                // gabungkan dua-duanya jika ada
+                if (backendMessage || backendError) {
+                    this.error = `${backendMessage ?? ''}${backendError ? `: ${backendError}` : ''}`;
+                } else {
+                    this.error = error.message || 'Terjadi kesalahan saat membuat model';
+                }
             } finally {
                 this.loading = false;
             }
@@ -116,7 +122,7 @@ export const useModelStore = defineStore('model', {
         },
 
         async fetchActivityEmployee(id: string) {
-              try {
+            try {
                 this.loading = true;
                 const response = await axios.get(`/api/employee-activity-group/${id}`);
                 this.employees = response.data.data;
@@ -166,12 +172,12 @@ export const useModelStore = defineStore('model', {
                 this.loading = false;
             }
         },
-        
+
         async updateModel(id: number, data: Partial<ModelData>) {
             try {
                 this.loading = true;
                 const response = await axios.put(`/api/models/${id}`, data);
-                const index = this.models.findIndex(model => model.id === id);
+                const index = this.models.findIndex((model) => model.id === id);
                 if (index !== -1) {
                     this.models[index] = response.data.data;
                 }
@@ -188,7 +194,7 @@ export const useModelStore = defineStore('model', {
             try {
                 this.loading = true;
                 await axios.delete(`/api/models/${id}`);
-                this.models = this.models.filter(model => model.id !== id);
+                this.models = this.models.filter((model) => model.id !== id);
             } catch (error: any) {
                 this.error = error.response?.data?.message || 'Terjadi kesalahan saat menghapus model';
                 throw error;
@@ -199,28 +205,26 @@ export const useModelStore = defineStore('model', {
 
         async updateCloseStatus(id: number) {
             try {
-                this.loading = true
-                this.error = null
+                this.loading = true;
+                this.error = null;
 
                 // 🔥 Panggil endpoint toggle (PATCH lebih semantik daripada PUT)
-                const response = await axios.patch(`/api/models/${id}/close`)
+                const response = await axios.patch(`/api/models/${id}/close`);
 
                 // 🔁 Update state lokal (jika model ditemukan)
-                const updatedModel = response.data.data
-                const index = this.models.findIndex(model => model.id === id)
+                const updatedModel = response.data.data;
+                const index = this.models.findIndex((model) => model.id === id);
                 if (index !== -1) {
-                this.models[index] = updatedModel
+                    this.models[index] = updatedModel;
                 }
 
-                return response.data
+                return response.data;
             } catch (error: any) {
-                this.error =
-                error.response?.data?.message ||
-                'Terjadi kesalahan saat memperbarui status model'
-                throw error
+                this.error = error.response?.data?.message || 'Terjadi kesalahan saat memperbarui status model';
+                throw error;
             } finally {
-                this.loading = false
+                this.loading = false;
             }
-            }
-    }
+        },
+    },
 });
