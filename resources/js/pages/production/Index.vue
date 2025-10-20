@@ -90,9 +90,10 @@ const fetchData = async (page = 1) => {
 // ✅ Hitung Grand Total (konversi string → number)
 const grandTotal = computed(() => {
   return productions.value.reduce((sum, item) => {
-    // Hilangkan koma atau titik dari string total_price sebelum parse
-    const total = parseFloat(String(item.total_price).replace(/[^\d.-]/g, '')) || 0
-    return sum + total
+    // hapus semua karakter selain angka dan titik
+    const cleanString = String(item.total_price).replace(/[^\d]/g, '')
+    const numericValue = parseFloat(cleanString) || 0
+    return sum + numericValue
   }, 0)
 })
 
