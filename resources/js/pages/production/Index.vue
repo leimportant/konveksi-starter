@@ -178,13 +178,13 @@ const handleDelete = async (id: string) => {
                 <td class="px-3 py-2 whitespace-nowrap align-top">
                   {{ item.employee_name || '-' }}
                 </td>
-                <td class="px-3 py-2 max-w-[160px] whitespace-normal align-top">
+                <td class="px-3 py-2 whitespace-normal align-top">
                   {{ item.model?.description || '-' }}
                 </td>
                 <td class="px-3 py-2 truncate align-top">
                   {{ item.activity_role?.name || '-' }}
                 </td>
-                <td class="px-3 py-2 whitespace-nowrap">
+                <td class="px-3 py-2 whitespace-nowrap align-top">
                   <div v-if="item.items?.length">
                     <div v-for="i in item.items" :key="i.id">
                       {{ i.size_id }} - {{ i.variant }}: {{ i.qty }}
