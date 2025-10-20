@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\StockOpnameController;
 use App\Http\Controllers\Api\TransferStockController;
+use App\Http\Controllers\Api\MealAllowancesController;
 use App\Http\Controllers\PushController;
 use App\Http\Controllers\Api\PosOrderController;
 use App\Http\Controllers\Api\CustomerController;
@@ -128,6 +129,8 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/sizes', SizeController::class);
     Route::apiResource('api/bank-account', BankAccountController::class);
     Route::apiResource('api/categories', CategoryController::class);
+    Route::apiResource('api/meal-allowances', MealAllowancesController::class);
+
     
     Route::apiResource('api/products', ProductController::class);
     Route::get('api/product-with-size', [ProductController::class, 'getProductWithSizeIds']);

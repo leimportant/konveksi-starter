@@ -102,12 +102,14 @@ export const useModelStore = defineStore('model', {
             }
         },
 
-        async fetchModels(page: number = 1, isClose: string) {
+        async fetchModels(params: FetchParams) {
             try {
                 this.loading = true;
-                const params = { ...this.filters, page };
-                params.is_close = isClose ? isClose : 'N';
-                const response = await axios.get('/api/models/list', { params });
+                // Gabungkan filter dari state dengan parameter yang baru
+                const requestParams = { ...this.filters, ...params };
+                this.filters = requestParams; // Simpan gabungan filter
+
+                const response = await axios.get('/api/models/list', { params: requestParams });
                 this.models = response.data.data.data;
                 this.total = response.data.data.total;
                 this.currentPage = response.data.data.current_page;
@@ -136,24 +138,23 @@ export const useModelStore = defineStore('model', {
         },
 
         setFilter(key: keyof FetchParams, value: any) {
-            this.filters[key] = value;
-            this.fetchModels(1, '-'); // Reset to first page on filter change
+            this.fetchModels({ [key]: value, page: 1 });
         },
 
         goToPage(page: number) {
             if (page < 1 || page > this.lastPage) return;
-            this.fetchModels(page, '-');
+            this.fetchModels({ page });
         },
 
         nextPage() {
             if (this.currentPage < this.lastPage) {
-                this.fetchModels(this.currentPage + 1, '-');
+                this.fetchModels({ page: this.currentPage + 1 });
             }
         },
 
         prevPage() {
             if (this.currentPage > 1) {
-                this.fetchModels(this.currentPage - 1, '-');
+                this.fetchModels({ page: this.currentPage - 1 });
             }
         },
 
