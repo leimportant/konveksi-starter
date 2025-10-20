@@ -53,10 +53,36 @@ class ProductionController extends Controller
             }
 
             if (!empty($search)) {
-                $query->whereHas('model', function ($q) use ($search) {
-                    $q->where('description', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    // 🔍 Cari di tabel utama (production)
+                    $q->where('remark', 'like', "%{$search}%")
+                        ->orWhere('price', 'like', "%{$search}%")
+                        ->orWhere('price_per_pcs', 'like', "%{$search}%")
+                        ->orWhere('total_price', 'like', "%{$search}%");
+
+                    // 🔍 Cari di relasi model
+                    $q->orWhereHas('model', function ($q2) use ($search) {
+                        $q2->where('description', 'like', "%{$search}%");
+                    });
+
+                    // 🔍 Cari di relasi activityRole
+                    $q->orWhereHas('activityRole', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
+
+                    // 🔍 Cari di relasi employee
+                    $q->orWhereHas('employee', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
+
+                    // 🔍 Cari di relasi items
+                    $q->orWhereHas('items', function ($q2) use ($search) {
+                        $q2->where('variant', 'like', "%{$search}%")
+                            ->orWhere('qty', 'like', "%{$search}%");
+                    });
                 });
             }
+
 
             if (!empty($dateFrom) && !empty($dateTo)) {
                 $query->whereBetween('created_at', [$dateFrom, $dateTo]);
@@ -99,199 +125,199 @@ class ProductionController extends Controller
         }
     }
 
-public function store(Request $request)
-{
-    DB::beginTransaction();
-    try {
-        // Helper: normalisasi variant
-        $normalizeVariant = function ($v) {
-            return ucfirst(strtolower(trim($v)));
-        };
+    public function store(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            // Helper: normalisasi variant
+            $normalizeVariant = function ($v) {
+                return ucfirst(strtolower(trim($v)));
+            };
 
-        // 1. Terima activity_role_id sebagai number atau array
-        $activityRoleIds = is_array($request->activity_role_id)
-            ? $request->activity_role_id
-            : [$request->activity_role_id];
+            // 1. Terima activity_role_id sebagai number atau array
+            $activityRoleIds = is_array($request->activity_role_id)
+                ? $request->activity_role_id
+                : [$request->activity_role_id];
 
-        // 2. Validasi Konflik Role
-        $conflictingRoles = [2, 6, 10];
-        $conflictingRolesName = ['JAHIT', 'OBRAS', 'OBRAS DAN JAHIT'];
-        $activeConflictingRoles = array_intersect($activityRoleIds, $conflictingRoles);
-        if (count($activeConflictingRoles) > 1) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pilih salah 1 dari: ' . implode(', ', $conflictingRolesName)
-            ], 422);
-        }
+            // 2. Validasi Konflik Role
+            $conflictingRoles = [2, 6, 10];
+            $conflictingRolesName = ['JAHIT', 'OBRAS', 'OBRAS DAN JAHIT'];
+            $activeConflictingRoles = array_intersect($activityRoleIds, $conflictingRoles);
+            if (count($activeConflictingRoles) > 1) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Pilih salah 1 dari: ' . implode(', ', $conflictingRolesName)
+                ], 422);
+            }
 
-        // 3. Basic Validation
-        $validator = Validator::make($request->all(), [
-            'model_id' => 'required|exists:tr_model,id',
-            'employee_id' => 'required|exists:users,id',
-            'activity_role_id' => 'required',
-            'remark' => 'nullable|string|max:100',
-            'items' => 'required|array|min:1',
-            'items.*.size_id' => 'required',
-            'items.*.variant' => 'required',
-            'items.*.qty' => 'required|integer|min:1'
-        ]);
+            // 3. Basic Validation
+            $validator = Validator::make($request->all(), [
+                'model_id' => 'required|exists:tr_model,id',
+                'employee_id' => 'required|exists:users,id',
+                'activity_role_id' => 'required',
+                'remark' => 'nullable|string|max:100',
+                'items' => 'required|array|min:1',
+                'items.*.size_id' => 'required',
+                'items.*.variant' => 'required',
+                'items.*.qty' => 'required|integer|min:1'
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        // 4. Filter Item valid
-        $validItems = collect($request->items)
-            ->filter(fn($item) => isset($item['qty']) && $item['qty'] > 0)
-            ->map(function ($item) use ($normalizeVariant) {
-                $item['variant'] = $normalizeVariant($item['variant']);
-                return $item;
-            })
-            ->values()
-            ->all();
+            // 4. Filter Item valid
+            $validItems = collect($request->items)
+                ->filter(fn($item) => isset($item['qty']) && $item['qty'] > 0)
+                ->map(function ($item) use ($normalizeVariant) {
+                    $item['variant'] = $normalizeVariant($item['variant']);
+                    return $item;
+                })
+                ->values()
+                ->all();
 
-        // 5. Mapping hubungan antar proses
-        $previousRoleMap = [
-            1 => [],
-            2 => [1],
-            10 => [1],
-            3 => [2, 10],
-            4 => [2, 10],
-            5 => [2, 10],
-            6 => [1, 10],
-            7 => [2, 10],
-            8 => [2, 10],
-            9 => [2, 10],
-            11 => [2, 10],
-        ];
+            // 5. Mapping hubungan antar proses
+            $previousRoleMap = [
+                1 => [],
+                2 => [1],
+                10 => [1],
+                3 => [2, 10],
+                4 => [2, 10],
+                5 => [2, 10],
+                6 => [1, 10],
+                7 => [2, 10],
+                8 => [2, 10],
+                9 => [2, 10],
+                11 => [2, 10],
+            ];
 
-        $productions = [];
+            $productions = [];
 
-        foreach ($activityRoleIds as $activityRoleId) {
-            if ($activityRoleId != 1) {
-                $previousRoleIds = $previousRoleMap[$activityRoleId] ?? null;
-                if (!$previousRoleIds) {
-                    DB::rollBack();
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => "Tidak bisa menentukan proses sebelumnya ($activityRoleId)"
-                    ], 422);
-                }
+            foreach ($activityRoleIds as $activityRoleId) {
+                if ($activityRoleId != 1) {
+                    $previousRoleIds = $previousRoleMap[$activityRoleId] ?? null;
+                    if (!$previousRoleIds) {
+                        DB::rollBack();
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => "Tidak bisa menentukan proses sebelumnya ($activityRoleId)"
+                        ], 422);
+                    }
 
-                $availableQty = [];
-                $usedQty = [];
+                    $availableQty = [];
+                    $usedQty = [];
 
-                // a. Ambil qty dari proses sebelumnya
-                foreach ($previousRoleIds as $previousRoleId) {
-                    $roleIdsToCheck = in_array($previousRoleId, [2, 10]) ? [2, 10] : [$previousRoleId];
-                    $previousProductions = Production::with('items')
+                    // a. Ambil qty dari proses sebelumnya
+                    foreach ($previousRoleIds as $previousRoleId) {
+                        $roleIdsToCheck = in_array($previousRoleId, [2, 10]) ? [2, 10] : [$previousRoleId];
+                        $previousProductions = Production::with('items')
+                            ->where('model_id', $request->model_id)
+                            ->whereIn('activity_role_id', $roleIdsToCheck)
+                            ->get();
+
+                        \Log::info('prev');
+                        \Log::info($previousProductions);
+
+
+                        foreach ($previousProductions as $prod) {
+                            foreach ($prod->items as $item) {
+                                $key = $item->size_id . '-' . $normalizeVariant($item->variant);
+                                $availableQty[$key] = ($availableQty[$key] ?? 0) + $item->qty;
+                            }
+                        }
+                    }
+
+                    if (empty($availableQty)) {
+                        DB::rollBack();
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Belum ada data produksi sebelumnya untuk model ini.'
+                        ], 422);
+                    }
+
+                    // b. Hitung total used qty di role saat ini
+                    $roleIdsToCheck = in_array($activityRoleId, [2, 10]) ? [2, 10] : [$activityRoleId];
+                    $existingProductions = Production::with('items')
                         ->where('model_id', $request->model_id)
                         ->whereIn('activity_role_id', $roleIdsToCheck)
                         ->get();
 
-                    \Log::info('prev');
-                    \Log::info($previousProductions);
-
-
-                    foreach ($previousProductions as $prod) {
+                    foreach ($existingProductions as $prod) {
                         foreach ($prod->items as $item) {
                             $key = $item->size_id . '-' . $normalizeVariant($item->variant);
-                            $availableQty[$key] = ($availableQty[$key] ?? 0) + $item->qty;
+                            $usedQty[$key] = ($usedQty[$key] ?? 0) + $item->qty;
+                        }
+                    }
+
+                    // c. Validasi payload qty
+                    foreach ($validItems as $item) {
+                        $key = $item['size_id'] . '-' . $normalizeVariant($item['variant']);
+                        $sizeId = $item['size_id'];
+                        $variant = $item['variant'];
+                        $requestedQty = $item['qty'];
+                        $available = $availableQty[$key] ?? 0;
+                        $used = $usedQty[$key] ?? 0;
+
+                        $totalAfterInsert = $used + $requestedQty;
+
+                        \Log::info("VALIDASI [$key] => available:$available used:$used request:$requestedQty totalAfter:$totalAfterInsert");
+
+                        if ($totalAfterInsert > $available) {
+                            DB::rollBack();
+                            return response()->json([
+                                'status' => 'error',
+                                'message' => "Qty untuk size $sizeId variant $variant melebihi sisa dari proses sebelumnya (tersisa " . max($available - $used, 0) . ")"
+                            ], 422);
                         }
                     }
                 }
 
-                if (empty($availableQty)) {
-                    DB::rollBack();
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Belum ada data produksi sebelumnya untuk model ini.'
-                    ], 422);
-                }
+                // Simpan data
+                $production = Production::create([
+                    'id' => 'PRD-' . uniqid(),
+                    'model_id' => $request->model_id,
+                    'employee_id' => $request->employee_id,
+                    'activity_role_id' => $activityRoleId,
+                    'remark' => $request->remark,
+                    'status' => 'waiting',
+                    'created_by' => Auth::id()
+                ]);
 
-                // b. Hitung total used qty di role saat ini
-                $roleIdsToCheck = in_array($activityRoleId, [2, 10]) ? [2, 10] : [$activityRoleId];
-                $existingProductions = Production::with('items')
-                    ->where('model_id', $request->model_id)
-                    ->whereIn('activity_role_id', $roleIdsToCheck)
-                    ->get();
+                $production->items()->createMany(
+                    array_map(function ($item) {
+                        return [
+                            'id' => 'PRI-' . uniqid(),
+                            'size_id' => $item['size_id'],
+                            'qty' => $item['qty'],
+                            'variant' => ucfirst(strtolower(trim($item['variant']))),
+                            'created_by' => Auth::id()
+                        ];
+                    }, $validItems)
+                );
 
-                foreach ($existingProductions as $prod) {
-                    foreach ($prod->items as $item) {
-                        $key = $item->size_id . '-' . $normalizeVariant($item->variant);
-                        $usedQty[$key] = ($usedQty[$key] ?? 0) + $item->qty;
-                    }
-                }
-
-                // c. Validasi payload qty
-                foreach ($validItems as $item) {
-                    $key = $item['size_id'] . '-' . $normalizeVariant($item['variant']);
-                    $sizeId = $item['size_id'];
-                    $variant = $item['variant'];
-                    $requestedQty = $item['qty'];
-                    $available = $availableQty[$key] ?? 0;
-                    $used = $usedQty[$key] ?? 0;
-
-                    $totalAfterInsert = $used + $requestedQty;
-
-                    \Log::info("VALIDASI [$key] => available:$available used:$used request:$requestedQty totalAfter:$totalAfterInsert");
-
-                    if ($totalAfterInsert > $available) {
-                        DB::rollBack();
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => "Qty untuk size $sizeId variant $variant melebihi sisa dari proses sebelumnya (tersisa " . max($available - $used, 0) . ")"
-                        ], 422);
-                    }
-                }
+                $productions[] = $production->load(['model', 'activityRole', 'items.size']);
             }
 
-            // Simpan data
-            $production = Production::create([
-                'id' => 'PRD-' . uniqid(),
-                'model_id' => $request->model_id,
-                'employee_id' => $request->employee_id,
-                'activity_role_id' => $activityRoleId,
-                'remark' => $request->remark,
-                'status' => 'waiting',
-                'created_by' => Auth::id()
-            ]);
+            DB::commit();
 
-            $production->items()->createMany(
-                array_map(function ($item) {
-                    return [
-                        'id' => 'PRI-' . uniqid(),
-                        'size_id' => $item['size_id'],
-                        'qty' => $item['qty'],
-                        'variant' => ucfirst(strtolower(trim($item['variant']))),
-                        'created_by' => Auth::id()
-                    ];
-                }, $validItems)
-            );
-
-            $productions[] = $production->load(['model', 'activityRole', 'items.size']);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Production created successfully',
+                'data' => count($productions) === 1 ? $productions[0] : $productions
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create production',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        DB::commit();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Production created successfully',
-            'data' => count($productions) === 1 ? $productions[0] : $productions
-        ], 201);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Failed to create production',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
 
 
 
@@ -429,7 +455,7 @@ public function store(Request $request)
             $production->save();
 
             // 6. Replace item produksi
-            
+
             ProductionItem::where('production_id', $id)->forceDelete();
             $production->items()->createMany(
                 array_map(function ($item) {
