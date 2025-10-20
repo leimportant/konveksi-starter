@@ -54,11 +54,6 @@ class ProductionController extends Controller
 
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
-                    // 🔍 Cari di tabel utama (production)
-                    $q->where('remark', 'like', "%{$search}%")
-                        ->orWhere('price', 'like', "%{$search}%")
-                        ->orWhere('price_per_pcs', 'like', "%{$search}%")
-                        ->orWhere('total_price', 'like', "%{$search}%");
 
                     // 🔍 Cari di relasi model
                     $q->orWhereHas('model', function ($q2) use ($search) {
