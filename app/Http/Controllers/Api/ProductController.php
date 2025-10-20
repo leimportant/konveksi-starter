@@ -55,7 +55,7 @@ class ProductController extends Controller
                 });
         }
 
-        $perPage = $request->input('perPage', 10);
+        $perPage = $request->input('perPage', 50);
         $data = $query->paginate($perPage);
         // Attach size IDs to each product
         foreach ($data as $product) {

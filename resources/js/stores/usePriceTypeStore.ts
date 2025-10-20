@@ -32,7 +32,7 @@ export const usePriceTypeStore = defineStore('priceType', {
     }),
 
     actions: {
-        async fetchPriceTypes(page = 1, perPage = 10) {
+        async fetchPriceTypes(page = 1, perPage = 50) {
             this.loading = true
             try {
                 const response = await axios.get('/api/price-types', {

@@ -30,7 +30,7 @@ export const usePaymentMethodStore = defineStore('paymentMethod', {
   }),
 
   actions: {
-    async fetchPaymentMethods(page = 1, perPage = 10) {
+    async fetchPaymentMethods(page = 1, perPage = 50) {
       if (this.loaded) return;
 
       this.loading = true;

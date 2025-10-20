@@ -28,7 +28,7 @@ export const useLocationStore = defineStore('location', {
     }),
 
     actions: {
-        async fetchLocations(page = 1, perPage = 10) {
+        async fetchLocations(page = 1, perPage = 50) {
             this.loading = true;
             try {
                 const response = await axios.get('/api/locations', {

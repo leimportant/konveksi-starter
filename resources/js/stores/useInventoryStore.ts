@@ -91,7 +91,7 @@ export const useInventoryStore = defineStore('inventory', {
             }
         },
 
-        async fetchInventory(page = 1, perPage = 10) {
+        async fetchInventory(page = 1, perPage = 50) {
             this.loading = true;
             try {
                 const response = await axios.get(`/api/inventories?page=${page}&perPage=${perPage}`, {
@@ -127,7 +127,7 @@ export const useInventoryStore = defineStore('inventory', {
             }
         },
 
-     async fetchStockMonitoringReport(page = 1, perPage = 10) {
+     async fetchStockMonitoringReport(page = 1, perPage = 50) {
   this.loading = true;
   this.error = null;
 

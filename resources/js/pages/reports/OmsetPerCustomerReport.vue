@@ -16,7 +16,7 @@ const searchKey = ref('');
 const currentPage = computed(() => reportStore.currentPage);
 const perPage = computed(() => reportStore.perPage);
 
-const fetchReport = async (page: number = 1, perPage: number = 10) => {
+const fetchReport = async (page: number = 1, perPage: number = 50) => {
     // The first argument should be customerId (number), but searchKey is string, so we need to handle this properly
     // For now, pass 0 or parseInt if searchKey is a number string
     const customerId = parseInt(searchKey.value) || 0;

@@ -12,7 +12,7 @@ export const useProductStore = defineStore('product', {
   }),
 
   actions: {
-    async fetchProducts(page = 1, perPage = 10) {
+    async fetchProducts(page = 1, perPage = 50) {
 
       const params = {
           page,

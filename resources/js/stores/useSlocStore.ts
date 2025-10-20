@@ -28,7 +28,7 @@ export const useSlocStore = defineStore('sloc', {
     }),
 
     actions: {
-        async fetchSlocs(page = 1, perPage = 10) {
+        async fetchSlocs(page = 1, perPage = 50) {
            this.loading = true;
             try {
                  const response = await axios.get('/api/slocs', {

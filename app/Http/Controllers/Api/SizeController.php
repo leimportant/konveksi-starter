@@ -18,7 +18,7 @@ class SizeController extends Controller
             $query->where('name', 'like', '%' . $request->name . '%');
         }
 
-        $perPage = $request->input('perPage', 10);
+        $perPage = $request->input('perPage', 50);
         $categories = $query->paginate($perPage);
 
         return response()->json($categories);

@@ -31,7 +31,7 @@ class ProductPriceController extends Controller
         });
     }
 
-        $perPage = $request->input('perPage', 10);
+        $perPage = $request->input('perPage', 50);
         $productPrices = $query->paginate($perPage);
 
         return response()->json($productPrices);

@@ -28,7 +28,7 @@ export const useCategoryStore = defineStore('category', {
     }),
 
     actions: {
-       async fetchCategories(page = 1, perPage = 10) {
+       async fetchCategories(page = 1, perPage = 50) {
             this.loaded = false;   // reset loading
             this.currentPage = page;
 

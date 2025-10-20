@@ -15,7 +15,7 @@ const productionStore = useProductionStore();
 const { productions, currentPage, lastPage, loading } = storeToRefs(productionStore);
 
 
-const perPage = ref(10);
+const perPage = ref(50);
 const sortField = ref('created_at');
 const sortOrder = ref<'asc' | 'desc'>('desc');
 

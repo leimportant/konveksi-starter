@@ -51,7 +51,7 @@ export const useProductPriceStore = defineStore('productPrice', {
   }),
 
   actions: {
-    async fetchProductPrice(page = 1, perPage = 10) {
+    async fetchProductPrice(page = 1, perPage = 50) {
       this.loading = true;
       try {
         const response = await axios.get('/api/product-prices', {
