@@ -108,11 +108,13 @@ const grandPricePerPcs = computed(() => {
 // Hitung total semua qty dari semua items di setiap production
 const grandQty = computed(() => {
   return productions.value.reduce((total, item) => {
-    // jumlahkan semua qty dalam item.items
-    const itemTotal = item.items?.reduce((sum, i) => sum + (parseFloat(i.qty) || 0), 0) || 0
+    const itemTotal = item.items?.reduce((sum, i) => {
+      return sum + (parseFloat(String(i.qty)) || 0)
+    }, 0) || 0
     return total + itemTotal
   }, 0)
 })
+
 
 onMounted(fetchData);
 
