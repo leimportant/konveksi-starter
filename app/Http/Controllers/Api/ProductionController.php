@@ -26,7 +26,7 @@ class ProductionController extends Controller
             $search = $request->input('search');
             $dateFrom = $request->input('date_from');
             $dateTo = $request->input('date_to');
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 50);
             $sortField = $request->input('sort_field', 'created_at');
             $sortDir = $request->input('sort_direction', 'desc');
 

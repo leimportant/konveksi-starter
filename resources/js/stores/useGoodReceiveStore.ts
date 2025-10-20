@@ -47,7 +47,7 @@ export const useGoodReceiveStore = defineStore('goodReceive', {
     }),
 
     actions: {
-        async fetchGoodReceives(page = 1, perPage = 10) {
+        async fetchGoodReceives(page = 1, perPage = 50) {
             this.loading = true;
             try {
                 const response = await axios.get('/api/good-receive', {

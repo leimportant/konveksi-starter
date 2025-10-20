@@ -47,7 +47,7 @@ export const useCashBalanceStore = defineStore('cashBalance', {
         error: null
     }),
     actions: {
-        async fetchCashBalances(page = 1, perPage = 10) {
+        async fetchCashBalances(page = 1, perPage = 50) {
             this.loading = true
             try {
                 const response = await axios.get('/api/cash-balance', {

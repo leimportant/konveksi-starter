@@ -24,7 +24,7 @@ class LocationController extends Controller
             ->orWhere('id', 'like', '%' . $request->name . '%');
         }
 
-        $perPage = $request->input('perPage', 10);
+        $perPage = $request->input('perPage', 50);
         $locations = $query->paginate($perPage);
 
         

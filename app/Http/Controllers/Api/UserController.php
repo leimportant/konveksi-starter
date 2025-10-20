@@ -26,7 +26,7 @@ class UserController extends Controller
             ->orWhere('phone_number', 'like', '%' . $request->name . '%');
         }
 
-        $perPage = $request->input('perPage', 10);
+        $perPage = $request->input('perPage', 50);
         $users = $query->orderBy('created_at', 'DESC')->paginate($perPage);
 
         return response()->json($users);

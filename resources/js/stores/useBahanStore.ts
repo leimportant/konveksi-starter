@@ -12,7 +12,7 @@ export const useBahanStore = defineStore('bahan', {
   }),
 
   actions: {
-    async fetchBahans(page = 1, perPage = 10) {
+    async fetchBahans(page = 1, perPage = 50) {
 
       const params = {
           page,

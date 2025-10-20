@@ -33,7 +33,7 @@ export const useBankAccountStore = defineStore('bankAccount', {
     }),
 
     actions: {
-        async fetchBankAccount(page = 1, perPage = 10) {
+        async fetchBankAccount(page = 1, perPage = 50) {
             if (this.loaded) return;
 
             try {

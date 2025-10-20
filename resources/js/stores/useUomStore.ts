@@ -28,7 +28,7 @@ export const useUomStore = defineStore('uom', {
     }),
 
     actions: {
-       async fetchUoms(page = 1, perPage = 10) {
+       async fetchUoms(page = 1, perPage = 50) {
             this.loading = true;
             try {
 

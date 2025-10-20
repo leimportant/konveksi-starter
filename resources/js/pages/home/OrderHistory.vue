@@ -33,7 +33,7 @@ const shippingInfo = ref<any>(null);
 
 const toast = useToast();
 const scrollPage = ref(1);
-const perPage = ref(10);
+const perPage = ref(50);
 // const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 1)));
 
 const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 10)));
@@ -118,7 +118,7 @@ onMounted(() => {
     scrollPage.value += 1;
     await fetchOrders({
         page: scrollPage.value,
-        per_page: 10,
+        per_page: 50,
         append: true,
         status: activeTab.value,
         name: filterName.value,
@@ -136,7 +136,7 @@ onMounted(() => {
     // 🟢 Initial fetch
   fetchOrders({
     page: scrollPage.value,
-    per_page: 10,
+    per_page: 50,
     append: false,
     status: activeTab.value,
     name: filterName.value,
@@ -164,7 +164,7 @@ watch(activeTab, (status) => {
     fetchOrders({
         status,
         page: scrollPage.value,
-        per_page: 10,
+        per_page: 50,
         append: false,
         name: filterName.value,
     });
@@ -179,7 +179,7 @@ const handleScroll = () => {
     const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight - 100; // 100px from bottom
     if (bottomOfWindow && !isLoading.value && scrollPage.value < totalPages.value) {
         scrollPage.value++;
-        fetchOrders({ status: activeTab.value, page: scrollPage.value, per_page: 10, append: true, name: filterName.value });
+        fetchOrders({ status: activeTab.value, page: scrollPage.value, per_page: 50, append: true, name: filterName.value });
 
     }
 };
@@ -252,7 +252,7 @@ async function handleCancel(orderId: string) {
         setTimeout(() => {
             orders.value = [];
             scrollPage.value = 1;
-            fetchOrders({ status: activeTab.value, page: scrollPage.value, per_page: 10, append: false, name: filterName.value });
+            fetchOrders({ status: activeTab.value, page: scrollPage.value, per_page: 50, append: false, name: filterName.value });
 
 
         }, 500); // 0.5 detik
@@ -361,7 +361,7 @@ const submitTransfer = async () => {
         await uploadPaymentProof(orderId, paymentProofFile.value); // ✅ FIXED
         toast.success('Bukti transfer berhasil diunggah!');
         showUploadTransfer.value = false;
-        fetchOrders({ status: activeTab.value, page: scrollPage.value, per_page: 10 });
+        fetchOrders({ status: activeTab.value, page: scrollPage.value, per_page: 50 });
     } catch (error) {
         console.error(error);
         toast.error('Gagal mengunggah bukti transfer.');
@@ -371,7 +371,7 @@ const submitTransfer = async () => {
 const debouncedHandleSearch = debounce(async () => {
   setFilter('status', activeTab.value, {
     page: scrollPage.value,
-    per_page: 10,
+    per_page: 50,
     append: false,
     name: filterName.value,
   });

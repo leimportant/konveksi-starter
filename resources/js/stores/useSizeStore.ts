@@ -32,7 +32,7 @@ export const useSizeStore = defineStore('size', {
     }),
 
     actions: {
-        async fetchSizes(page = 1, perPage = 10) {
+        async fetchSizes(page = 1, perPage = 50) {
             if (this.loaded) return;
 
             try {

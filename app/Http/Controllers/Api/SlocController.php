@@ -17,7 +17,7 @@ class SlocController extends Controller
             ->orWhere('id', 'like', '%' . $request->name . '%');
         }
 
-        $perPage = $request->input('perPage', 10);
+        $perPage = $request->input('perPage', 50);
         $sloc = $query->paginate($perPage);
 
         return response()->json($sloc);

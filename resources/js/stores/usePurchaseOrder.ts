@@ -69,7 +69,7 @@ export const usePurchaseOrder = defineStore('purchaseOrder', {
   }),
 
   actions: {
-    async fetchPurchaseOrders(page = 1, perPage = 10) {
+    async fetchPurchaseOrders(page = 1, perPage = 50) {
       this.loading = true;
       this.error = null;
 

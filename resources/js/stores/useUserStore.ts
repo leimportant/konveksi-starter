@@ -67,7 +67,7 @@ export const useUserStore = defineStore('user', {
 
   actions: {
     // Fetch users from the API
-    async fetchUsers(page = 1, perPage = 10) {
+    async fetchUsers(page = 1, perPage = 50) {
       this.loading = true;
       try {
         const response = await axios.get('/api/users', {

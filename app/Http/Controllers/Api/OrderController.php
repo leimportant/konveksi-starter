@@ -37,7 +37,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $perPage = (int) $request->input('per_page', 10);
+        $perPage = (int) $request->input('per_page', 50);
         if (!$user) {
             return response()->json(['message' => 'Tidak terautentikasi.'], 401);
         }
@@ -103,7 +103,7 @@ class OrderController extends Controller
 
             // Pagination manual
             $page = (int) $request->input('page', 1);
-            $perPage = (int) $request->input('per_page', 10);
+            $perPage = (int) $request->input('per_page', 50);
 
             $paginated = new LengthAwarePaginator(
                 $fakeOrders->forPage($page, $perPage),

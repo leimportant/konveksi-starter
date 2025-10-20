@@ -15,7 +15,7 @@ const toast = useToast();
 const store = useTransferStockStore();
 const { transfers, filters, loading, currentPage, lastPage } = storeToRefs(store);
 
-const perPage = ref(10);
+const perPage = ref(50);
 
 const debouncedFetchTransfers = debounce(() => {
     store.fetchTransfers(1, perPage.value);

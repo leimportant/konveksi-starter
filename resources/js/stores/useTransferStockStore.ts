@@ -92,7 +92,7 @@ export const useTransferStockStore = defineStore('transferStock', {
         this.loading = false;
       }
     },
-    async fetchTransfers(page: number = 1, perPage: number = 10) {
+    async fetchTransfers(page: number = 1, perPage: number = 50) {
       this.loading = true;
       try {
         const params = {

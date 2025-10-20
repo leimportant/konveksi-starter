@@ -121,7 +121,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
     const lastPage = ref(1);
     const totalOmsetRecords = ref(0);
     const totalRecords = ref(0);
-    const perPage = ref(10);
+    const perPage = ref(50);
 
     async function fetchSalesSummary(startDate: string, endDate: string, searchKey: string = '') {
         loading.value = true;

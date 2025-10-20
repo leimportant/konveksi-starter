@@ -42,9 +42,9 @@ const shippingOrderId = ref<string | null>(null);
 
 
 const scrollPage = ref(1);
-const perPage = ref(10);
+const perPage = ref(50);
 
-const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 10)));
+const totalPages = computed(() => Math.ceil((pagination.value?.total || 0) / (pagination.value?.per_page || 50)));
 
 const tableContainer = ref<HTMLElement | null>(null);
 

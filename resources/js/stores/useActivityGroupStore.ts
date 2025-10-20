@@ -24,7 +24,7 @@ export const useActivityGroupStore = defineStore('activityGroup', () => {
   const error = ref<string | null>(null)
 
   // 🔹 Fetch dengan pagination dan filter
-  const fetchActivity = async (page = 1, perPage = 10) => {
+  const fetchActivity = async (page = 1, perPage = 50) => {
     loading.value = true
     loaded.value = false
     currentPage.value = page

@@ -318,7 +318,7 @@ class ModelRefController extends Controller
             $sortOrder = $request->get('sort_order', 'desc');
             $query->orderBy($sortField, $sortOrder);
 
-            $perPage = $request->get('per_page', 10);
+            $perPage = $request->get('per_page', 50);
             $models = $query->with('sizes')->orderBy('created_at', 'desc')->paginate($perPage);
 
             return response()->json([
