@@ -17,8 +17,9 @@ class ReportController extends Controller
 {
     public function reportSalesSummary(Request $request)
     {
-        $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
-        $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
+   
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
         $searchKey = $request->input('search_key');
 
         $query = DB::table('t_orders as a')
@@ -26,7 +27,6 @@ class ReportController extends Controller
             ->leftJoin('mst_product as c', 'b.product_id', '=', 'c.id')
             ->leftJoin('mst_customer as d', 'a.customer_id', '=', 'd.user_id')
             ->select('a.customer_id', 'a.payment_method', 'a.status', 'b.product_id', 'c.name as product_name', 'b.qty', 'b.uom_id', 'b.size_id', 'b.discount', 'b.price', 'b.price_final')
-            ->whereBetween(DB::raw('DATE(a.created_at)'), [$startDate, $endDate])
             ->where('a.status', '!=', '1')
             ->whereNull('a.deleted_at')
             ->whereNull('b.deleted_at')
@@ -35,6 +35,13 @@ class ReportController extends Controller
 
         if ($searchKey) {
             $query->where('c.name', 'like', "%" . $searchKey . "%");
+        }
+
+        if ($startDate && $endDate) {
+            $start = Carbon::parse($startDate)->startOfDay();
+            $end = Carbon::parse($endDate)->endOfDay();
+
+            $query->whereBetween('a.created_at', [$start, $end]);
         }
 
         $results = $query->orderBy('a.created_at', 'DESC')->get();
@@ -49,7 +56,7 @@ class ReportController extends Controller
         $searchKey = $request->input('search_key');
 
         // 🔹 Query join semua data detail
-        $data = DB::table('tr_model as a')
+        $query = DB::table('tr_model as a')
             ->join('tr_production as b', 'a.id', '=', 'b.model_id')
             ->leftJoin('tr_production_item as c', 'b.id', '=', 'c.production_id')
             ->leftJoin('mst_activity_role as d', 'b.activity_role_id', '=', 'd.id')
@@ -81,19 +88,22 @@ class ReportController extends Controller
 
         // Filter tanggal
         if ($startDate && $endDate) {
-            $data->whereBetween('a.created_at', [$startDate, $endDate]);
+            $start = Carbon::parse($startDate)->startOfDay();
+            $end = Carbon::parse($endDate)->endOfDay();
+
+            $query->whereBetween('b.created_at', [$start, $end]);
         }
 
         // Filter pencarian
         if ($searchKey) {
-            $data->where(function ($q) use ($searchKey) {
+            $query->where(function ($q) use ($searchKey) {
                 $q->where('a.description', 'like', "%{$searchKey}%")
                     ->orWhere('b.activity_role_id', 'like', "%{$searchKey}%")
                     ->orWhere('c.size_id', 'like', "%{$searchKey}%");
             });
         }
 
-        $data = $data->orderBy('a.created_at', 'DESC')->get();
+        $data = $query->orderBy('a.created_at', 'DESC')->get();
 
         $summary = [];
         $activityTotals = [];

@@ -175,7 +175,6 @@ const handleDelete = async (id: string) => {
             >
               <tr>
                 <th class="px-3 py-2">Tanggal</th>
-                <th class="px-3 py-2">Activity</th>
                 <th class="px-3 py-2">Size/Qty</th>
                 <th class="px-3 py-2">Price/PCS</th>
                 <th class="px-3 py-2">Total</th>
@@ -188,7 +187,7 @@ const handleDelete = async (id: string) => {
                 <!-- Header per grup -->
                 <tr class="bg-gray-200 dark:bg-gray-700 font-semibold">
                   <td colspan="8" class="px-3 py-2">
-                    👤 {{ group.employee_name || '-' }} — 🧵 {{ group.model_description || '-' }}
+                    👤 {{ group.employee_name || '-' }} — 🧵 {{ group.model_description || '-' }} 
                   </td>
                 </tr>
 
@@ -199,10 +198,7 @@ const handleDelete = async (id: string) => {
                   class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                 >
                   <td class="whitespace-nowrap px-3 py-2 align-top">
-                    {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }}
-                  </td>
-
-                  <td class="truncate px-3 py-2 align-top">
+                    {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }} <br/>
                     {{ item.activity_role?.name || '-' }}
                   </td>
 
@@ -267,7 +263,7 @@ const handleDelete = async (id: string) => {
 
             <tfoot>
               <tr class="bg-gray-50 font-semibold dark:bg-gray-800">
-                <td colspan="4" class="px-3 py-2 text-right">Total:</td>
+                <td colspan="2" class="px-3 py-2 text-right">Total:</td>
                 <td class="px-3 py-2 text-right">{{ grandQty }}</td>
                 <td class="px-3 py-2">
                   <div class="hidden">{{ formatRupiah(grandPricePerPcs) }}</div>
