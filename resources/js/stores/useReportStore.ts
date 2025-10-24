@@ -8,6 +8,14 @@ interface OmsetPerPayment {
     total_omset: string | number;
 }
 
+interface DetailItem {
+    production_id: string;
+    employee_name: string;
+    activity_role_name: string;
+    items: { size_id: string; variant?: string; qty: number }[];
+    total_qty: number;
+}
+
 interface OmsetPerCustomer {
     tanggal: string;
     customer_id: number;
@@ -52,6 +60,7 @@ interface ProductionSummaryItem {
     >;
     subtotal_qty: number;
     total: number;
+    details?: DetailItem[]; 
 }
 
 interface ProductionDetailItem {
@@ -62,6 +71,7 @@ interface ProductionDetailItem {
     description: string;
     variant: string;
     model_name: string;
+    employee_name: string;
     estimation_price_pcs: number;
     estimation_qty: number;
     start_date: string;
@@ -148,7 +158,10 @@ export const useReportStore = defineStore('report', (): ReportStore => {
             });
 
             console.log('Production Summary Response:', response.data);
-            productionSummary.value = response.data.data;
+            productionSummary.value = response.data.summary || [];
+            productionDetailItem.value = response.data.details || [];
+      
+
         } catch (err: any) {
             error.value = err;
             console.error('Error fetching production summary:', err);
@@ -195,7 +208,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
             });
 
             console.log('Production Detail Response:', response.data);
-            productionDetailItem.value = response.data.data; // isi data per halaman
+            productionDetailItem.value = response.data.detail; // isi data per halaman
             currentPage.value = response.data.pagination.current_page; // update current page
             lastPage.value = response.data.pagination.last_page; // update last page
             totalRecords.value = response.data.pagination.total; // update total records

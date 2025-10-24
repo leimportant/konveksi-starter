@@ -44,7 +44,7 @@ const fetchActivityTasks = async (status = 'SEWING') => {
 };
 
 onMounted(async () => {
-  await modelStore.fetchModels(1, 'N');
+  await modelStore.fetchModels({ page: 1, is_close: 'N' });
   
   if (props.activity_role === 'FINISHING') {
     await fetchActivityTasks('FINISHING');
@@ -130,19 +130,19 @@ const submit = async () => {
 
       <div>
         <label class="mb-1 block font-medium">Pilih Desain Kerjaan</label>
-         <Vue3Select id="model.id"
+         <!-- <Vue3Select id="model.id"
          v-model="selectedModelId"
          :reduce="(model: any) => model.id"
          :options="models" 
          label="description"
-                placeholder="Select Model" class="w-full" />
+                placeholder="Select Model" class="w-full" /> -->
 
-        <!-- <select v-model="selectedModelId" class="w-full rounded border p-2">
+        <select v-model="selectedModelId" class="w-full rounded border p-2">
           <option disabled value="">-- Choose a model --</option>
           <option v-for="model in models" :key="model.id" :value="model.id">
             {{ model.description }}
           </option>
-        </select> -->
+        </select>
       </div>
 
       <div>
