@@ -43,6 +43,7 @@ const fetchActivityTasks = async (status = 'SEWING') => {
   }
 };
 
+
 onMounted(async () => {
   await modelStore.fetchModels({ page: 1, is_close: 'N' });
   
