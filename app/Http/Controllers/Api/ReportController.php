@@ -72,6 +72,7 @@ class ReportController extends Controller
                 'd.name as activity_role_name',
                 'e.name as employee_name',
                 'c.size_id',
+                'c.variant',
                 'c.qty'
             )
             ->whereNull('a.deleted_at')
@@ -158,6 +159,7 @@ class ReportController extends Controller
                 if ($row->size_id) {
                     $summary[$modelId]['details'][$prodId]['items'][] = [
                         'size_id' => $row->size_id,
+                        'variant' => $row->variant,
                         'qty' => $qty,
                     ];
                     $summary[$modelId]['details'][$prodId]['total_qty'] += $qty;
