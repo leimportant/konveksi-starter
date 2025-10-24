@@ -126,7 +126,7 @@ watch(selectedModelId, async (id) => {
 
 // Fetch activity role
 onMounted(async () => {
-  await modelStore.fetchModels(1, 'N');
+  await modelStore.fetchModels({ page: 1, is_close: 'N' });
   try {
     const res = await activityRoleStore.getActivityRoleById(Number(props.activity_role));
     activityRole.value = res;

@@ -213,7 +213,7 @@ Route::middleware(['auth:sanctum', 'web'])->group(function () {
     
     Route::get('/products-catalog', [ProductCatalogController::class, 'getCatalog']);
     Route::get('/orders/status', [OrdersStatusController::class, 'getOrder']);
-    Route::get('/orders/summary', [OrdersStatusController::class, 'getOrderSumamry']);
+    Route::get('/orders/summary', [OrdersStatusController::class, 'getOrderSummary']);
     Route::get('/faqs/answer', [FaqController::class, 'getAnswer']);
 
 });

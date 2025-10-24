@@ -43,7 +43,7 @@ class ProductionController extends Controller
                 ->when(!empty($activityRoleId), function ($q) use ($activityRoleId) {
                     $q->whereIn('activity_role_id', $activityRoleId);
                 })
-                ->orderBy($sortField, $sortDir);
+                ->orderBy('created_at', 'DESC');
 
             if ($employee_status !== "owner") {
                 $query->where(function ($q) use ($userId) {
@@ -91,6 +91,7 @@ class ProductionController extends Controller
                 return [
                     'id' => $item->id,
                     'model_id' => $item->model_id,
+                    'group_key' => $item->employee?->name . '- Model : ' . $item->model_id,
                     'activity_role_id' => $item->activity_role_id,
                     'employee_id' => $item->employee_id,
                     'employee_name' => $item->employee?->name, // ✅ ambil dari relasi users

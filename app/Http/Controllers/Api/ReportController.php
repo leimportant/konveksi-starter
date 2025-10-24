@@ -9,6 +9,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Production;
+use App\Models\Modelref;
 use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
@@ -30,7 +32,7 @@ class ReportController extends Controller
             ->whereNull('b.deleted_at')
             ->whereNull('c.deleted_at')
             ->whereNull('d.deleted_at');
-            
+
         if ($searchKey) {
             $query->where('c.name', 'like', "%" . $searchKey . "%");
         }
@@ -46,46 +48,63 @@ class ReportController extends Controller
         $endDate = $request->input('end_date');
         $searchKey = $request->input('search_key');
 
-        $query = DB::table('tr_model as a')
+        // 🔹 Query join semua data detail
+        $data = DB::table('tr_model as a')
             ->join('tr_production as b', 'a.id', '=', 'b.model_id')
             ->leftJoin('tr_production_item as c', 'b.id', '=', 'c.production_id')
             ->leftJoin('mst_activity_role as d', 'b.activity_role_id', '=', 'd.id')
+            ->leftJoin('users as e', 'b.employee_id', '=', 'e.id')
             ->select(
-                'a.id',
+                'a.id as model_id',
                 'a.description',
                 'a.estimation_price_pcs',
                 'a.estimation_qty',
                 'a.start_date',
                 'a.end_date',
+                'b.id as production_id',
                 'b.activity_role_id',
                 'b.employee_id',
+                'b.price',
+                'b.remark',
+                'b.status',
+                'b.created_at as production_created',
+                'b.updated_at as production_updated',
                 'd.name as activity_role_name',
+                'e.name as employee_name',
                 'c.size_id',
                 'c.qty'
             )
-            ->whereNull('b.deleted_at')
-            ->whereNull('c.deleted_at')
             ->whereNull('a.deleted_at')
-            ->whereBetween('a.created_at', [$startDate, $endDate]);
+            ->whereNull('b.deleted_at')
+            ->whereNull('c.deleted_at');
 
+        // Filter tanggal
+        if ($startDate && $endDate) {
+            $data->whereBetween('a.created_at', [$startDate, $endDate]);
+        }
+
+        // Filter pencarian
         if ($searchKey) {
-            $query->where(function ($q) use ($searchKey) {
-                $q->where('a.description', 'like', "%" . $searchKey . "%")
-                    ->orWhere('b.activity_role_id', 'like', "%" . $searchKey . "%")
-                    ->orWhere('c.size_id', 'like', "%" . $searchKey . "%");
+            $data->where(function ($q) use ($searchKey) {
+                $q->where('a.description', 'like', "%{$searchKey}%")
+                    ->orWhere('b.activity_role_id', 'like', "%{$searchKey}%")
+                    ->orWhere('c.size_id', 'like', "%{$searchKey}%");
             });
         }
 
-        $data = $query->orderBy('a.created_at', 'DESC')->get();
-        $pivot = [];
+        $data = $data->orderBy('a.created_at', 'DESC')->get();
+
+        $summary = [];
         $activityTotals = [];
 
         foreach ($data as $row) {
-            $modelId = $row->id;
+            $modelId = $row->model_id;
+            $prodId = $row->production_id;
 
-            if (!isset($pivot[$modelId])) {
-                $pivot[$modelId] = [
-                    'model_id' => $row->id,
+            // Initialize summary per model
+            if (!isset($summary[$modelId])) {
+                $summary[$modelId] = [
+                    'model_id' => $modelId,
                     'description' => $row->description,
                     'estimation_price_pcs' => $row->estimation_price_pcs,
                     'estimation_qty' => $row->estimation_qty,
@@ -93,40 +112,71 @@ class ReportController extends Controller
                     'end_date' => $row->end_date ? Carbon::parse($row->end_date)->format('d/m/Y') : null,
                     'activities' => [],
                     'subtotal_qty' => 0,
+                    'details' => [],
                 ];
             }
 
+            // Grouping activities
             $activity = $row->activity_role_id ?? 'unknown';
             $activityName = $row->activity_role_name ?? 'Unknown';
             $qty = $row->qty ?? 0;
 
-            if (!isset($pivot[$modelId]['activities'][$activity])) {
-                $pivot[$modelId]['activities'][$activity] = [
+            if (!isset($summary[$modelId]['activities'][$activity])) {
+                $summary[$modelId]['activities'][$activity] = [
                     'role_id' => $activity,
                     'name' => $activityName,
                     'qty' => 0
                 ];
             }
 
-            $pivot[$modelId]['activities'][$activity]['qty'] += $qty;
+            $summary[$modelId]['activities'][$activity]['qty'] += $qty;
+            $summary[$modelId]['subtotal_qty'] += $qty;
 
-            $pivot[$modelId]['subtotal_qty'] += $qty;
-
-
-            // Tambahkan ke total per activity type
+            // Update total per activity globally
             if (!isset($activityTotals[$activity])) {
                 $activityTotals[$activity] = 0;
             }
             $activityTotals[$activity] += $qty;
+
+            // Nested detail per production
+            if ($prodId) {
+                if (!isset($summary[$modelId]['details'][$prodId])) {
+                    $summary[$modelId]['details'][$prodId] = [
+                        'production_id' => $prodId,
+                        'employee_name' => $row->employee_name,
+                        'activity_role_name' => $activityName,
+                        'items' => [],
+                        'total_qty' => 0,
+                        'remark' => $row->remark,
+                        'status' => $row->status,
+                        'created_at' => $row->production_created,
+                        'updated_at' => $row->production_updated,
+                    ];
+                }
+
+                // Tambahkan item size/qty
+                if ($row->size_id) {
+                    $summary[$modelId]['details'][$prodId]['items'][] = [
+                        'size_id' => $row->size_id,
+                        'qty' => $qty,
+                    ];
+                    $summary[$modelId]['details'][$prodId]['total_qty'] += $qty;
+                }
+            }
         }
 
-        $productionSummary = array_values($pivot); // reset keys
+        // Reset keys untuk array agar Vue bisa loop
+        foreach ($summary as &$s) {
+            $s['activities'] = array_values($s['activities']);
+            $s['details'] = array_values($s['details']);
+        }
 
         return response()->json([
-            'data' => $productionSummary,
-            'activity_totals' => $activityTotals, // ⬅️ Global subtotal by activity_type
+            'summary' => array_values($summary),
+            'activity_totals' => $activityTotals,
         ]);
     }
+
 
     public function reportOmsetPerPayment(Request $request)
     {
@@ -332,7 +382,7 @@ class ReportController extends Controller
         $searchKey = $request->input('searchKey');
         $customer_id = $request->input('customer_id');
 
-        
+
         $rawData = $this->getRawTransactionData($startDate, $endDate, $searchKey, $customer_id);
         $grouped = $this->groupTransactionsByCustomer($rawData);
         $reportRows = $this->buildReportWithSubtotals($grouped);
@@ -348,7 +398,6 @@ class ReportController extends Controller
     }
 
     private function getRawTransactionData(string $startDate, string $endDate, ?string $searchKey, ?int $customer_id): Collection
-
     {
 
         $user = Auth::user();
@@ -425,7 +474,7 @@ class ReportController extends Controller
 
             foreach ($items as $row) {
                 $result[] = [
-                    'id'  => $row->id,
+                    'id' => $row->id,
                     'tanggal' => $row->tanggal,
                     'customer' => $row->customer,
                     'product_id' => $row->product_id,
@@ -442,7 +491,7 @@ class ReportController extends Controller
             }
 
             $result[] = [
-                'id'  => null,
+                'id' => null,
                 'tanggal' => null,
                 'customer' => null,
                 'product_id' => null,
@@ -457,7 +506,7 @@ class ReportController extends Controller
         }
 
         $result[] = [
-            'id'  => null,
+            'id' => null,
             'tanggal' => null,
             'customer' => null,
             'product_id' => null,
