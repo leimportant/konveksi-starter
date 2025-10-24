@@ -208,7 +208,7 @@ export const useReportStore = defineStore('report', (): ReportStore => {
             });
 
             console.log('Production Detail Response:', response.data);
-            productionDetailItem.value = response.data.detail; // isi data per halaman
+            productionDetailItem.value = response.data.data; // isi data per halaman
             currentPage.value = response.data.pagination.current_page; // update current page
             lastPage.value = response.data.pagination.last_page; // update last page
             totalRecords.value = response.data.pagination.total; // update total records
