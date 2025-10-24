@@ -109,12 +109,12 @@ const grandQty = computed(() => {
 });
 
 // 🔹 Hitung total harga per pcs
-const grandPricePerPcs = computed(() => {
-  return productions.value.reduce((sum, item) => {
-    const price = parseFloat(String(item.price_per_pcs).replace(/[^\d.-]/g, '')) || 0;
-    return sum + price;
-  }, 0);
-});
+// const grandPricePerPcs = computed(() => {
+//   return productions.value.reduce((sum, item) => {
+//     const price = parseFloat(String(item.price_per_pcs).replace(/[^\d.-]/g, '')) || 0;
+//     return sum + price;
+//   }, 0);
+// });
 
 // 🔹 Hitung total harga keseluruhan
 const grandTotal = computed(() => {
@@ -219,15 +219,15 @@ const handleDelete = async (id: string) => {
                     <span v-else class="text-xs italic text-gray-400">-</span>
                   </td>
 
-                  <td class="max-w-[160px] truncate px-3 py-2 align-top">
+                  <td class="truncate px-3 py-2 align-top">
                     {{ formatRupiah(item?.price_per_pcs || 0) }}
                   </td>
 
-                  <td class="max-w-[160px] truncate px-3 py-2 align-top">
+                  <td class="max-w-[80px] truncate px-3 py-2 align-top">
                     {{ item?.total_price || 0 }}
                   </td>
 
-                  <td class="px-3 py-2 text-right align-top">
+                  <td class="px-3 py-2 align-top">
                     <div class="flex justify-end gap-1 sm:gap-2">
                       <Button
                         v-if="item.status === 1 || item.status === 3"
@@ -263,12 +263,10 @@ const handleDelete = async (id: string) => {
 
             <tfoot>
               <tr class="bg-gray-50 font-semibold dark:bg-gray-800">
-                <td colspan="2" class="px-3 py-2 text-right">Total:</td>
-                <td class="px-3 py-2 text-right">{{ grandQty }}</td>
-                <td class="px-3 py-2">
-                  <div class="hidden">{{ formatRupiah(grandPricePerPcs) }}</div>
-                </td>
-                <td class="px-3 py-2 text-right">{{ formatRupiah(grandTotal) }}</td>
+                <td class="px-3 py-2 text-right"></td>
+                <td class="px-3 py-2 text-right">Total &nbsp;:&nbsp; {{ grandQty }}</td>
+                <td class="px-3 py-2"></td>
+                <td class="px-3 py-2">{{ formatRupiah(grandTotal) }}</td>
                 <td></td>
               </tr>
             </tfoot>
