@@ -49,9 +49,12 @@ const formatRupiah = (value: number): string => {
 
 onMounted(() => {
     const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    startDate.value = firstDay.toISOString().split('T')[0];
+    const sixDaysAgo = new Date();
+    sixDaysAgo.setDate(today.getDate() - 6);
+
+    startDate.value = sixDaysAgo.toISOString().split('T')[0];
     endDate.value = today.toISOString().split('T')[0];
+
     fetchReport();
 });
 
