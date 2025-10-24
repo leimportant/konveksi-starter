@@ -66,95 +66,93 @@ const getDetailQty = (detail: any, roleName: string) => {
       <!-- Modern Table Report -->
       <div v-else class="overflow-x-auto bg-white shadow rounded-lg">
         <table class="min-w-full text-sm text-gray-800">
-          <thead class="bg-gray-50 font-semibold text-xs uppercase text-gray-600">
-            <tr>
-              <th class="px-3 py-2" colspan="2">Model</th>
+  <!-- Table Header -->
+  <thead class="bg-gray-50 font-semibold text-xs uppercase text-gray-600">
+    <tr>
+      <th class="px-3 py-2" colspan="2">Model</th>
 
-              <th
-                v-for="role in allActivityRoles"
-                :key="'header-role-' + role.id"
-                class="px-2 py-1 text-center"
+      <th
+        v-for="role in allActivityRoles"
+        :key="'header-role-' + role.id"
+        class="px-2 py-1 text-center"
+      >
+        {{ role.name }}
+      </th>
+    </tr>
+  </thead>
+
+  <!-- Table Body -->
+  <tbody>
+    <!-- Loop setiap item model -->
+    <template v-for="item in reportStore.productionSummary" :key="item.model_id">
+      <!-- Summary Row -->
+      <tr class="bg-gray-100 font-semibold hover:bg-gray-200">
+        <td class="px-3 py-2" colspan="2">{{ item.description }}</td>
+        <td
+          v-for="role in allActivityRoles"
+          :key="'summary-' + role.id + '-' + item.model_id"
+          class="px-2 py-1 text-center"
+        >
+          {{
+            (Object.values(item.activities).find(act => act.name === role.name)?.qty) ?? '-'
+          }}
+        </td>
+      </tr>
+
+      <!-- Detail Rows -->
+      <template v-for="detail in item.details" :key="detail.production_id">
+        <tr class="hover:bg-gray-50">
+          <td class="px-3 py-1 align-top">
+            {{ detail.employee_name }}
+          </td>
+
+          <td class="px-3 py-1 align-top min-w-[200px]">
+            <div
+              v-if="detail.items?.length"
+              class="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[11px] text-gray-700"
+            >
+              <div
+                v-for="(size, index) in detail.items"
+                :key="index"
+                class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm"
               >
-                {{ role.name }}
-              </th>
-              <th class="px-3 py-2 text-center">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            <template v-for="item in reportStore.productionSummary" :key="item.model_id">
-              <!-- Summary Row -->
-              <tr class="bg-gray-100 font-semibold hover:bg-gray-200">
-                <td class="px-3 py-2" colspan="2">{{ item.description }}</td>
-                <td
-                  v-for="role in allActivityRoles"
-                  :key="'summary-' + role.id + '-' + item.model_id"
-                  class="px-2 py-1 text-center"
-                >
-                  {{
-                    (Object.values(item.activities).find(act => act.name === role.name)?.qty) ?? '-'
-                  }}
-                </td>
-                <td class="px-3 py-2 text-center">{{ item.subtotal_qty }}</td>
-              </tr>
+                <span>{{ size.size_id }} - {{ size.variant }}</span>
+                <span class="font-semibold">{{ size.qty }}</span>
+              </div>
+            </div>
+          </td>
 
-              <!-- Detail Rows -->
-              <template v-for="detail in item.details" :key="detail.production_id">
-                <tr class="hover:bg-gray-50">
-                   <td class="px-3 py-1 align-top">
-                    {{ detail.employee_name }}
-                   </td>
-                  <td class="px-3 py-1 align-top min-w-[180px] max-w-[240px]">
-                     <div
-                      v-if="detail.items?.length"
-                      class="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[11px] text-gray-700"
-                    >
-                      <div
-                        v-for="(size, index) in detail.items"
-                        :key="index"
-                        class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm"
-                      >
-                        <span>{{ size.size_id }} - {{ size.variant }}</span>
-                        <span class="font-semibold">{{ size.qty }}</span>
-                      </div>
-                    </div>
+          <td
+            v-for="role in allActivityRoles"
+            :key="'detail-' + role.id + '-' + detail.production_id"
+            class="px-2 py-1 text-center align-top"
+          >
+            {{ getDetailQty(detail, role.name) || '-' }}
+          </td>
+        </tr>
+      </template>
+    </template>
+  </tbody>
 
-                  </td>
-                  <td
-                    v-for="role in allActivityRoles"
-                    :key="'detail-' + role.id + '-' + detail.production_id"
-                    class="px-2 py-1 text-center  align-top"
-                  >
-                    {{ getDetailQty(detail, role.name) || '-' }}
-                  </td>
-                  <td class="px-3 py-1 text-center  align-top">{{ detail.total_qty }}</td>
-                </tr>
-              </template>
-            </template>
-          </tbody>
+  <!-- Grand Total Footer -->
+  <tfoot class="bg-gray-50 font-semibold text-xs text-gray-600">
+    <tr>
+      <td colspan="2" class="px-3 py-2 text-right">Grand Total:</td>
+      <td
+        v-for="role in allActivityRoles"
+        :key="'footer-role-' + role.id"
+        class="px-2 py-1 text-center"
+      >
+        {{
+          Object.values(reportStore.productionSummary).reduce((sum, model) => {
+            return sum + (Object.values(model.activities).find(act => act.name === role.name)?.qty ?? 0);
+          }, 0)
+        }}
+      </td>
+    </tr>
+  </tfoot>
+</table>
 
-          <!-- Grand Total Footer -->
-          <tfoot class="bg-gray-50 font-semibold text-xs text-gray-600">
-            <tr>
-              <td colspan="2" class="px-3 py-2 text-right">Grand Total:</td>
-              <td
-                v-for="role in allActivityRoles"
-                :key="'footer-role-' + role.id"
-                class="px-2 py-1 text-center"
-              >
-                {{
-                  Object.values(reportStore.productionSummary).reduce((sum, model) => {
-                    return sum + (Object.values(model.activities).find(act => act.name === role.name)?.qty ?? 0);
-                  }, 0)
-                }}
-              </td>
-              <td class="px-3 py-2 text-center">
-                {{
-                  Object.values(reportStore.productionSummary).reduce((sum, model) => sum + (model.subtotal_qty ?? 0), 0)
-                }}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
       </div>
     </div>
   </AppLayout>
