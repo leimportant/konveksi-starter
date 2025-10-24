@@ -68,8 +68,8 @@ const getDetailQty = (detail: any, roleName: string) => {
         <table class="min-w-full text-sm text-gray-800">
           <thead class="bg-gray-50 font-semibold text-xs uppercase text-gray-600">
             <tr>
-              <th class="px-3 py-2">Model</th>
-              <th class="px-3 py-2">Variant</th>
+              <th class="px-3 py-2" colspan="2">Model</th>
+
               <th
                 v-for="role in allActivityRoles"
                 :key="'header-role-' + role.id"
@@ -84,8 +84,7 @@ const getDetailQty = (detail: any, roleName: string) => {
             <template v-for="item in reportStore.productionSummary" :key="item.model_id">
               <!-- Summary Row -->
               <tr class="bg-gray-100 font-semibold hover:bg-gray-200">
-                <td class="px-3 py-2">{{ item.description }}</td>
-                <td class="px-3 py-2">-</td>
+                <td class="px-3 py-2" colspan="2">{{ item.description }}</td>
                 <td
                   v-for="role in allActivityRoles"
                   :key="'summary-' + role.id + '-' + item.model_id"
@@ -101,26 +100,33 @@ const getDetailQty = (detail: any, roleName: string) => {
               <!-- Detail Rows -->
               <template v-for="detail in item.details" :key="detail.production_id">
                 <tr class="hover:bg-gray-50">
-                  <td class="px-3 py-1">- {{ detail.employee_name }}</td>
-                  <td class="px-3 py-1">
-                    <div class="flex flex-wrap gap-1">
+                   <td class="px-3 py-1 align-top">
+                    {{ detail.employee_name }}
+                   </td>
+                  <td class="px-3 py-1 align-top min-w-[180px] max-w-[240px]">
+                     <div
+                      v-if="detail.items?.length"
+                      class="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[11px] text-gray-700"
+                    >
                       <div
-                        v-for="itm in detail.items"
-                        :key="itm.size_id"
-                        class="bg-gray-50 border px-2 py-1 rounded text-xs"
+                        v-for="(size, index) in detail.items"
+                        :key="index"
+                        class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm"
                       >
-                        {{ itm.size_id }} - {{ itm.variant }} : {{ itm.qty }}
+                        <span>{{ size.size_id }} - {{ size.variant }}</span>
+                        <span class="font-semibold">{{ size.qty }}</span>
                       </div>
                     </div>
+
                   </td>
                   <td
                     v-for="role in allActivityRoles"
                     :key="'detail-' + role.id + '-' + detail.production_id"
-                    class="px-2 py-1 text-center"
+                    class="px-2 py-1 text-center  align-top"
                   >
                     {{ getDetailQty(detail, role.name) || '-' }}
                   </td>
-                  <td class="px-3 py-1 text-center">{{ detail.total_qty }}</td>
+                  <td class="px-3 py-1 text-center  align-top">{{ detail.total_qty }}</td>
                 </tr>
               </template>
             </template>
