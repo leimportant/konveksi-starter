@@ -8,6 +8,7 @@ const storeCookies = useStoreCookies();
 
 onMounted(() => {
   // Mulai transfer cookie saat halaman dimuat
+  console.log('Assistant URL:', assistantUrl);
   storeCookies.transferCookies(assistantUrl);
 });
 

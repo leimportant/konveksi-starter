@@ -135,6 +135,7 @@ class OrdersStatusController extends Controller
         Log::info('Chatbot Request - /orders/summary', [
             'user_id' => Auth::id(),
             'payload' => $request->all(),
+            'locationId' => $locationId,
             'ip' => $request->ip(),
         ]);
 
@@ -154,8 +155,14 @@ class OrdersStatusController extends Controller
             in_array($q, ['last_week', 'minggu lalu']) => 'last_week',
             in_array($q, ['this_month', 'bulan ini']) => 'this_month',
             in_array($q, ['last_month', 'bulan lalu']) => 'last_month',
+            in_array($q, ['this_year', 'tahun ini']) => 'this_year',
+            in_array($q, ['last_year', 'tahun lalu']) => 'last_year',
             default => 'all',
         };
+
+        log::info('Determined filter', ['filter' => $filter]);
+        Log::info('Determined start filter', ['start' => now()->startOfMonth()]);
+        Log::info('Determined end filter', ['end' => now()->endOfMonth()]);
 
         switch (true) {
             case $filter === 'this_week':
@@ -219,6 +226,15 @@ class OrdersStatusController extends Controller
 
 
         $orders = $query->orderByDesc('created_at')->get();
+
+        Log::info('Filter summary debug', [
+            'filter' => $filter,
+            'range' => [$start ?? '-', $end ?? '-'],
+            'query_sql' => $query->toSql(),
+            'bindings' => $query->getBindings(),
+            'total_found' => $query->count(),
+        ]);
+
 
         // 🔹 Map hasil orders ke data yang siap dikirim ke chatbot
         $data = $orders->map(function ($order) {
