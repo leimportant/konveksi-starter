@@ -150,101 +150,136 @@ class OrdersStatusController extends Controller
         $this->applyRoleFilter($query);
 
         $q = strtolower(trim($request->input('q', 'all')));
-        $filter = match (true) {
-            in_array($q, ['this_week', 'minggu']) => 'this_week',
-            in_array($q, ['last_week', 'minggu lalu']) => 'last_week',
-            in_array($q, ['this_month', 'bulan ini']) => 'this_month',
-            in_array($q, ['last_month', 'bulan lalu']) => 'last_month',
-            in_array($q, ['this_year', 'tahun ini']) => 'this_year',
-            in_array($q, ['last_year', 'tahun lalu']) => 'last_year',
-            default => 'all',
-        };
 
-        log::info('Determined filter', ['filter' => $filter]);
-        Log::info('Determined start filter', ['start' => now()->startOfMonth()]);
-        Log::info('Determined end filter', ['end' => now()->endOfMonth()]);
+        // =====================
+        // 1️⃣ Mapping filter
+        // =====================
+        $filterMap = [
+            'this_week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'last_week' => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
+            'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'this_year' => [now()->startOfYear(), now()->endOfYear()],
+            'last_year' => [now()->subYear()->startOfYear(), now()->subYear()->endOfYear()],
+        ];
 
-        switch (true) {
-            case $filter === 'this_week':
-                $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+        // =====================
+        // 2️⃣ Tentukan filter & periode
+        // =====================
+        $singlePeriodKeywords = [
+            'this_week' => ['this_week', 'minggu'],
+            'last_week' => ['last_week', 'minggu lalu'],
+            'this_month' => ['this_month', 'bulan ini'],
+            'last_month' => ['last_month', 'bulan lalu'],
+            'this_year' => ['this_year', 'tahun ini'],
+            'last_year' => ['last_year', 'tahun lalu'],
+        ];
+
+        $filter = 'all';
+        foreach ($singlePeriodKeywords as $key => $aliases) {
+            if (in_array($q, $aliases)) {
+                $filter = $key;
                 break;
-
-            case $filter === 'last_week':
-                $query->whereBetween('created_at', [
-                    now()->subWeek()->startOfWeek(),
-                    now()->subWeek()->endOfWeek(),
-                ]);
-                break;
-
-            case $filter === 'this_month':
-                $query->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()]);
-                break;
-
-            case $filter === 'last_month':
-                $query->whereBetween('created_at', [
-                    now()->subMonth()->startOfMonth(),
-                    now()->subMonth()->endOfMonth(),
-                ]);
-                break;
-
-            case $filter === 'this_year':
-                $query->whereBetween('created_at', [now()->startOfYear(), now()->endOfYear()]);
-                break;
-
-            case $filter === 'last_year':
-                $query->whereBetween('created_at', [
-                    now()->subYear()->startOfYear(),
-                    now()->subYear()->endOfYear(),
-                ]);
-                break;
-
-            // 🧠 Tambahan: pola dinamis seperti "months_ago:2"
-            case str_starts_with($filter, 'weeks_ago:'):
-                $n = (int) str_replace('weeks_ago:', '', $filter);
-                $query->whereBetween('created_at', [
-                    now()->subWeeks($n)->startOfWeek(),
-                    now()->subWeeks($n)->endOfWeek(),
-                ]);
-                break;
-
-            case str_starts_with($filter, 'months_ago:'):
-                $n = (int) str_replace('months_ago:', '', $filter);
-                $query->whereBetween('created_at', [
-                    now()->subMonths($n)->startOfMonth(),
-                    now()->subMonths($n)->endOfMonth(),
-                ]);
-                break;
-
-            case str_starts_with($filter, 'years_ago:'):
-                $n = (int) str_replace('years_ago:', '', $filter);
-                $query->whereBetween('created_at', [
-                    now()->subYears($n)->startOfYear(),
-                    now()->subYears($n)->endOfYear(),
-                ]);
-                break;
+            }
         }
 
+        // =====================
+        // 3️⃣ Tentukan apakah perbandingan
+        // =====================
+        $isComparison = str_contains($q, 'banding') || str_contains($q, 'dengan');
 
-        $orders = $query->orderByDesc('created_at')->get();
+        // Helper function format date
+        $getDateFormat = fn($filterName) => match ($filterName) {
+            'this_week', 'last_week' => 'Y-m-d',
+            'this_month', 'last_month' => 'Y-m',
+            'this_year', 'last_year' => 'Y',
+            default => 'Y-m-d',
+        };
 
-        Log::info('Filter summary debug', [
+        // =====================
+        // 4️⃣ Ambil data
+        // =====================
+        if ($isComparison) {
+            // Untuk compare, tentukan dua periode
+            // Default: bulan ini vs bulan lalu, minggu ini vs minggu lalu, tahun ini vs tahun lalu
+            switch ($filter) {
+                case 'this_week':
+                case 'last_week':
+                    $periodA = $filterMap['this_week'];
+                    $periodB = $filterMap['last_week'];
+                    break;
+                case 'this_month':
+                case 'last_month':
+                    $periodA = $filterMap['this_month'];
+                    $periodB = $filterMap['last_month'];
+                    break;
+                case 'this_year':
+                case 'last_year':
+                    $periodA = $filterMap['this_year'];
+                    $periodB = $filterMap['last_year'];
+                    break;
+                default:
+                    $periodA = $filterMap['this_month'];
+                    $periodB = $filterMap['last_month'];
+            }
+
+            $ordersA = (clone $query)->whereBetween('created_at', $periodA)->get();
+            $ordersB = (clone $query)->whereBetween('created_at', $periodB)->get();
+
+            // Map data
+            $dataA = $this->mapOrdersToData($ordersA);
+            $dataB = $this->mapOrdersToData($ordersB);
+
+            $chartDataA = $this->generateChartData($ordersA, $getDateFormat($filter));
+            $chartDataB = $this->generateChartData($ordersB, $getDateFormat($filter));
+
+            $chartData = [
+                'periodA' => $chartDataA,
+                'periodB' => $chartDataB,
+            ];
+
+            $count = $ordersA->count();
+
+        } else {
+            // Single period
+            $period = $filterMap[$filter] ?? null;
+            if ($period) {
+                [$start, $end] = $period;
+                $query->whereBetween('created_at', [$start, $end]);
+            }
+
+            $orders = $query->orderByDesc('created_at')->get();
+            $data = $this->mapOrdersToData($orders);
+            $chartData = $this->generateChartData($orders, $getDateFormat($filter));
+            $count = $orders->count();
+        }
+
+        // =====================
+        // 5️⃣ Return response
+        // =====================
+        $response = [
             'filter' => $filter,
-            'range' => [$start ?? '-', $end ?? '-'],
-            'query_sql' => $query->toSql(),
-            'bindings' => $query->getBindings(),
-            'total_found' => $query->count(),
-        ]);
+            'count' => $count,
+            'data' => $isComparison ? ['periodA' => $dataA, 'periodB' => $dataB] : $data,
+            'chartData' => $chartData,
+        ];
+
+        Log::info('Chatbot Response - /orders/summary', ['response' => $response]);
+        return response()->json($response);
+    }
 
 
-        // 🔹 Map hasil orders ke data yang siap dikirim ke chatbot
-        $data = $orders->map(function ($order) {
-            // Status Enum
+    // =====================
+    // Helper: generate chartData
+    // =====================
+    private function mapOrdersToData($orders)
+    {
+        return $orders->map(function ($order) {
             $statusEnum = $order->status instanceof OrderStatusEnum
                 ? $order->status
                 : OrderStatusEnum::tryFrom((int) $order->status);
             $statusLabel = $statusEnum?->label() ?? '-';
 
-            // Payment method label
             $paymentLabel = match ($order->payment_method) {
                 'cod_store' => 'Bayar di Toko 🏪',
                 'cod' => 'Bayar di Tempat 💵',
@@ -253,43 +288,37 @@ class OrdersStatusController extends Controller
                 default => ucfirst(str_replace('_', ' ', $order->payment_method ?? '-')),
             };
 
-            // Pembayaran label
             $isPaidLabel = match ($order->is_paid) {
                 'Y' => 'Berhasil Dibayar ✅',
                 'N' => 'Pending ⏳',
                 default => 'Tidak Diketahui',
             };
 
-            // Item details
-            $items = $order->orderItems->map(function ($item) {
-                return [
-                    'id' => $item->item_id,
-                    'product_name' => $item->product->name ?? '-',
-                    'quantity' => $item->qty ?? 0,
-                    'size_id' => $item->size_id ?? '-',
-                    'price' => (float) ($item->price_final ?? 0),
-                ];
-            })->values();
+            $items = $order->orderItems->map(fn($item) => [
+                'id' => $item->item_id,
+                'product_name' => $item->product->name ?? '-',
+                'quantity' => $item->qty ?? 0,
+                'size_id' => $item->size_id ?? '-',
+                'price' => (float) ($item->price_final ?? 0),
+            ])->values();
 
             $total = $items->sum('price');
 
-            // 🔹 HTML format untuk chatbot modern
             $itemsText = $items->map(
                 fn($i) =>
-                "<p><b>{$i['product_name']}</b>Size: {$i['size_id']} | Qty: {$i['quantity']} | Harga: <b>Rp" .
+                "<p><b>{$i['product_name']}</b> Size: {$i['size_id']} | Qty: {$i['quantity']} | Harga: <b>Rp" .
                 number_format($i['price'], 0, ',', '.') . "</b></p>"
             )->implode('');
 
             $fullText = "
-               <span>🧾Order #{$order->id}</span>
-                <span>{$order->created_at->format('d M Y H:i')}</span>
-                <span><b>Status:</b> {$statusLabel}</span>
-                <span><b>Pembayaran:</b> {$isPaidLabel}</span>
-                <span><b>Metode:</b> {$paymentLabel}</span>
-                <span><b>Total:</b> Rp" . number_format($total, 0, ',', '.') . "</div>
-              <span>{$itemsText}</span>
-            ";
-
+            <span>🧾Order #{$order->id}</span>
+            <span>{$order->created_at->format('d M Y H:i')}</span>
+            <span><b>Status:</b> {$statusLabel}</span>
+            <span><b>Pembayaran:</b> {$isPaidLabel}</span>
+            <span><b>Metode:</b> {$paymentLabel}</span>
+            <span><b>Total:</b> Rp" . number_format($total, 0, ',', '.') . "</span>
+            <span>{$itemsText}</span>
+        ";
 
             return [
                 'id' => $order->id,
@@ -303,45 +332,27 @@ class OrdersStatusController extends Controller
                 'fullText' => $fullText,
             ];
         });
-
-        // 🔹 Grafik (AI chatbot dapat pakai untuk visualisasi)
-        $chartData = [
-            'by_status' => $orders->groupBy(
-                fn($o) =>
-                ($o->status instanceof OrderStatusEnum
-                ? $o->status
-                : OrderStatusEnum::tryFrom((int) $o->status)
-                )?->label() ?? '-'
-            )->map(fn($g) => [
-                    'count' => $g->count(),
-                    'total' => $g->sum(fn($o) => $o->orderItems->sum('price_final')),
-                ])->values(),
-
-            'by_day' => $orders->groupBy(fn($o) => $o->created_at->format('Y-m-d'))
-                ->map(fn($g) => [
-                    'date' => $g->first()->created_at->format('Y-m-d'),
-                    'count' => $g->count(),
-                    'total' => $g->sum(fn($o) => $o->orderItems->sum('price_final')),
-                ])->values(),
-            'by_product' => $orders->groupBy(fn($o) => $o->created_at->format('Y-m-d'))
-                ->map(fn($g) => [
-                    'date' => $g->first()->created_at->format('Y-m-d'),
-                    'count' => $g->count(),
-                    'total' => $g->sum(fn($o) => $o->orderItems->sum('price_final')),
-                ])->values(),
-        ];
-
-        $response = [
-            'filter' => $filter,
-            'count' => $orders->count(),
-            'data' => $data,
-            'chartData' => $chartData,
-        ];
-
-        Log::info('Chatbot Response - /orders/summary', ['response' => $response]);
-        return response()->json($response);
     }
 
+    // =====================
+// Helper: generate chartData
+// =====================
+    private function generateChartData($orders, $dateFormat)
+    {
+        return [
+            'by_status' => $orders->groupBy(fn($o) => $o->status?->label() ?? '-')
+                ->map(fn($g) => [
+                    'count' => $g->count(),
+                    'total' => $g->sum(fn($o) => $o->orderItems->sum('price_final')),
+                ])->values(),
 
+            'by_day' => $orders->groupBy(fn($o) => $o->created_at->format($dateFormat))
+                ->map(fn($g) => [
+                    'date' => $g->first()->created_at->format($dateFormat),
+                    'count' => $g->count(),
+                    'total' => $g->sum(fn($o) => $o->orderItems->sum('price_final')),
+                ])->values(),
+        ];
+    }
 }
 

@@ -67,14 +67,15 @@ export const useUserStore = defineStore('user', {
 
   actions: {
     // Fetch users from the API
-    async fetchUsers(page = 1, perPage = 50) {
+    async fetchUsers(page = 1, perPage = 50, role = '', search = '') {
       this.loading = true;
       try {
         const response = await axios.get('/api/users', {
             params: {
                 page,
                 perPage,
-                name: this.filterName,  // pakai filterName kalau ada
+                role,
+                name: search || this.filterName,  // pakai filterName kalau ada
             }
             });
 
