@@ -27,9 +27,9 @@ class BroadcastServiceProvider extends ServiceProvider
         require base_path('routes/channels.php');
         
         // Log when the broadcast service provider is booted
-        \Illuminate\Support\Facades\Log::info('BroadcastServiceProvider booted', [
-            'driver' => config('broadcasting.default'),
-            'connection' => config('broadcasting.connections.' . config('broadcasting.default'))
-        ]);
+        // \Illuminate\Support\Facades\Log::info('BroadcastServiceProvider booted', [
+        //     'driver' => config('broadcasting.default'),
+        //     'connection' => config('broadcasting.connections.' . config('broadcasting.default'))
+        // ]);
     }
 }

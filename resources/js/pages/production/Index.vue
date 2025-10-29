@@ -13,6 +13,8 @@ const toast = useToast();
 const productionStore = useProductionStore();
 const { productions, currentPage, lastPage, loading } = storeToRefs(productionStore);
 
+const startDate = ref('');
+const endDate = ref('');
 const perPage = ref(50);
 const sortField = ref('created_at');
 const sortOrder = ref<'asc' | 'desc'>('desc');
@@ -72,8 +74,8 @@ const fetchData = async (page = 1) => {
       sort_order: sortOrder.value,
       activity_role_id: props.activity_role,
       search: searchQuery.value,
-      date_from: dateRange.value.from?.toISOString(),
-      date_to: dateRange.value.to?.toISOString(),
+      date_from: startDate.value,
+      date_to: endDate.value,
     });
   } catch (error: any) {
     toast.error(error?.response?.data?.message ?? 'Failed to fetch productions');
@@ -125,7 +127,16 @@ const grandTotal = computed(() => {
   }, 0);
 });
 
-onMounted(fetchData);
+onMounted(() => {
+  const today = new Date();
+  const sixDaysAgo = new Date();
+  sixDaysAgo.setDate(today.getDate() - 6);
+
+  startDate.value = sixDaysAgo.toISOString().split('T')[0];
+  endDate.value = today.toISOString().split('T')[0];
+
+  fetchData();
+});
 
 const handleDelete = async (id: string) => {
   if (!confirm('Are you sure you want to delete this production?')) return;
@@ -141,28 +152,58 @@ const handleDelete = async (id: string) => {
 </script>
 
 <template>
+
   <Head title="Production Management" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="px-3 py-4">
       <!-- Top Bar -->
-      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-1 gap-2">
-          <Button
-            @click="$inertia.visit(`/production/${props.activity_role}/create`)"
-            class="flex flex-shrink-0 items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-          >
-            <Plus class="h-4 w-4" />
-            Tambah Data
-          </Button>
+      <div class="flex flex-col gap-3">
+        <!-- Row 1: Start & End Date -->
+        <div class="flex flex-col gap-3">
+          <!-- Row 1: Start & End Date -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <!-- Start Date -->
+            <div class="flex-1 flex flex-col min-w-0">
+              <label class="text-xs font-medium text-gray-600 mb-1">Start Date</label>
+              <input type="date" v-model="startDate"
+                class="w-full max-w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+            </div>
 
-          <Input
-            v-model="searchQuery"
-            placeholder="Search..."
-            class="flex-1 text-sm"
-            @keyup.enter="fetchData(1)"
-          />
+            <!-- End Date -->
+            <div class="flex-1 flex flex-col min-w-0">
+              <label class="text-xs font-medium text-gray-600 mb-1">End Date</label>
+              <input type="date" v-model="endDate"
+                class="w-full max-w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+            </div>
+          </div>
+
+          <!-- Row 2: Button Tambah, Search & Button Cari -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="flex flex-1 gap-2">
+              <!-- Button Tambah Data -->
+              <Button @click="$inertia.visit(`/production/${props.activity_role}/create`)"
+                class="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 flex-shrink-0">
+                <Plus class="h-4 w-4" />
+                Tambah Data
+              </Button>
+
+              <!-- Search Input -->
+              <Input v-model="searchQuery" placeholder="Search..."
+                class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-0"
+                @keyup.enter="fetchData(1)" />
+              <!-- Button Cari -->
+              <Button @click="fetchData(1)"
+                class="flex-shrink-0 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+                Cari
+              </Button>
+            </div>
+          </div>
         </div>
+
       </div>
+
+
+
 
       <!-- Data Table -->
       <div v-if="loading" class="py-4 text-center text-sm text-gray-500">Loading...</div>
@@ -171,8 +212,7 @@ const handleDelete = async (id: string) => {
         <div class="overflow-x-auto rounded-md border border-gray-200 dark:border-gray-700">
           <table class="min-w-full table-auto text-left text-sm text-gray-800 dark:text-gray-100">
             <thead
-              class="bg-gray-100 text-xs font-semibold uppercase text-gray-600 dark:bg-gray-800 dark:text-gray-300"
-            >
+              class="bg-gray-100 text-xs font-semibold uppercase text-gray-600 dark:bg-gray-800 dark:text-gray-300">
               <tr>
                 <th class="px-3 py-2">Tanggal</th>
                 <th class="px-3 py-2">Size/Qty</th>
@@ -187,31 +227,23 @@ const handleDelete = async (id: string) => {
                 <!-- Header per grup -->
                 <tr class="bg-gray-200 dark:bg-gray-700 font-semibold">
                   <td colspan="8" class="px-3 py-2">
-                    👤 {{ group.employee_name || '-' }} — 🧵 {{ group.model_description || '-' }} 
+                    👤 {{ group.employee_name || '-' }} — 🧵 {{ group.model_description || '-' }}
                   </td>
                 </tr>
 
                 <!-- Detail per grup -->
-                <tr
-                  v-for="item in group.items"
-                  :key="item.id"
-                  class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
-                >
+                <tr v-for="item in group.items" :key="item.id"
+                  class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                   <td class="whitespace-nowrap px-3 py-2 align-top">
-                    {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }} <br/>
+                    {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }} <br />
                     {{ item.activity_role?.name || '-' }}
                   </td>
 
                   <td class="whitespace-nowrap px-3 py-2 align-top">
-                    <div
-                      v-if="item.items?.length"
-                      class="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[11px] text-gray-700"
-                    >
-                      <div
-                        v-for="(size, index) in item.items"
-                        :key="index"
-                        class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm"
-                      >
+                    <div v-if="item.items?.length"
+                      class="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[11px] text-gray-700">
+                      <div v-for="(size, index) in item.items" :key="index"
+                        class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm">
                         <span>{{ size.size_id }} - {{ size.variant }}</span>
                         <span class="font-semibold">{{ size.qty }}</span>
                       </div>
@@ -229,30 +261,17 @@ const handleDelete = async (id: string) => {
 
                   <td class="px-3 py-2 align-top">
                     <div class="flex justify-end gap-1 sm:gap-2">
-                      <Button
-                        v-if="item.status === 1 || item.status === 3"
-                        variant="ghost"
-                        size="icon"
+                      <Button v-if="item.status === 1 || item.status === 3" variant="ghost" size="icon"
                         class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                        @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)"
-                      >
+                        @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)">
                         <Edit class="h-4 w-4" />
                       </Button>
-                      <Button
-                        v-if="item.status === 1 || item.status === 3"
-                        variant="ghost"
-                        size="icon"
-                        class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                        @click="handleDelete(item.id)"
-                      >
+                      <Button v-if="item.status === 1 || item.status === 3" variant="ghost" size="icon"
+                        class="hover:bg-gray-100 dark:hover:bg-gray-700" @click="handleDelete(item.id)">
                         <Trash2 class="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                        @click="$inertia.visit(`/production/${item.activity_role_id}/view/${item.id}`)"
-                      >
+                      <Button variant="ghost" size="icon" class="hover:bg-gray-100 dark:hover:bg-gray-700"
+                        @click="$inertia.visit(`/production/${item.activity_role_id}/view/${item.id}`)">
                         <LucideView class="h-4 w-4" />
                       </Button>
                     </div>
@@ -275,34 +294,24 @@ const handleDelete = async (id: string) => {
 
         <!-- Pagination -->
         <div class="mt-4 flex justify-end space-x-2">
-          <button
-            @click="prevPage"
-            :disabled="currentPage === 1 || loading"
-            class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <button @click="prevPage" :disabled="currentPage === 1 || loading"
+            class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50">
             Previous
           </button>
 
           <template v-for="page in totalPages" :key="page">
-            <button
-              @click="goToPage(page)"
-              :class="[
-                'rounded border px-3 py-1 text-sm',
-                page === currentPage
-                  ? 'border-blue-600 bg-blue-600 text-white'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-100',
-              ]"
-              :disabled="loading"
-            >
+            <button @click="goToPage(page)" :class="[
+              'rounded border px-3 py-1 text-sm',
+              page === currentPage
+                ? 'border-blue-600 bg-blue-600 text-white'
+                : 'border-gray-300 text-gray-700 hover:bg-gray-100',
+            ]" :disabled="loading">
               {{ page }}
             </button>
           </template>
 
-          <button
-            @click="nextPage"
-            :disabled="currentPage === totalPages || loading"
-            class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <button @click="nextPage" :disabled="currentPage === totalPages || loading"
+            class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50">
             Next
           </button>
         </div>

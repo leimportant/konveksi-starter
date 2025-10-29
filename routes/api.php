@@ -2,7 +2,7 @@
 use App\Models\Faq;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\KasbonPaymentController;
+use App\Http\Controllers\Api\KasbonController;
 use App\Http\Controllers\Api\UomController;
 use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\MenuController;
@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\OrdersStatusController;
 use App\Http\Controllers\Api\ProductCatalogController;
 use App\Http\Controllers\Api\CrossDomainAuthController;
+use App\Http\Controllers\Api\ChatAssistantController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -149,6 +150,25 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{id}/close', [ModelRefController::class, 'updateClose']);
     });
 
+// http://localhost:8000/api/kasbon/mutasi?page=1&per_page=50&search=&status=2025-10
+// Request Method
+// GET
+//     // kasbon
+     Route::prefix('api/kasbon')->group(function () {
+        Route::get('/list', [KasbonController::class, 'list']);
+        Route::get('/', [KasbonController::class, 'index']);
+        Route::post('/store', [KasbonController::class, 'store']);
+        Route::get('/{id}', [KasbonController::class, 'show']);
+        Route::put('/{id}', [KasbonController::class, 'update']);
+        Route::delete('/{id}', [KasbonController::class, 'destroy']);
+     
+        // approve or reject
+        Route::patch('/{id}/approve', [KasbonController::class, 'approve']);
+        Route::patch('/{id}/reject', [KasbonController::class, 'reject']);
+    });
+
+    Route::get('api/kasbon/mutasi', [KasbonController::class, 'mutasi']);
+
     Route::apiResource('api/faq', FaqController::class);
     Route::apiResource('api/activity-roles', ActivityRoleController::class);
     Route::apiResource('api/activity-group', ActivityGroupController::class);
@@ -210,6 +230,13 @@ Route::middleware(['auth:sanctum', 'web'])->group(function () {
 
      // Cross-domain authentication routes
     Route::post('api/transfer-cookies', [CrossDomainAuthController::class, 'transferAuth']);
+    
+    Route::post('/chat/{id}/rating', [ChatAssistantController::class, 'rating']);
+    Route::post('/chat/{id}/save', [ChatAssistantController::class, 'saveChatLog']);
+    Route::get('/chat/{id}/get', [ChatAssistantController::class, 'getChatLog']);
+    Route::post('/chat/{id}/escalate', [ChatAssistantController::class, 'escalate']);
+    Route::post('/chat/{id}/reply', [ChatAssistantController::class, 'replyByAdmin']);
+
     
     Route::get('/products-catalog', [ProductCatalogController::class, 'getCatalog']);
     Route::get('/orders/status', [OrdersStatusController::class, 'getOrder']);

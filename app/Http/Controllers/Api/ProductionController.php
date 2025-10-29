@@ -9,6 +9,7 @@ use Illuminate\Container\Attributes\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 class ProductionController extends Controller
@@ -80,7 +81,9 @@ class ProductionController extends Controller
 
 
             if (!empty($dateFrom) && !empty($dateTo)) {
-                $query->whereBetween('created_at', [$dateFrom, $dateTo]);
+                $start = Carbon::parse($dateFrom)->startOfDay();
+                $end = Carbon::parse($dateTo)->endOfDay();
+                $query->whereBetween('created_at', [$start, $end]);
             }
 
             \Log::info('SQL', [$query->toSql(), $query->getBindings()]);

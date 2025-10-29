@@ -145,6 +145,19 @@ Route::get('/price-types', function () {
     return Inertia::render('price-type/Index');
 })->middleware(['auth'])->name('price-type.idx');
 
+
+Route::get('/kasbon', function () {
+    return Inertia::render('kasbon/Index');
+})->middleware(['auth'])->name('kasbon.idx');
+
+Route::get('/kasbon/create', function () {
+    return Inertia::render('kasbon/create');
+})->middleware(['auth'])->name('kasbon.create');
+
+Route::get('/kasbon/mutasi', function () {
+    return Inertia::render('kasbon/mutasi');
+})->middleware(['auth'])->name('kasbon.mutasi');
+
 Route::get('/meal-allowances', function () {
     return Inertia::render('meal-allowances/Index');
 })->middleware(['auth'])->name('meal-allowances.idx');

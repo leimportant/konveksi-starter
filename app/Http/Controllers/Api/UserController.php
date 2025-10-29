@@ -18,13 +18,22 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $userId = $user->id;
+        $employee_status = $user->employee_status ?? "staff";
+
         $query = User::with('roles', 'location');
 
         if ($request->has('name')) {
             $query->where('name', 'like', '%' . $request->name . '%')
-            ->orWhere('email', 'like', '%' . $request->name . '%')
-            ->orWhere('phone_number', 'like', '%' . $request->name . '%');
+                ->orWhere('email', 'like', '%' . $request->name . '%')
+                ->orWhere('phone_number', 'like', '%' . $request->name . '%');
         }
+
+        if ($employee_status !== 'owner') {
+            $query->where('id', $userId);
+        }
+
 
         $perPage = $request->input('perPage', 50);
         $users = $query->orderBy('created_at', 'DESC')->paginate($perPage);
@@ -35,58 +44,58 @@ class UserController extends Controller
     /**
      * Store a new user
      */
-   public function store(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|string|max:255',
-        'email' => 'nullable|email|max:255|unique:users',
-        'phone_number' => 'required|string|min:8',
-        'location_id' => 'required|exists:mst_location,id',
-        'role' => 'required|exists:roles,id',
-        'active' => 'nullable|boolean',
-    ]);
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255|unique:users',
+            'phone_number' => 'required|string|min:8',
+            'location_id' => 'required|exists:mst_location,id',
+            'role' => 'required|exists:roles,id',
+            'active' => 'nullable|boolean',
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Tentukan status karyawan berdasarkan role ID
+        $employeeStatus = 'staff';
+        if (in_array($request->role, [7, 2])) {
+            $employeeStatus = 'customer';
+        }
+
+        // Buat user
+        $user = User::create([
+            'employee_status' => $employeeStatus,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->phone_number), // default password
+            'phone_number' => $request->phone_number,
+            'location_id' => $request->location_id,
+            'active' => $request->active ?? true,
+        ]);
+
+        // Attach role dengan metadata
+        $user->roles()->attach([
+            $request->role => [
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ]);
+
         return response()->json([
-            'status' => 'error',
-            'message' => 'Validation failed',
-            'errors' => $validator->errors()
-        ], 422);
+            'status' => 'success',
+            'message' => 'User created successfully',
+            'data' => $user->load('roles')
+        ], 201);
     }
-
-    // Tentukan status karyawan berdasarkan role ID
-    $employeeStatus = 'staff';
-    if (in_array($request->role, [7, 2])) {
-        $employeeStatus = 'customer';
-    }
-
-    // Buat user
-    $user = User::create([
-        'employee_status' => $employeeStatus,
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->phone_number), // default password
-        'phone_number' => $request->phone_number,
-        'location_id' => $request->location_id,
-        'active' => $request->active ?? true,
-    ]);
-
-    // Attach role dengan metadata
-    $user->roles()->attach([
-        $request->role => [
-            'created_by' => Auth::id(),
-            'updated_by' => Auth::id(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]
-    ]);
-
-    return response()->json([
-        'status' => 'success',
-        'message' => 'User created successfully',
-        'data' => $user->load('roles')
-    ], 201);
-}
 
     /**
      * Display the specified user
@@ -94,7 +103,7 @@ class UserController extends Controller
     public function show($id)
     {
         $user = User::with('roles')->findOrFail($id);
-        
+
         return response()->json([
             'status' => 'success',
             'data' => $user
@@ -117,7 +126,7 @@ class UserController extends Controller
                 Rule::unique('users')->ignore($user->id)
             ],
             'phone_number' => 'required|string|min:8',
-            'location_id' =>'required|exists:mst_location,id',
+            'location_id' => 'required|exists:mst_location,id',
             'role' => 'required|exists:roles,id',
             'active' => 'boolean'
         ]);
@@ -138,7 +147,7 @@ class UserController extends Controller
             $user->password = Hash::make($request->password);
         }
         $user->active = $request->has('active') ? filter_var($request->active, FILTER_VALIDATE_BOOLEAN) : false;
-;
+        ;
         $employeeStatus = 'staff';
         if ($request->role == 7) { // Assuming 7 is the ID for 'customer' role
             $employeeStatus = 'customer';
@@ -164,7 +173,7 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        
+
         // Detach all roles before deleting
         $user->roles()->detach();
         $user->update([
