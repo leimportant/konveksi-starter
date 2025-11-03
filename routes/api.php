@@ -243,6 +243,7 @@ Route::middleware(['auth:sanctum', 'web'])->group(function () {
     Route::get('/chat/{id}/get', [ChatAssistantController::class, 'getChatLog']);
     Route::post('/chat/{id}/escalate', [ChatAssistantController::class, 'escalate']);
     Route::post('/chat/{id}/reply', [ChatAssistantController::class, 'replyByAdmin']);
+    Route::post('/chat/{id}/important', [ChatAssistantController::class, 'markAsImportant']);
 
     
     Route::get('/products-catalog', [ProductCatalogController::class, 'getCatalog']);

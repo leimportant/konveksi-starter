@@ -67,19 +67,24 @@ class ChatAssistantController extends Controller
             $validated = $request->validate([
                 'chat_id' => 'required|string|max:100',
                 'rating' => 'required|in:like,dislike',
+                'content' => 'nullable|string' // kalau juga kirim content
             ]);
 
-            $updated = ChatLog::where('transaction_id', $id)
-                ->where('chat_id', $validated['chat_id'])
-                ->update(['rating' => $validated['rating']]);
-
-            if (!$updated) {
-                return response()->json(['status' => false, 'message' => 'Chat not found'], 404);
-            }
+            $chat = ChatLog::updateOrCreate(
+                [
+                    'transaction_id' => $id,
+                    'chat_id' => $validated['chat_id'],
+                ],
+                [
+                    'rating' => $validated['rating'],
+                    'content' => $validated['content'] ?? null, // simpan content jika baru
+                ]
+            );
 
             return response()->json([
                 'status' => true,
                 'message' => 'Rating updated successfully',
+                'data' => $chat
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -89,6 +94,7 @@ class ChatAssistantController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * 🧠 Get chat logs by transaction ID
@@ -212,6 +218,43 @@ class ChatAssistantController extends Controller
             ], 500);
         }
     }
+
+    public function markAsImportant(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'chat_id' => 'required|string|max:100',
+                'is_important' => 'required|boolean',
+                'content' => 'nullable|string', // ✅ sekarang content ikut divalidasi
+            ]);
+
+            $chat = ChatLog::updateOrCreate(
+                [
+                    'transaction_id' => $id,
+                    'chat_id' => $validated['chat_id'],
+                ],
+                [
+                    'is_important' => $validated['is_important'],
+                    'content' => $validated['content'] ?? null, // ✅ simpan content jika ada
+                ]
+            );
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Important flag updated & content saved',
+                'data' => $chat
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to update',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
 
 }
 
