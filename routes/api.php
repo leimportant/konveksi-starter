@@ -230,7 +230,7 @@ Route::prefix('approvals')->group(function () {
 });
 
 
-Route::middleware(['auth:sanctum', 'web'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/token', [TokenController::class, 'store']);
     Route::get('/token/check', [TokenController::class, 'checkToken']);
     Route::post('/tokens/create', [ApiTokenController::class, 'createToken']);

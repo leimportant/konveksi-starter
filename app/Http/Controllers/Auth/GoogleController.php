@@ -30,11 +30,13 @@ class GoogleController extends Controller
             // 1. Cari user berdasarkan email terlebih dahulu
             $user = User::where('email', $googleUser->getEmail())->first();
 
+
             if ($user) {
                 // Jika belum tersimpan google_id-nya, update
                 if (!$user->google_id) {
                     $user->update(['google_id' => $googleUser->getId()]);
                 }
+
 
                 if (!$user->active) {
                     return redirect('/login')->withErrors(['msg' => 'User anda tidak aktif, silakan hubungi admin.']);
