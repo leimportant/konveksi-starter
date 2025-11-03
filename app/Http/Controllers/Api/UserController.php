@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 class UserController extends Controller
 {
     /**
@@ -178,6 +179,9 @@ class UserController extends Controller
             'deleted_by' => Auth::id(),
             'deleted_at' => now()
         ]);
+
+        Log::info($id);
+        Log::info($user);
 
         return response()->json([
             'status' => 'success',
