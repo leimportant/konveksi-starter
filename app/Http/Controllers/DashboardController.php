@@ -18,6 +18,42 @@ use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
+
+    public function getKasbonData(Request $request)
+    {
+        $user = Auth::user();
+        $userId = $user->id;
+        $employee_status = $user->employee_status ?? "staff";
+
+        $query = DB::table('mutasi_kasbon')
+            ->selectRaw("
+            SUM(CASE WHEN type = 'Kasbon' THEN amount ELSE 0 END) AS total_kasbon,
+            SUM(CASE WHEN type = 'Pembayaran' THEN amount ELSE 0 END) AS total_pembayaran
+        ");
+
+        // ✅ Tambahkan filter employee_id hanya jika bukan owner
+        if ($employee_status !== 'owner') {
+            $query->where('employee_id', $userId);
+        }
+
+        $result = $query->first();
+
+        // Hitung saldo kasbon
+        $saldoKasbon = ($result->total_kasbon ?? 0) - ($result->total_pembayaran ?? 0);
+
+        // Response JSON
+        $data = [
+            'kasbon' => [
+                'total_kasbon' => $result->total_kasbon ?? 0,
+                'total_pembayaran' => $result->total_pembayaran ?? 0,
+                'saldo_kasbon' => $saldoKasbon,
+            ],
+        ];
+
+        return response()->json($data);
+    }
+
+
     public function index(Request $request)
     {
 
@@ -52,7 +88,7 @@ class DashboardController extends Controller
             return $transaction->orderItems;
         });
 
-          // Hitung total quantity dari semua order item
+        // Hitung total quantity dari semua order item
         $totalQtyProduk = $allOrderItems->sum('quantity');
 
         // Total order = jumlah transaksi

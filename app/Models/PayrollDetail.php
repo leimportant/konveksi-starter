@@ -9,9 +9,11 @@ class PayrollDetail extends Model
 {
     use HasFactory;
 
+    protected $table = 'payrolls_detail';
+
     protected $fillable = [
         'payroll_id',
-        'absensi_id',
+        'data',
     ];
 
     public function payroll()
@@ -19,8 +21,4 @@ class PayrollDetail extends Model
         return $this->belongsTo(Payroll::class);
     }
 
-    public function absensi()
-    {
-        return $this->belongsTo(Absensi::class);
-    }
 }

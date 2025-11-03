@@ -10,7 +10,21 @@ class Payroll extends Model
 {
     use HasFactory;
 
+    protected $table = 'payrolls';
+
+    // primary string
+    protected $primaryKey = 'id';
+    public $incrementing = false; // ✅ harus public
+    protected $keyType = 'string';
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'payroll_date',
+    ];
+
+
     protected $fillable = [
+        'id',
         'payroll_date',
         'period_start',
         'period_end',
@@ -32,12 +46,12 @@ class Payroll extends Model
 
     public function employee()
     {
-        return $this->belongsTo(Employee::class);
+       return $this->belongsTo(User::class, foreignKey: 'employee_id');
     }
 
     public function payrollDetails()
     {
-        return $this->hasMany(PayrollDetail::class);
+        return $this->hasMany(PayrollDetail::class, foreignKey: 'payroll_id');
     }
 
     public function scopeWherePeriod(Builder $query, $startDate, $endDate)

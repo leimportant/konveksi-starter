@@ -49,6 +49,7 @@ use App\Http\Controllers\Api\OrdersStatusController;
 use App\Http\Controllers\Api\ProductCatalogController;
 use App\Http\Controllers\Api\CrossDomainAuthController;
 use App\Http\Controllers\Api\ChatAssistantController;
+use App\Http\Controllers\Api\PayrollController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -93,6 +94,8 @@ Route::middleware('auth')->group(function () {
     Route::get('api/dashboard/sales', [DashboardController::class, 'getSalesData']);
     Route::get('api/dashboard/sales/amount', [DashboardController::class, 'getSalesByOmsetData']);
     Route::get('api/dashboard/customer', [DashboardController::class, 'indexCustomer']);
+
+     Route::get('api/dashboard/kasbon', [DashboardController::class, 'getKasbonData']);
     // User management
     
     Route::apiResource('api/users', controller: UserController::class);
@@ -167,8 +170,12 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{id}/reject', [KasbonController::class, 'reject']);
     });
 
-    Route::get('api/kasbon/mutasi', [KasbonController::class, 'mutasi']);
+    Route::get('api/payroll', [PayrollController::class, 'index']);
+    Route::get('api/payroll/preview', [PayrollController::class, 'preview']);
+    Route::get('/payroll/slip/{employee}', [PayrollController::class, 'slip']);
+    Route::post('api/payroll/close', [PayrollController::class, 'closePayroll']);
 
+    
     Route::apiResource('api/faq', FaqController::class);
     Route::apiResource('api/activity-roles', ActivityRoleController::class);
     Route::apiResource('api/activity-group', ActivityGroupController::class);

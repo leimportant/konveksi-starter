@@ -163,7 +163,7 @@ export const useKasbonStore = defineStore('kasbon', {
           ...filters,
         };
 
-        const response = await axios.get('/api/kasbon/mutasi', { params })
+        const response = await axios.get('/api/kasbon/mutation', { params })
         this.mutasiList = response.data.data ?? []
         this.pagination.current_page = response.data.current_page ?? 1
         this.pagination.per_page = response.data.per_page ?? 50
