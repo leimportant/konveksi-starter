@@ -22,7 +22,7 @@ class UserController extends Controller
         $userId = $user->id;
         $employee_status = $user->employee_status ?? "staff";
 
-        $query = User::with('roles', 'location');
+        $query = User::with('roles', 'location')->whereNull('deleted_at');
 
         if ($request->has('name')) {
             $query->where('name', 'like', '%' . $request->name . '%')
@@ -173,9 +173,6 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-
-        // Detach all roles before deleting
-        $user->roles()->detach();
         $user->update([
             'active' => 'false',
             'deleted_by' => Auth::id(),

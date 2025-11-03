@@ -38,6 +38,11 @@ class AuthenticatedSessionController extends Controller
         Auth::user();
 
         $user = \App\Models\User::where('email', $request->email)->first();
+
+        if ($user->active == 'false' || $user->active == 'N' || !$user->active) {
+            return redirect('/login')->withErrors(['msg' => 'User anda tidak aktif, silakan hubungi admin.']);
+        }
+
         $token = $user->createToken('aninkafashion-token');
         
         Log::info("token: {$token->plainTextToken}");

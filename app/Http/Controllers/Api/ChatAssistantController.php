@@ -134,23 +134,29 @@ class ChatAssistantController extends Controller
      */
     public function escalate(Request $request, $id)
     {
+        Log::info("escalate");
+
         try {
             $validated = $request->validate([
                 'chat_id' => 'required|string|max:100',
             ]);
 
-            $updated = ChatLog::where('transaction_id', $id)
-                ->where('chat_id', $validated['chat_id'])
-                ->update(['escalated_at' => now()]);
-
-            if (!$updated) {
-                return response()->json(['status' => false, 'message' => 'Chat not found'], 404);
-            }
+            $chat = ChatLog::updateOrCreate(
+                [
+                    'transaction_id' => $id,
+                    'chat_id' => $validated['chat_id'],
+                ],
+                [
+                    'content' => $request->input('content') ?? null,
+                    'escalated_at' => now(),
+                ]
+            );
 
             return response()->json([
                 'status' => true,
                 'message' => 'Chat escalated successfully',
-            ]);
+                'chat' => $chat
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -159,6 +165,8 @@ class ChatAssistantController extends Controller
             ], 500);
         }
     }
+
+
 
     /**
      * 🧑‍💼 Admin reply to an escalated chat
