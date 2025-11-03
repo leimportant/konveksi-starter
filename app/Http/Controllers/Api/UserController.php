@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 class UserController extends Controller
 {
@@ -173,19 +174,37 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
-        $user->update([
-            'active' => 'false',
-            'deleted_by' => Auth::id(),
-            'deleted_at' => now()
-        ]);
+        DB::beginTransaction();
 
-        Log::info($id);
-        Log::info($user);
+        try {
+            $user = User::findOrFail($id);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User deleted successfully'
-        ]);
+            $user->update([
+                'active' => false,
+                'deleted_by' => Auth::id(),
+            ]);
+
+            $user->delete(); // SoftDeletes otomatis set deleted_at
+
+            Log::info("User deleted", ['id' => $id, 'deleted_by' => Auth::id()]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Failed to delete user", ['id' => $id, 'error' => $e->getMessage()]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
+
 }
