@@ -151,11 +151,11 @@ Route::get('/kasbon', function () {
 })->middleware(['auth'])->name('kasbon.idx');
 
 Route::get('/kasbon/create', function () {
-    return Inertia::render('kasbon/create');
+    return Inertia::render('kasbon/Create');
 })->middleware(['auth'])->name('kasbon.create');
 
 Route::get('/kasbon/mutasi', function () {
-    return Inertia::render('kasbon/mutasi');
+    return Inertia::render('kasbon/Mutasi');
 })->middleware(['auth'])->name('kasbon.mutasi');
 
 Route::get('/meal-allowances', function () {
@@ -406,6 +406,10 @@ Route::get('/purchase-order/{id}/view', function ($id) {
 Route::get('/payroll', function () {
     return Inertia::render('payroll/Index');
 })->middleware(['auth'])->name('payroll.idx');
+
+Route::get('/payroll/closing', function () {
+    return Inertia::render('payroll/CLosing');
+})->middleware(['auth'])->name('payroll.closing');
 
 Route::get('/reports/omset-per-payment', function () {
     return Inertia::render('reports/OmsetReport');

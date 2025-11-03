@@ -60,19 +60,16 @@ self.addEventListener('push', event => {
     let data = {};
     try {
         data = event.data.json();
-        console.log('[SW] Push data received:', data);
-    } catch (e) {
+        } catch (e) {
         // Try text format as fallback
         try {
             const textData = event.data.text();
-            console.log('[SW] Push text data:', textData);
             try {
                 data = JSON.parse(textData);
             } catch (jsonError) {
                 data = { title: 'Notification', body: textData };
             }
         } catch (textError) {
-            console.error('[SW] Push data parse error:', e, textError);
             return;
         }
     }

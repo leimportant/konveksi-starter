@@ -8,8 +8,15 @@ interface DashboardStats {
     total_users: number;
 }
 
+interface DashboardKasbon {
+    total_kasbon: number
+    total_pembayaran: number
+    saldo_kasbon: number
+}
+
 interface State {
     stats: DashboardStats;
+    kasbon: DashboardKasbon;
     loading: boolean;
     loaded: boolean;
 }
@@ -21,6 +28,11 @@ export const useDashboardStore = defineStore('dashboard', {
             total_transactions: 0,
             total_products: 0,
             total_users: 0
+        },
+        kasbon: {
+            total_kasbon: 0,
+            total_pembayaran: 0,
+            saldo_kasbon: 0
         },
         loading: false,
         loaded: false
@@ -41,6 +53,22 @@ export const useDashboardStore = defineStore('dashboard', {
             } finally {
                 this.loading = false;
             }
+        },
+        async fetchKasbon() {
+            if (this.loaded) return;
+
+            this.loading = true;
+            try {
+                const response = await axios.get('/api/dashboard/kasbon');
+                this.kasbon = response.data.kasbon;
+                this.loaded = true;
+            } catch (error) {
+                console.error('Error fetching dashboard kasbon:', error);
+                throw error;
+            } finally {
+                this.loading = false;
+            }
         }
+
     }
 });

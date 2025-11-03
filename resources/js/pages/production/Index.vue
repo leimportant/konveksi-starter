@@ -158,48 +158,44 @@ const handleDelete = async (id: string) => {
     <div class="px-3 py-4">
       <!-- Top Bar -->
       <div class="flex flex-col gap-3">
-        <!-- Row 1: Start & End Date -->
-        <div class="flex flex-col gap-3">
-          <!-- Row 1: Start & End Date -->
-          <div class="flex flex-col sm:flex-row gap-3">
-            <!-- Start Date -->
+        <div class="flex-1 flex flex-col min-w-0">
+          <div class="flex items-center gap-3">
+          </div>
+
+          <div class="flex gap-3">
             <div class="flex-1 flex flex-col min-w-0">
               <label class="text-xs font-medium text-gray-600 mb-1">Start Date</label>
               <input type="date" v-model="startDate"
                 class="w-full max-w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
             </div>
 
-            <!-- End Date -->
             <div class="flex-1 flex flex-col min-w-0">
               <label class="text-xs font-medium text-gray-600 mb-1">End Date</label>
               <input type="date" v-model="endDate"
                 class="w-full max-w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
             </div>
           </div>
-
-          <!-- Row 2: Button Tambah, Search & Button Cari -->
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div class="flex flex-1 gap-2">
-              <!-- Button Tambah Data -->
-              <Button @click="$inertia.visit(`/production/${props.activity_role}/create`)"
-                class="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 flex-shrink-0">
-                <Plus class="h-4 w-4" />
-                Tambah Data
-              </Button>
-
-              <!-- Search Input -->
-              <Input v-model="searchQuery" placeholder="Search..."
-                class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-0"
-                @keyup.enter="fetchData(1)" />
-              <!-- Button Cari -->
-              <Button @click="fetchData(1)"
-                class="flex-shrink-0 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500">
-                Cari
-              </Button>
-            </div>
-          </div>
         </div>
 
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div class="flex flex-1 gap-2 items-center"> 
+        
+        <Button @click="$inertia.visit(`/production/${props.activity_role}/create`)"
+            class="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 flex-shrink-0">
+            <Plus class="h-4 w-4" />
+            Tambah Data
+        </Button>
+
+        <Input v-model="searchQuery" placeholder="Search..."
+            class="flex-1 rounded-md border border-gray-300 px-3 py-1 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-0"
+            @keyup.enter="fetchData(1)" />
+            
+        <Button @click="fetchData(1)"
+            class="flex-shrink-0 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+            Cari
+        </Button>
+    </div>
+</div>
       </div>
 
 
