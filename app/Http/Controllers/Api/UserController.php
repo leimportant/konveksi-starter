@@ -180,7 +180,7 @@ class UserController extends Controller
             $user = User::findOrFail($id);
 
             $user->update([
-                'active' => false,
+                'active' => 'false',
                 'deleted_by' => Auth::id(),
             ]);
 
