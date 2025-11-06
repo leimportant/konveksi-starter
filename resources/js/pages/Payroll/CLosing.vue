@@ -6,11 +6,21 @@ import { usePayrollStore, type EmployeePayroll } from '@/stores/usePayrollStore'
 import { Head } from '@inertiajs/vue3';
 import { CheckCircle, DollarSign } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 const payroll = usePayrollStore();
 const { employees, startDate, endDate, selectedEmployees } = storeToRefs(payroll);
+const searchQuery = ref('');
+const filteredEmployees = computed(() => {
+    if (!searchQuery.value) {
+        return employees.value;
+    }
+    return employees.value.filter((emp) =>
+        emp.employee_name?.toLowerCase().includes(searchQuery.value.toLowerCase()),
+    );
+});
 const hideDetail = ref(true);
+
 // --- TYPE DEFINITIONS FOR GROUPING ---
 // NOTE: I'm defining PayrollDetail here for completeness and to fix TS errors.
 interface PayrollDetail {
@@ -61,13 +71,19 @@ const breadcrumbs = [{ title: 'Payroll Closing Management', href: `/payroll/clos
 onMounted(() => {
     const today = new Date();
     const sixDaysAgo = new Date();
-    sixDaysAgo.setDate(today.getDate() - 60);
+    sixDaysAgo.setDate(today.getDate() - 6);
 
     startDate.value = sixDaysAgo.toISOString().split('T')[0];
     endDate.value = today.toISOString().split('T')[0];
 
     payroll.loadPayrollData();
 });
+
+// Fungsi sumQty
+const sumQty = (details: PayrollDetail[]) => {
+    return details.reduce((total, item) => total + Number(item.qty), 0);
+};
+
 
 // --- PERBAIKAN: Mengubah Computed menjadi Function ---
 // Fungsi ini sekarang menerima objek karyawan (emp) dan TIDAK bergantung pada props.
@@ -99,63 +115,62 @@ const formatDate = (iso?: string): string => {
 };
 
 const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string, PayrollDetail[]>> => {
-  if (!emp.details) return {};
+    if (!emp.details) return {};
 
-  const grouped: Record<string, Record<string, PayrollDetail[]>> = {};
+    const grouped: Record<string, Record<string, PayrollDetail[]>> = {};
 
-  emp.details.forEach(d => {
-    const date = d.created_at?.split("T")[0] || "-";
-    const model = d.model_desc || "-";
+    emp.details.forEach(d => {
+        const date = d.created_at?.split("T")[0] || "-";
+        const model = d.model_desc || "-";
 
-    if (!grouped[date]) grouped[date] = {};
-    if (!grouped[date][model]) grouped[date][model] = [];
+        if (!grouped[date]) grouped[date] = {};
+        if (!grouped[date][model]) grouped[date][model] = [];
 
-    grouped[date][model].push(d);
-  });
-
-  // Sort tanggal descend dan model ascend
-  const sorted: Record<string, Record<string, PayrollDetail[]>> = {};
-  Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(date => {
-    sorted[date] = {};
-    Object.keys(grouped[date]).sort().forEach(model => {
-      sorted[date][model] = grouped[date][model];
+        grouped[date][model].push(d);
     });
-  });
 
-  return sorted;
+    // Sort tanggal descend dan model ascend
+    const sorted: Record<string, Record<string, PayrollDetail[]>> = {};
+    Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(date => {
+        sorted[date] = {};
+        Object.keys(grouped[date]).sort().forEach(model => {
+            sorted[date][model] = grouped[date][model];
+        });
+    });
+
+    return sorted;
 };
 
 </script>
 
 <template>
+
     <Head title="Payroll Management" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="space-y-4 p-6">
             <!-- Filter / Buttons -->
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-2">
                 <div class="flex flex-col">
-                    <label class="mb-1 text-xs font-medium">Start Date</label>
-                    <input
-                        type="date"
-                        v-model.lazy="startDate"
-                        class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring"
-                    />
+                    <label class="mb-1 text-xs font-medium">Tanggal Mulai</label>
+                    <input type="date" v-model.lazy="startDate"
+                        class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring" />
                 </div>
 
                 <div class="flex flex-col">
-                    <label class="mb-1 text-xs font-medium">End Date</label>
-                    <input
-                        type="date"
-                        v-model.lazy="endDate"
-                        class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring"
-                    />
+                    <label class="mb-1 text-xs font-medium">Tanggal Akhir</label>
+                    <input type="date" v-model.lazy="endDate"
+                        class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring" />
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <Button @click="payroll.loadPayrollData" size="sm" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                <Button @click="payroll.loadPayrollData" size="sm"
+                    class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
                     Tampilkan
                 </Button>
+
+                <input type="text" placeholder="Cari Karyawan" v-model.lazy="searchQuery"
+                    class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring" />
 
                 <!-- <Button @click="shareAllSlips" size="sm" variant="outline" :disabled="selectedEmployees.length === 0"
           class="rounded text-sm bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
@@ -164,20 +179,17 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
             </div>
 
             <div class="flex items-center gap-2">
-                <Button
-                    @click="payroll.closePayroll"
-                    :disabled="selectedEmployees.length === 0"
-                    class="bg-green-600 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
+                <Button @click="payroll.closePayroll" :disabled="selectedEmployees.length === 0"
+                    class="bg-green-600 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50">
                     <CheckCircle class="h-4 w-4" /> Bayar ({{ selectedEmployees.length }})
                 </Button>
                 <div class="ml-4 flex items-center">
                     <label class="relative inline-flex cursor-pointer items-center">
                         <input id="detailToggle" type="checkbox" v-model="hideDetail" class="peer sr-only" />
                         <div
-                            class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"
-                        ></div>
-                        <span class="ml-3 text-sm">Tutup Detail</span>
+                            class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white">
+                        </div>
+                        <span class="ml-3 text-sm">Detail</span>
                     </label>
                 </div>
             </div>
@@ -193,103 +205,89 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                     </TableHeader>
 
                     <TableBody>
-                        <template v-for="emp in employees" :key="emp.employee_id">
+                        <template v-for="emp in filteredEmployees" :key="emp.employee_id">
                             <TableRow class="bg-white align-top hover:bg-gray-50">
                                 <!-- Employee info -->
                                 <TableCell class="align-top">
-                                    <div class="flex items-center justify-between rounded bg-gray-200 p-2 font-bold dark:bg-gray-700">
-                                        <!-- Checkbox -->
-                                        <input
-                                            type="checkbox"
-                                            :checked="selectedEmployees.includes(emp.employee_id)"
-                                            @change="() => payroll.toggleSelect(emp.employee_id)"
-                                            class="mr-2 h-4 w-4"
-                                        />
+                                    <div
+                                        class="border rounded-lg bg-white shadow-sm p-3 mb-2 transition hover:shadow-md">
+                                        <!-- Header: Checkbox + Name + Status -->
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <input type="checkbox"
+                                                    :checked="selectedEmployees.includes(emp.employee_id)"
+                                                    @change="() => payroll.toggleSelect(emp.employee_id)"
+                                                    class="h-4 w-4 accent-green-500" />
+                                                <span class="text-sm font-semibold text-gray-900">{{ emp.employee_name
+                                                    }}</span>
+                                            </div>
 
-                                        <!-- Nama -->
-                                        <span class="flex-1 text-sm font-bold text-gray-800">
-                                            {{ emp.employee_name }}
-                                        </span>
-
-                                        <!-- Status -->
-                                        <span
-                                            :class="[
-                                                'rounded-md border px-2 py-0.5 text-[10px] font-semibold capitalize',
+                                            <span :class="[
+                                                'rounded-full px-2 py-0.5 text-xs font-semibold capitalize',
                                                 emp.status === 'closed'
-                                                    ? 'border-green-300 bg-green-50 text-green-700'
-                                                    : 'border-yellow-300 bg-yellow-50 text-yellow-700',
-                                            ]"
-                                        >
-                                            {{ emp.status }}
-                                        </span>
-                                    </div>
-
-                                    <!-- Informasi angka -->
-
-                                    <div :class="['text-[11px] text-gray-700', hideDetail ? 'space-y-1' : 'grid sm:grid-cols-2 sm:gap-x-4']">
-                                        <div class="flex justify-between">
-                                            <span>Qty</span>
-
-                                            <span class="font-bold text-gray-800">{{ emp.total_qty }}</span>
-                                        </div>
-
-                                        <div class="flex justify-between">
-                                            <span>Upah</span>
-
-                                            <span class="font-bold text-gray-800">
-                                                {{ Number(emp.total_upah).toLocaleString() }}
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-yellow-100 text-yellow-800'
+                                            ]">
+                                                {{ emp.status }}
                                             </span>
                                         </div>
 
-                                        <div class="flex justify-between">
-                                            <span>Makan</span>
+                                        <!-- Informasi angka -->
+                                        <div :class="[
+                                            'grid gap-1 text-sm text-gray-700',
+                                            hideDetail ? 'grid-cols-1' : 'sm:grid-cols-2 md:grid-cols-3'
+                                        ]">
+                                            <div class="flex justify-between items-center">
+                                                <span>Qty</span>
+                                                <span class="font-semibold text-gray-900">{{ emp.total_qty }}</span>
+                                            </div>
 
-                                            <span class="font-bold text-gray-800">
-                                                {{ Number(emp.uang_makan).toLocaleString() }}
-                                            </span>
+                                            <div class="flex justify-between items-center">
+                                                <span>Upah</span>
+                                                <span class="font-semibold text-gray-900">{{
+                                                    Number(emp.total_upah).toLocaleString() }}</span>
+                                            </div>
+
+                                            <div class="flex justify-between items-center">
+                                                <span>Makan</span>
+                                                <span class="font-semibold text-gray-900">{{
+                                                    Number(emp.uang_makan).toLocaleString() }}</span>
+                                            </div>
+
+                                            <div class="flex justify-between items-center">
+                                                <span>Potongan</span>
+                                                <input type="number" v-if="emp.sisa_kasbon > 0" v-model.number="emp.potongan"
+                                                    @change="payroll.updatePotongan(emp.employee_id, emp.potongan)"
+                                                    class="w-20 text-right text-sm border-b border-gray-300 focus:border-green-500 focus:outline-none" />
+                                                
+                                                <span v-else class="font-semibold text-gray-900">0</span>
+                                            </div>
+
+                                            <!-- Total Gaji -->
+                                            <div
+                                                class="col-span-full flex justify-between items-center bg-green-50 rounded-md p-1 font-bold">
+                                                <span>Total Gaji</span>
+                                                <span>{{ Number(emp.total_gaji).toLocaleString() }}</span>
+                                            </div>
+
+                                            <!-- Sisa Kasbon -->
+                                            <div
+                                                class="col-span-full flex justify-between items-center bg-red-50 rounded-md p-1 font-bold">
+                                                <span>Sisa Kasbon</span>
+                                                <span>{{ Number(emp.sisa_kasbon).toLocaleString() }}</span>
+                                            </div>
                                         </div>
 
-                                        <!-- Input potongan -->
-
-                                        <div class="flex items-center">
-                                            <span>Potongan</span>
-
-                                            <div class="mx-2 flex-grow border-b border-dotted"></div>
-
-                                            <input
-                                                type="number"
-                                                v-model.number="emp.potongan"
-                                                @change="payroll.updatePotongan(emp.employee_id, emp.potongan)"
-                                                class="w-20 border-b border-gray-300 bg-transparent text-right text-[11px] outline-none focus:border-gray-900"
-                                            />
+                                        <!-- Tombol aksi -->
+                                        <div class="mt-2 flex gap-2">
+                                            <Button variant="outline" @click="payroll.closeSingle(emp)"
+                                                :disabled="emp.status === 'closed'"
+                                                class="flex-1 flex items-center justify-center gap-2 rounded-md bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                                                <DollarSign class="h-4 w-4" v-if="emp.status !== 'closed'" />
+                                                <CheckCircle class="h-4 w-4" v-else />
+                                                Bayar
+                                            </Button>
                                         </div>
-
-                                        <div class="flex justify-between border-t pt-1 sm:border-t-0 sm:pt-0">
-                                            <span class="font-semibold text-gray-800">Total Gaji</span>
-
-                                            <span class="font-bold text-gray-900">
-                                                {{ Number(emp.total_gaji).toLocaleString() }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Tombol aksi -->
-                                    <div class="mt-2 flex gap-1">
-                                        <!-- <Button variant="outline" @click="shareSlipLinkToWhatsApp(emp)"
-                      class="text-[10px] px-2 py-1 border-green-500 text-green-600">
-                      WA
-                    </Button> -->
-
-                                        <Button
-                                            variant="outline"
-                                            @click="payroll.closeSingle(emp)"
-                                            :disabled="emp.status === 'closed'"
-                                            class="flex items-center gap-1 rounded bg-green-600 px-2 py-1 text-white hover:bg-green-700"
-                                        >
-                                            <DollarSign class="h-4 w-4" v-if="emp.status !== 'closed'" />
-                                            <CheckCircle class="h-4 w-4" v-else />
-                                            Bayar
-                                        </Button>
                                     </div>
                                 </TableCell>
 
@@ -321,12 +319,20 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                                                         {{ Number(d.qty).toLocaleString() }}
                                                     </td>
                                                 </tr>
+
+                                                <!-- Total per model  {{ model }} -->
+                                                <tr class="bg-blue-100 font-bold">
+                                                    <td class="p-2 text-right">Total </td>
+                                                    <td class="p-2 text-right">{{ sumQty(details).toLocaleString() }}
+                                                    </td>
+                                                </tr>
                                             </template>
                                         </template>
 
                                         <!-- Jika kosong -->
                                         <tr v-if="!emp.details?.length">
-                                            <td colspan="4" class="p-4 text-center text-gray-500">Tidak ada data rincian aktivitas.</td>
+                                            <td colspan="4" class="p-4 text-center text-gray-500">Tidak ada data rincian
+                                                aktivitas.</td>
                                         </tr>
                                     </table>
                                 </TableCell>
@@ -338,7 +344,8 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
 
             <!-- Bulk close -->
             <div class="flex justify-end">
-                <Button @click="payroll.closePayroll" :disabled="selectedEmployees.length === 0" class="bg-green-600 text-white">
+                <Button @click="payroll.closePayroll" :disabled="selectedEmployees.length === 0"
+                    class="bg-green-600 text-white">
                     Close Selected ({{ selectedEmployees.length }})
                 </Button>
             </div>

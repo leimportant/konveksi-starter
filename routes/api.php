@@ -50,6 +50,7 @@ use App\Http\Controllers\Api\ProductCatalogController;
 use App\Http\Controllers\Api\CrossDomainAuthController;
 use App\Http\Controllers\Api\ChatAssistantController;
 use App\Http\Controllers\Api\PayrollController;
+use App\Http\Controllers\Api\MutasiController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -70,8 +71,6 @@ Route::middleware('auth')->group(function () {
     Route::post('api/orders/{orderId}/shipping', [OrderController::class, 'submitShipping']);
 });
 
-// // Route::put('/kasbon-payments/{kasbonPayment}', [KasbonPaymentController::class, 'update']);
-// Route::apiResource('kasbon-payments', KasbonPaymentController::class);
 
 Route::get('api/health', function () {
     return response()->json(['status' => 'ok']);
@@ -153,10 +152,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{id}/close', [ModelRefController::class, 'updateClose']);
     });
 
-// http://localhost:8000/api/kasbon/mutasi?page=1&per_page=50&search=&status=2025-10
-// Request Method
-// GET
-//     // kasbon
+ // kasbon
      Route::prefix('api/kasbon')->group(function () {
         Route::get('/list', [KasbonController::class, 'list']);
         Route::get('/', [KasbonController::class, 'index']);
@@ -164,18 +160,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}', [KasbonController::class, 'show']);
         Route::put('/{id}', [KasbonController::class, 'update']);
         Route::delete('/{id}', [KasbonController::class, 'destroy']);
+
+        Route::get('/mutation', [KasbonController::class, 'mutasi']);
      
         // approve or reject
-        Route::patch('/{id}/approve', [KasbonController::class, 'approve']);
-        Route::patch('/{id}/reject', [KasbonController::class, 'reject']);
+        Route::put('/{id}/approve', [KasbonController::class, 'approve']);
+        Route::put('/{id}/reject', [KasbonController::class, 'reject']);
     });
 
     Route::get('api/payroll', [PayrollController::class, 'index']);
     Route::get('api/payroll/preview', [PayrollController::class, 'preview']);
-    Route::get('/payroll/slip/{employee}', [PayrollController::class, 'slip']);
+    Route::get('api/payroll/slip/{employee}', [PayrollController::class, 'slip']);
     Route::post('api/payroll/close', [PayrollController::class, 'closePayroll']);
 
-    
+    Route::apiResource('api/mutasi', MutasiController::class);
+
     Route::apiResource('api/faq', FaqController::class);
     Route::apiResource('api/activity-roles', ActivityRoleController::class);
     Route::apiResource('api/activity-group', ActivityGroupController::class);

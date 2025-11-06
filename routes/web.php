@@ -139,7 +139,7 @@ Route::get('/customers', function () {
 
 // Route::get('/home', function () {
 //     return Inertia::render('home/Cart');
-// })->middleware(['auth'])->name('home.cart');
+// })->middleware(['auth'])->name('home.cart');payroll
 
 Route::get('/price-types', function () {
     return Inertia::render('price-type/Index');
@@ -406,6 +406,12 @@ Route::get('/purchase-order/{id}/view', function ($id) {
 Route::get('/payroll', function () {
     return Inertia::render('payroll/Index');
 })->middleware(['auth'])->name('payroll.idx');
+
+Route::get('/payroll/{id}/view', function ($id) {
+    return Inertia::render('payroll/Payslip', [
+        'id' => $id,
+    ]);
+})->middleware(['auth'])->name('payroll.Payslip');
 
 Route::get('/payroll/closing', function () {
     return Inertia::render('payroll/CLosing');

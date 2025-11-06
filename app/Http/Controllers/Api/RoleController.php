@@ -16,7 +16,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $role = Role::with('activityGroups')->latest()->paginate(10);
+        $role = Role::with('activityGroups')->latest()->paginate(50);
         return response()->json($role);
     }
 

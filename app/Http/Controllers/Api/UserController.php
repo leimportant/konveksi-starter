@@ -104,7 +104,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::with('roles')->findOrFail($id);
+        $user = User::with('roles')->whereNull('deleted_at')->findOrFail($id);
 
         return response()->json([
             'status' => 'success',

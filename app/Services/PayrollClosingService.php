@@ -11,6 +11,7 @@ class PayrollClosingService
 {
     public function closePayroll(
         int $employeeId,
+        int $activityRoleId,
         string $periodStart,
         string $periodEnd,
         float $totalGaji,
@@ -32,6 +33,7 @@ class PayrollClosingService
                 ],
                 [
                     'id' => $payrollId,
+                    'activity_role_id' => $activityRoleId,
                     'payroll_date' => now(),
                     'total_upah' => $totalGaji,
                     'uang_makan' => $uangMakan,
@@ -50,6 +52,43 @@ class PayrollClosingService
                 ]);
             }
 
+            // jika ada potongan
+            // masukan kan ke table mutasi
+            if ($potongan > 0) {
+                $kasbonId = DB::table('mutasi_kasbon')
+                            ->where('employee_id', $employeeId)
+                            ->where('type', 'Kasbon')
+                            ->whereBetween('created_at', [$periodStart, $periodEnd])
+                            ->orderByDesc('created_at')
+                            ->first()
+                            ->kasbon_id;
+
+                $totalKasbon = DB::table('mutasi_kasbon')
+                    ->where('employee_id', $employeeId)
+                    ->where('type', 'Kasbon')
+                    ->sum('amount');
+
+                $totalPembayaran = DB::table('mutasi_kasbon')
+                        ->where('employee_id', $employeeId)
+                        ->where('type', 'Pembayaran')
+                        ->sum('amount');
+
+                $sisaKasbon = $totalKasbon - $totalPembayaran;
+
+                DB::table('mutasi_kasbon')->insert([
+                    'id' => Str::uuid()->toString(),
+                    'reference_no' => $payrollId,
+                    'employee_id' => $employeeId,
+                    'kasbon_id' => $kasbonId,
+                    'amount' => $potongan,
+                    'saldo_kasbon' => $sisaKasbon,
+                    'description' => 'Potongan Kasbon',
+                    'type' => 'Pembayaran',
+                    'created_at' => now(),
+                ]);
+            }
+
+
             // Update tr_production status
             DB::table('tr_production')
                 ->where('employee_id', $employeeId)
@@ -58,6 +97,7 @@ class PayrollClosingService
 
             DB::commit(); // ✅ commit transaksi jika semua berhasil
         } catch (\Exception $e) {
+            \Log::info($e);
             DB::rollback(); // ❌ rollback jika terjadi error
             throw $e;
         }

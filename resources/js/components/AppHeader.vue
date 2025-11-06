@@ -117,7 +117,7 @@ const resolveIcon = async (iconName: string | LucideIcon | undefined): Promise<C
         </div>
 
         <div v-if="props.breadcrumbs.length > 1" class="flex w-full border-b border-sidebar-border/70">
-           SSS
+           
             <div class="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
                 <Breadcrumbs :breadcrumbs="props.breadcrumbs" />
             </div>

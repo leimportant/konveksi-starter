@@ -42,10 +42,10 @@ const filters = reactive({
 
 const handleSearch = () => {
 
-   const statusVal =
-            typeof filterStatus.value === 'string'
-                ? filterStatus.value
-                : filterStatus.value?.value ?? '';
+  const statusVal =
+    typeof filterStatus.value === 'string'
+      ? filterStatus.value
+      : filterStatus.value?.value ?? '';
 
   kasbonStore.fetchKasbon(1, 50, {
     search: filters.search,
@@ -156,16 +156,15 @@ const handleReject = async (id?: string) => {
 
           <!-- Dropdown Status -->
           <Vue3Select v-model="filterStatus" :options="[
-            { label: 'Semua Status', value: '' },
+            { label: 'Semua', value: '' },
             { label: 'Pending', value: 'Pending' },
-            { label: 'Approved', value: 'Approved' },
-            { label: 'Rejected', value: 'Rejected' }
-          ]" placeholder="Pilih Status" class="w-40" />
+            { label: 'Approve', value: 'Approved' },
+            { label: 'Reject', value: 'Rejected' }
+          ]" placeholder="Pilih Status" class="w-full sm:w-auto" />
 
           <!-- Input Pencarian -->
-          <input v-model="filters.search" type="text" placeholder="Cari data..."
-            @keyup.enter="handleSearch"
-            class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-56" />
+          <input v-model="filters.search" type="text" placeholder="Cari data..." @keyup.enter="handleSearch"
+            class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-46" />
 
           <!-- Tombol Cari -->
           <Button @click="handleSearch" class="bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-1">
@@ -176,7 +175,7 @@ const handleReject = async (id?: string) => {
       </div>
 
       <!-- Table -->
-      <div class="overflow-x-auto rounded-md border">
+      <div class="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow class="bg-gray-100">
@@ -243,21 +242,29 @@ const handleReject = async (id?: string) => {
                         <XCircle class="h-4 w-4 text-red-600" />
                       </Button>
                     </template>
+                    <template v-if="kas.status === 'Rejected'">
+                     <Button size="icon" variant="ghost" @click="handleDelete(kas.id)">
+                      <Trash2 class="h-4 w-4" />
+                    </Button>
+                    </template>
                   </template>
 
                   <!-- Kondisi untuk NON-OWNER -->
                   <template v-else>
-                    <template v-if="kas.status !== 'Approved'">
-                      <Button size="icon" variant="ghost" @click="handleEdit(kas)">
-                        <Edit class="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" @click="handleDelete(kas.id)">
-                        <Trash2 class="h-4 w-4" />
-                      </Button>
-                    </template>
+                    <!-- Edit hanya untuk Pending atau Rejected -->
+                    <Button size="icon" variant="ghost" v-if="kas.status === 'Pending' || kas.status === 'Rejected'"
+                      @click="handleEdit(kas)">
+                      <Edit class="h-4 w-4" />
+                    </Button>
+
+                    <!-- Delete bisa tetap muncul untuk status selain Approved -->
+                    <Button size="icon" variant="ghost" v-if="kas.status !== 'Approved'" @click="handleDelete(kas.id)">
+                      <Trash2 class="h-4 w-4" />
+                    </Button>
                   </template>
                 </TableCell>
               </TableRow>
+
 
               <!-- Spacer antar employee -->
               <TableRow>

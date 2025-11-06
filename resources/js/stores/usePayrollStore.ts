@@ -16,7 +16,13 @@ interface PayrollDetail {
 }
 
 export interface EmployeePayroll {
+  id: string;
   employee_id: number;
+  activity_role_id: number;
+  activity_role?: {
+    id: number;
+    name: string;
+  };
   phone_number?: string; 
   employee_name?: string;
   status: string;
@@ -34,8 +40,34 @@ export interface EmployeePayroll {
   potongan: number;
   total_gaji: number;
   net_gaji: number;
+  sisa_kasbon: number;
 
   details: PayrollDetail[];
+}
+
+export interface Payslip {
+  id: string;
+  employee_name?: string;
+  employee_role?: string;
+  company_logo?: string;
+  period_start?: string;
+  period_end?: string;
+  payroll_date?: string;
+  total_upah?: number;
+  uang_makan?: number;
+  lembur?: number;
+  potongan?: number;
+  sisa_kasbon?: number;
+  net_gaji?: number;
+  employee?: {
+    id: number;
+    name: string;
+    employee_role?: string;
+  };
+   activity_role?: {
+    id: number;
+    name: string;
+  };
 }
 
 export const usePayrollStore = defineStore("payroll", () => {
@@ -43,8 +75,10 @@ export const usePayrollStore = defineStore("payroll", () => {
   const startDate = ref<string>("");
   const endDate = ref<string>("");
   const search = ref<string>("");
+  const searchEmployee = ref<string>("");
   const selectedEmployees = ref<number[]>([]);
   const isLoading = ref(false)
+  const currentSlip = ref<Payslip | null>(null);
 
   const totalSummary = computed(() => ({
     totalGaji: employees.value.reduce((s, e) => s + e.total_gaji, 0),
@@ -88,7 +122,7 @@ export const usePayrollStore = defineStore("payroll", () => {
         params: {
           start: startDate.value,
           end: endDate.value,
-          search: search.value,
+          search: searchEmployee.value,
         },
       });
 
@@ -122,6 +156,7 @@ const closeSingle = async (emp: EmployeePayroll) => {
 
       const detailsPayload = emp.details.map(d => ({
         size_id: d.size_id,
+        activity_role_id: d.activity_role_id,
         variant: d.variant,
         qty: d.qty,
         model_desc: d.model_desc,
@@ -134,11 +169,12 @@ const closeSingle = async (emp: EmployeePayroll) => {
         employees: [
           {
             employee_id: emp.employee_id,
+            activity_role_id: emp.activity_role_id,
             total_gaji: emp.total_gaji,
             uang_makan: emp.uang_makan,
             lembur: emp.lembur ?? 0,
             potongan: emp.potongan ?? 0,
-             details: detailsPayload,
+            details: detailsPayload,
           },
         ],
       });
@@ -196,6 +232,7 @@ const closePayroll = async () => {
         .filter(e => selectedEmployees.value.includes(e.employee_id))
         .map(e => ({
           employee_id: e.employee_id,
+          activity_role_id: e.activity_role_id,
           total_gaji: e.total_gaji,
           uang_makan: e.uang_makan,
           lembur: e.lembur ?? 0,
@@ -203,6 +240,7 @@ const closePayroll = async () => {
           details: e.details.map(d => ({ // <-- harus pakai e.details, bukan emp.details
             size_id: d.size_id,
             variant: d.variant,
+            activity_role_id: d.activity_role_id,
             qty: d.qty,
             model_desc: d.model_desc,
             created_at: d.created_at,
@@ -266,6 +304,16 @@ Terima kasih ✅
 };
 
 
+ const fetchPayslip = async (id: string) => {
+  try {
+    const { data } = await axios.get(`/api/payroll/slip/${id}`);
+    currentSlip.value = data.data;
+    return data.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 
   return {
     employees,
@@ -279,5 +327,7 @@ Terima kasih ✅
     toggleSelect,
     closeSingle,
     closePayroll,
+    fetchPayslip,
+    currentSlip,
   };
 });

@@ -4,22 +4,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useKasbonStore } from '@/stores/useKasbonStore';
 import { Head } from '@inertiajs/vue3';
-import { Edit, Search } from 'lucide-vue-next';
+import { CheckCircle, CreditCard, Search } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, reactive, ref, Ref } from 'vue';
 
-
 const kasbonStore = useKasbonStore();
-const { kasbonList, pagination, loading } = storeToRefs(kasbonStore);
-
-const currentKasbon = ref<any | null>(null);
-
+const { mutasiList, pagination, loading } = storeToRefs(kasbonStore);
 // const page = usePage();
 // const user = page.props.auth.user;
 
-const filterStatus: Ref<string | { value: string; label: string }> = ref("");
-
-
+const filterStatus: Ref<string | { value: string; label: string }> = ref('');
 
 const breadcrumbs = [{ title: 'Mutasi Kasbon', href: '/kasbon/mutasi' }];
 
@@ -28,17 +22,25 @@ const filters = reactive({
 });
 
 const handleSearch = () => {
-
-    const statusVal =
-        typeof filterStatus.value === 'string'
-            ? filterStatus.value
-            : filterStatus.value?.value ?? '';
+    const statusVal = typeof filterStatus.value === 'string' ? filterStatus.value : (filterStatus.value?.value ?? '');
 
     kasbonStore.fetchMutasi(1, 50, {
         search: filters.search,
-        status: statusVal
+        status: statusVal,
     });
 };
+
+const groupedMutasi = computed(() => {
+    const groups: Record<string, typeof mutasiList.value> = {};
+
+    mutasiList.value.forEach((item) => {
+        const name = item.employee_name || '-';
+        if (!groups[name]) groups[name] = [];
+        groups[name].push(item);
+    });
+
+    return groups;
+});
 
 // Pagination setup
 const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.per_page) || 1);
@@ -52,112 +54,90 @@ const prevPage = () => goToPage(pagination.value.current_page - 1);
 // Load initial data
 onMounted(() => {
     const now = new Date();
-    const month = now.toISOString().slice(0, 7); 
+    const month = now.toISOString().slice(0, 7);
     filterStatus.value = month;
     kasbonStore.fetchMutasi();
 });
-
-// handle view
-const handleView = (kasbon: any) => {
-    currentKasbon.value = kasbon;
-}
-
 </script>
 
 <template>
-
     <Head title="History Mutasi Management" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="px-4 py-4">
             <!-- Header -->
-            <div class="mb-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="mb-4 flex flex-col items-center justify-between gap-3 sm:flex-row">
                 <!-- Filter kiri -->
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <input type="month" v-model="filterStatus" class="border border-gray-300 rounded-lg px-2 py-2 text-gray-700 
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-           bg-white w-full sm:w-auto" />
-                    
+                <div class="flex w-full items-center gap-3 sm:w-auto">
+                    <input
+                        type="month"
+                        v-model="filterStatus"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-2 py-2 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto"
+                    />
+
                     <!-- Input Pencarian -->
-                    <input v-model="filters.search" type="text" placeholder="Cari data..." @keyup.enter="handleSearch"
-                        class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-56" />
+                    <input
+                        v-model="filters.search"
+                        type="text"
+                        placeholder="Cari data..."
+                        @keyup.enter="handleSearch"
+                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:w-56"
+                    />
 
                     <!-- Tombol Cari -->
-                    <Button @click="handleSearch"
-                        class="bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-1">
+                    <Button @click="handleSearch" class="flex items-center gap-1 bg-indigo-600 text-white hover:bg-indigo-700">
                         <Search class="h-4 w-4" /> Cari
                     </Button>
-
                 </div>
             </div>
 
             <!-- Table -->
-            <div class="overflow-x-auto rounded-md border">
-                <Table>
+            <div class="overflow-x-auto rounded-lg border shadow-sm">
+                <Table class="min-w-full">
                     <TableHeader>
                         <TableRow class="bg-gray-100">
-                            <TableHead class="px-3 py-2">Karyawan</TableHead>
-                            <TableHead class="px-3 py-2">Details</TableHead>
+                            <TableHead class="px-4 py-2 text-left text-sm font-medium text-gray-700">Name</TableHead>
+                            <TableHead class="px-4 py-2 text-right text-sm font-medium text-gray-700">Amount</TableHead>
                         </TableRow>
                     </TableHeader>
 
                     <TableBody>
-                        <template v-for="kas in kasbonList" :key="kas.id">
-                            <!-- Baris atas: Employee + Status -->
-                            <TableRow class="bg-gray-50">
-                                <TableCell colspan="2" class="px-3 py-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-semibold text-gray-800">
-                                            {{ kas.employee ? kas.employee.name : '-' }}
-                                        </span>
-                                        <span :class="[
-                                            'inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold',
-                                            {
-                                                'border-yellow-400 bg-yellow-50 text-yellow-700': kas.status === 'Pending',
-                                                'border-green-400 bg-green-50 text-green-700': kas.status === 'Approved',
-                                                'border-red-400 bg-red-50 text-red-700': kas.status === 'Rejected',
-                                            },
-                                        ]">
-                                            {{ kas.status }}
-                                        </span>
-                                    </div>
+                        <template v-for="(group, employee) in groupedMutasi" :key="employee">
+                            <!-- Employee Name Row -->
+                            <TableRow class="border-b bg-gray-50">
+                                <TableCell class="px-4 py-2 font-semibold text-gray-800" colspan="3">
+                                    {{ employee }}
                                 </TableCell>
                             </TableRow>
 
-                            <!-- Detail rows -->
-                            <TableRow>
-                                <TableCell class="w-1/4 px-3 py-1 font-medium">Tanggal</TableCell>
-                                <TableCell class="px-3 py-1">
-                                    {{ kas.created_at ? new Date(kas.created_at).toLocaleDateString() : '-' }}
-                                </TableCell>
-                            </TableRow>
+                            <!-- Detail Rows -->
+                            <template v-for="kas in group" :key="kas.id">
+                                <TableRow class="border-b bg-white align-top">
+                                    <TableCell class="flex flex-col px-4 py-1 text-sm text-gray-600">
+                                        <!-- Top line: icon + date -->
+                                        <div class="flex items-center gap-1">
+                                            <component
+                                                v-if="kas.type === 'Kasbon' || kas.type === 'Pembayaran'"
+                                                :is="kas.type === 'Kasbon' ? CreditCard : CheckCircle"
+                                                class="h-4 w-4 text-blue-500"
+                                            />
+                                            <span>{{ kas.created_at ? new Date(kas.created_at).toLocaleDateString() : '-' }}</span>
+                                        </div>
 
-                            <TableRow>
-                                <TableCell class="w-1/4 px-3 py-1 font-medium">Jumlah Kasbon</TableCell>
-                                <TableCell class="px-3 py-1">
-                                    {{ Number(kas.amount).toLocaleString() }}
-                                </TableCell>
-                            </TableRow>
+                                        <!-- Description on new line, slightly bolder -->
+                                        <div class="mt-1 text-md text-gray-800 uppercase" v-html="kas.description || '-'"></div>
+                                    </TableCell>
 
-                            <TableRow>
-                                <TableCell class="px-3 py-1 font-medium">Keterangan</TableCell>
-                                <TableCell class="px-3 py-1">
-                                    {{ kas.description || '-' }}
-                                </TableCell>
-                            </TableRow>
-
-                            <TableRow>
-                                <TableCell class="px-3 py-1 font-medium">Actions</TableCell>
-                                <TableCell class="flex gap-2 px-3 py-1">
-                                    <Button size="icon" variant="ghost" @click="handleView(kas)">
-                                        <Edit class="h-4 w-4" />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-
-                            <!-- Spacer antar employee -->
-                            <TableRow>
-                                <TableCell colspan="2" class="h-3"></TableCell>
-                            </TableRow>
+                                    <TableCell
+                                        class="px-4 py-1 text-right align-top text-sm font-medium"
+                                        :class="kas.type === 'Kasbon' ? 'text-green-600' : kas.type === 'Pembayaran' ? 'text-red-600' : ''"
+                                    >
+                                        {{ Number(kas.amount || 0).toLocaleString() }}
+                                        <div class="mt-1 text-xs text-gray-500">
+                                            saldo kasbon: {{ Number(kas.saldo_kasbon || 0).toLocaleString() }}
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            </template>
                         </template>
                     </TableBody>
                 </Table>
@@ -165,17 +145,22 @@ const handleView = (kasbon: any) => {
 
             <!-- Pagination -->
             <div class="mt-4 flex justify-end space-x-2">
-                <button @click="prevPage" :disabled="pagination.current_page === 1 || loading"
-                    class="rounded border px-3 py-1 hover:bg-gray-100 disabled:opacity-50">
+                <button
+                    @click="prevPage"
+                    :disabled="pagination.current_page === 1 || loading"
+                    class="rounded border px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
+                >
                     Previous
                 </button>
                 <span>Page {{ pagination.current_page }} / {{ totalPages }}</span>
-                <button @click="nextPage" :disabled="pagination.current_page >= totalPages || loading"
-                    class="rounded border px-3 py-1 hover:bg-gray-100 disabled:opacity-50">
+                <button
+                    @click="nextPage"
+                    :disabled="pagination.current_page >= totalPages || loading"
+                    class="rounded border px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
+                >
                     Next
                 </button>
             </div>
-
         </div>
     </AppLayout>
 </template>
