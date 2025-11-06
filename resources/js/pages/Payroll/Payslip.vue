@@ -4,10 +4,10 @@ import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { usePayrollStore } from '@/stores/usePayrollStore';
 import { Button } from '@/components/ui/button';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+// import { jsPDF } from 'jspdf';
+// import html2canvas from 'html2canvas';
 import { Payslip } from '@/stores/usePayrollStore';
-import { PrinterIcon, FileBadgeIcon } from 'lucide-vue-next';
+import { PrinterIcon } from 'lucide-vue-next';
 
 // Props
 const props = defineProps<{ id: string }>();
@@ -55,32 +55,31 @@ const printSlip = () => {
 
 // Export PDF
 
-const exportPdf = async () => {
-  if (!printArea.value) return;
+// const exportPdf = async () => {
+//   if (!printArea.value) return;
 
-  await new Promise((res) => setTimeout(res, 150));
+//   await new Promise((res) => setTimeout(res, 150));
 
-  const canvas = await html2canvas(printArea.value, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: "#ffffff",
-  });
+//   const canvas = await html2canvas(printArea.value, {
+//     scale: 2,
+//     useCORS: true,
+//     backgroundColor: "#ffffff",
+//   });
 
-  const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  });
+//   const imgData = canvas.toDataURL("image/png");
+//   const pdf = new jsPDF({
+//     orientation: "portrait",
+//     unit: "mm",
+//     format: "a4",
+//   });
 
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const imgWidth = pageWidth;
-  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+//   const pageWidth = pdf.internal.pageSize.getWidth();
+//   const imgWidth = pageWidth;
+//   const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-  pdf.save(`slip-gaji-${currentSlip.value?.employee?.name || 'employee'}.pdf`);
-};
-
+//   pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+//   pdf.save(`slip-gaji-${currentSlip.value?.employee?.name || 'employee'}.pdf`);
+// };
 
 
 onMounted(fetchSlip);
@@ -166,9 +165,9 @@ onMounted(fetchSlip);
         <Button @click="printSlip" class="bg-green-600 text-white rounded hover:bg-green-700">
           <PrinterIcon  class="h-4 w-4"/> Print
         </Button>
-        <Button @click="exportPdf" class="bg-blue-600 text-white rounded hover:bg-blue-700">
+        <!-- <Button @click="exportPdf" class="bg-blue-600 text-white rounded hover:bg-blue-700">
           <FileBadgeIcon  class="h-4 w-4"/> Export PDF
-        </Button>
+        </Button> -->
         <Button variant="outline" @click="router.visit('/payroll')" class="bg-gray-500 text-white rounded hover:bg-gray-600">
           Back
         </Button>
@@ -179,14 +178,59 @@ onMounted(fetchSlip);
 
 <style scoped>
 @media print {
-  .no-print {
+  /* 1. Pengaturan Kertas dan Margin */
+  @page {
+    /* Mengatur ukuran kertas menjadi A4 */
+    size: A4;
+    /* Memberikan margin 10mm di semua sisi untuk printout yang bersih */
+    margin: 10mm;
+  }
+
+  /* 2. Optimasi Konten (Agar terlihat bagus di kertas putih) */
+
+  /* Set warna latar belakang menjadi putih solid saat mencetak */
+  body, html, .print-area {
+    background-color: white !important;
+    /* Pastikan warna teks hitam agar mudah dibaca */
+    color: #000 !important; 
+    /* Hapus bayangan atau border yang tidak perlu pada elemen cetak */
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  /* Hapus semua elemen non-cetak seperti tombol, navigasi, footer */
+  .no-print, 
+  .header, 
+  .sidebar, 
+  .footer, 
+  button, 
+  .actions {
     display: none !important;
   }
-  .print\:bg-white {
-    background-color: white !important;
-  }
-  body {
+
+  /* Pastikan elemen cetak utama menggunakan lebar 100% dari area cetak A4 */
+  .payslip-container {
+    width: 100%;
+    /* Atur ulang padding atau margin agar sesuai dengan margin @page */
+    padding: 0; 
     margin: 0;
+  }
+
+  /* Hapus border pada tabel atau elemen lainnya yang mungkin tidak diperlukan */
+  table {
+    border-collapse: collapse; /* Pastikan border tabel rapi */
+  }
+
+  /* Pertahankan gambar penting (jika ada) */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Kontrol pemisah halaman (page breaks) */
+  /* Hindari pemisah halaman di tengah baris atau elemen penting */
+  tr, td, th {
+    page-break-inside: avoid;
   }
 }
 </style>
