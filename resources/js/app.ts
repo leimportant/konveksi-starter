@@ -21,7 +21,7 @@ import Order from './components/Order/Order.vue';
 import OrderItem from './components/Order/OrderItem.vue';
 import { PWAInstallPrompt } from './components/ui/pwa-install-prompt';
 import { usePWAStore } from './stores/usePWAStore';
-import pushNotificationManager from './push-notifications';
+// import pushNotificationManager from './push-notifications';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Aninkafashion';
 
@@ -83,45 +83,45 @@ createInertiaApp({
     // Initialize push notification manager
 
     // Register service worker for PWA and initialize push notifications
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', async function() {
-        try {
-          // Register the service worker
-          const registration = await navigator.serviceWorker.register('/service-worker.js', {
-            scope: '/'
-          });
+    // if ('serviceWorker' in navigator) {
+    //   window.addEventListener('load', async function() {
+    //     try {
+    //       // Register the service worker
+    //       const registration = await navigator.serviceWorker.register('/service-worker.js', {
+    //         scope: '/'
+    //       });
           
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    //       console.log('ServiceWorker registration successful with scope: ', registration.scope);
           
-          // Make the VAPID public key available globally
-          // window.vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-          (window as any).vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    //       // Make the VAPID public key available globally
+    //       // window.vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    //       (window as any).vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
-          // Initialize push notifications after service worker is ready
-          navigator.serviceWorker.ready.then(async () => {
-            // console.log('Service worker is ready, initializing push notifications');
+    //       // Initialize push notifications after service worker is ready
+    //       navigator.serviceWorker.ready.then(async () => {
+    //         // console.log('Service worker is ready, initializing push notifications');
             
-            // Initialize push notification manager
-            const initialized = await pushNotificationManager.initialize();
+    //         // Initialize push notification manager
+    //         const initialized = await pushNotificationManager.initialize();
             
-            if (initialized) {
-              console.log('Push notification manager initialized successfully');
+    //         if (initialized) {
+    //           console.log('Push notification manager initialized successfully');
               
-              // Check if user is already subscribed
-              const isSubscribed = await pushNotificationManager.checkSubscription();
-              console.log('User is ' + (isSubscribed ? '' : 'not ') + 'subscribed to push notifications');
+    //           // Check if user is already subscribed
+    //           const isSubscribed = await pushNotificationManager.checkSubscription();
+    //           console.log('User is ' + (isSubscribed ? '' : 'not ') + 'subscribed to push notifications');
               
-              // You can auto-subscribe here if needed
-              // if (!isSubscribed) {
-              //     await pushNotificationManager.subscribeUser();
-              // }
-            }
-          });
-        } catch (error) {
-          console.error('ServiceWorker registration failed: ', error);
-        }
-      });
-    }
+    //           // You can auto-subscribe here if needed
+    //           // if (!isSubscribed) {
+    //           //     await pushNotificationManager.subscribeUser();
+    //           // }
+    //         }
+    //       });
+    //     } catch (error) {
+    //       console.error('ServiceWorker registration failed: ', error);
+    //     }
+    //   });
+    // }
 
     
   },

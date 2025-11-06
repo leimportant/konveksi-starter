@@ -444,3 +444,9 @@ Route::get('/reports/production-detail', function () {
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/api.php';
+
+// PENTING: Tambahkan ini di bagian paling bawah file routes/web.php
+Route::fallback(function () {
+    // Ini mengarahkan kembali ke root view Inertia jika route tidak ditemukan
+    return Inertia::render('Errors/NotFound'); 
+})->where('path', '.*');
