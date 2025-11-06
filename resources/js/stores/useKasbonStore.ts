@@ -35,6 +35,7 @@ interface MutasiKasbonResponse {
       type: string
       description: string
       kasbon_status: string
+      saldo_kasbon: number
       tanggal: string
       created_at: string
     }[]
@@ -56,6 +57,7 @@ export const useKasbonStore = defineStore('kasbon', {
       current_page: 1,
       per_page: 50,
       total: 0,
+      last_page: 1,
     },
     loading: false,
     error: null as string | null,
@@ -76,6 +78,7 @@ export const useKasbonStore = defineStore('kasbon', {
         this.pagination.current_page = response.data.current_page ?? 1
         this.pagination.per_page = response.data.per_page ?? 50
         this.pagination.total = response.data.total ?? 0
+        this.pagination.last_page = response.data.last_page ?? 1
       } catch (err: any) {
         this.error = err.response?.data?.message ?? err.message
       } finally {
@@ -125,7 +128,7 @@ export const useKasbonStore = defineStore('kasbon', {
     async approveKasbon(id: string) {
       this.loading = true
       try {
-        await axios.post(`/api/kasbon/${id}/approve`)
+        await axios.put(`/api/kasbon/${id}/approve`)
         await this.fetchKasbon()
       } catch (err: any) {
         this.error = err.response?.data?.message ?? err.message
@@ -138,7 +141,7 @@ export const useKasbonStore = defineStore('kasbon', {
     async rejectKasbon(id: string, remark: string) {
       this.loading = true
       try {
-        await axios.post(`/api/kasbon/${id}/reject`, { remark })
+        await axios.put(`/api/kasbon/${id}/reject`, { remark })
         await this.fetchKasbon()
       } catch (err: any) {
         this.error = err.response?.data?.message ?? err.message
@@ -163,11 +166,12 @@ export const useKasbonStore = defineStore('kasbon', {
           ...filters,
         };
 
-        const response = await axios.get('/api/kasbon/mutation', { params })
+        const response = await axios.get('/api/mutasi', { params })
         this.mutasiList = response.data.data ?? []
         this.pagination.current_page = response.data.current_page ?? 1
         this.pagination.per_page = response.data.per_page ?? 50
         this.pagination.total = response.data.total ?? 0
+        this.pagination.last_page = response.data.last_page ?? 1
 
       } catch (err: any) {
         this.error = err.response?.data?.message ?? err.message

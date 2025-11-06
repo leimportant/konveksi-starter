@@ -26,6 +26,7 @@ class Payroll extends Model
     protected $fillable = [
         'id',
         'payroll_date',
+        'activity_role_id',
         'period_start',
         'period_end',
         'employee_id',
@@ -53,6 +54,12 @@ class Payroll extends Model
     {
         return $this->hasMany(PayrollDetail::class, foreignKey: 'payroll_id');
     }
+
+    public function activityRole()
+    {
+        return $this->belongsTo(ActivityRole::class, 'activity_role_id');
+    }
+
 
     public function scopeWherePeriod(Builder $query, $startDate, $endDate)
     {

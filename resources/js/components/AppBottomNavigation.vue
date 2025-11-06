@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Home, ShoppingCart, User2Icon, MessageCircleHeartIcon } from 'lucide-vue-next';
+import { Home, ShoppingCart, User2Icon } from 'lucide-vue-next';
 import { Link, usePage } from '@inertiajs/vue3';
 
 const currentUrl = usePage().url;
@@ -49,7 +49,7 @@ const isActive = (path: string) => cleanPath(currentUrl) === path;
 
       <!-- Chatbot AI -->
 
-      <Link
+      <!-- <Link
         href="/assistant-ai"
         class="flex flex-col items-center justify-center px-4 py-2"
         :class="isActive('/chatbot-ai') 
@@ -58,7 +58,7 @@ const isActive = (path: string) => cleanPath(currentUrl) === path;
       >
         <MessageCircleHeartIcon class="h-5 w-5" />
         <span class="text-xs mt-1">Chat Assistant</span>
-      </Link>
+      </Link> -->
 
 
     </nav>

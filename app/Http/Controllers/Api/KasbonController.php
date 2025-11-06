@@ -19,16 +19,20 @@ class KasbonController extends Controller
         $userId = $user->id;
         $employee_status = $user->employee_status ?? "staff";
 
+        \Log::info($request->status);
+
         $query = Kasbon::with('employee');
 
-        if ($request->has('search')) {
-            $query->where('description', 'like', '%' . $request->search . '%')
-                ->orWhere('employee_id', 'like', '%' . $request->search . '%')
-                ->orWhere('amount', 'like', '%' . $request->search . '%');
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('description', 'like', '%' . $request->search . '%')
+                    ->orWhere('employee_id', 'like', '%' . $request->search . '%')
+                    ->orWhere('amount', 'like', '%' . $request->search . '%');
+            });
         }
 
-        if ($request->has('status')) {
-            $query->where('status', 'like', '%' . $request->status . '%');
+        if ($request->filled('status')) {
+            $query->whereRaw('LOWER(status) = ?', [strtolower($request->status)]);
         }
 
         if ($employee_status !== "owner") {
@@ -84,29 +88,78 @@ class KasbonController extends Controller
         return response()->json($Kasbon);
     }
 
-    public function destroy(Kasbon $kasbon)
+    public function destroy($kasbonId)
     {
+        $kasbon = Kasbon::findOrFail($kasbonId);
         $kasbon->delete();
+
         return response()->json(null, 204);
     }
 
-    public function approve(Kasbon $kasbon)
+
+    public function approve($kasbonId)
     {
         try {
             DB::beginTransaction();
-            $kasbon->status = 'approved';
+
+            $kasbon = Kasbon::with('employee')->findOrFail($kasbonId);
+
+            // --- Pastikan employee_id ada ---
+            $employeeId = $kasbon->employee_id ?? $kasbon->employee?->id;
+            if (!$employeeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kasbon belum memiliki employee terkait.'
+                ], 400);
+            }
+
+            // --- Cek status sudah approved ---
+            if (strtolower($kasbon->status) === 'approved') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kasbon sudah di-approve sebelumnya.'
+                ], 400);
+            }
+
+            // --- Pastikan employee_id ada ---
+            $employeeId = $kasbon->employee_id ?? $kasbon->employee?->id;
+            if (!$employeeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kasbon belum memiliki employee terkait.'
+                ], 400);
+            }
+
+            // --- Update Kasbon ---
+            $kasbon->status = 'Approved';
             $kasbon->approved_at = Carbon::now();
             $kasbon->approved_by = Auth::id();
             $kasbon->save();
 
-            // Insert ke mutasi_kasbon
+            // Hitung total kasbon yang diajukan untuk employee
+            $totalKasbon = DB::table('mutasi_kasbon')
+                ->where('employee_id', $employeeId)
+                ->where('type', 'Kasbon')
+                ->sum('amount');
+
+            // Hitung total pembayaran yang sudah dilakukan untuk employee
+            $totalPembayaran = DB::table('mutasi_kasbon')
+                ->where('employee_id', $employeeId)
+                ->where('type', 'Pembayaran')
+                ->sum('amount');
+
+            // sisa kasbon = total kasbon - total pembayaran + kasbon baru
+            $sisaKasbon = $totalKasbon - $totalPembayaran + $kasbon->amount;
+
+            // --- Insert ke mutasi_kasbon ---
             DB::table('mutasi_kasbon')->insert([
                 'kasbon_id' => $kasbon->id,
-                'employee_id' => $kasbon->employee_id,
+                'employee_id' => $employeeId,
                 'amount' => $kasbon->amount,
                 'description' => $kasbon->description,
+                'sisa_kasbon' => $sisaKasbon,
                 'type' => 'Kasbon',
-                'created_at' => now(),
+                'created_at' => now()
             ]);
 
             DB::commit();
@@ -122,19 +175,65 @@ class KasbonController extends Controller
         }
     }
 
-    public function reject(Request $request, $kasbon)
+
+    public function reject(Request $request, $kasbonId)
     {
-        $kasbon->status = 'rejected';
-        $kasbon->remark = $request->input('remark');
-        $kasbon->rejected_at = Carbon::now();
-        $kasbon->rejected_by = Auth::id();
-        $kasbon->save();
-        return response()->json($kasbon);
+        try {
+            DB::beginTransaction();
+
+            $kasbon = Kasbon::with('employee')->findOrFail($kasbonId);
+
+            // --- Pastikan employee_id ada ---
+            $employeeId = $kasbon->employee_id ?? $kasbon->employee?->id;
+            if (!$employeeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kasbon belum memiliki employee terkait.'
+                ], 400);
+            }
+
+            // --- Cek status sudah approved ---
+            if (strtolower($kasbon->status) === 'reject') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kasbon sudah di-reject sebelumnya.'
+                ], 400);
+            }
+
+            // --- Pastikan employee_id ada ---
+            $employeeId = $kasbon->employee_id ?? $kasbon->employee?->id;
+            if (!$employeeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kasbon belum memiliki employee terkait.'
+                ], 400);
+            }
+
+            // --- Update Kasbon ---
+            $kasbon->status = 'Rejected';
+            $kasbon->remark = $request->input('remark');
+            $kasbon->rejected_at = Carbon::now();
+            $kasbon->rejected_by = Auth::id();
+
+            $kasbon->save();
+
+
+            DB::commit();
+
+            return response()->json($kasbon, 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to reject kasbon: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function mutasi(Request $request)
     {
-
+        \Log::info('Mutation function hit', $request->all());
         Log::info("aa");
         $employeeId = $request->input('employee_id');
         $startDate = $request->input('start_date');

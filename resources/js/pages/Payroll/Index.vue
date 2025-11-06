@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { usePayrollStore, type EmployeePayroll } from '@/stores/usePayrollStore';
 import { Head } from '@inertiajs/vue3';
+import { PrinterCheck } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
 import { onMounted } from 'vue';
 
@@ -26,14 +27,13 @@ interface PayrollDetail {
 onMounted(() => {
     const today = new Date();
     const sixDaysAgo = new Date();
-    sixDaysAgo.setDate(today.getDate() - 60);
+    sixDaysAgo.setDate(today.getDate() - 6);
 
     startDate.value = sixDaysAgo.toISOString().split('T')[0];
     endDate.value = today.toISOString().split('T')[0];
 
     payroll.loadData();
 });
-
 
 const formatDate = (iso?: string): string => {
     if (!iso) return '-';
@@ -45,32 +45,35 @@ const formatDate = (iso?: string): string => {
 };
 
 const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string, PayrollDetail[]>> => {
-  if (!emp.details) return {};
+    if (!emp.details) return {};
 
-  const grouped: Record<string, Record<string, PayrollDetail[]>> = {};
+    const grouped: Record<string, Record<string, PayrollDetail[]>> = {};
 
-  emp.details.forEach(d => {
-    const date = d.created_at?.split("T")[0] || "-";
-    const model = d.model_desc || "-";
+    emp.details.forEach((d) => {
+        const date = d.created_at?.split('T')[0] || '-';
+        const model = d.model_desc || '-';
 
-    if (!grouped[date]) grouped[date] = {};
-    if (!grouped[date][model]) grouped[date][model] = [];
+        if (!grouped[date]) grouped[date] = {};
+        if (!grouped[date][model]) grouped[date][model] = [];
 
-    grouped[date][model].push(d);
-  });
-
-  // Sort tanggal descend dan model ascend
-  const sorted: Record<string, Record<string, PayrollDetail[]>> = {};
-  Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(date => {
-    sorted[date] = {};
-    Object.keys(grouped[date]).sort().forEach(model => {
-      sorted[date][model] = grouped[date][model];
+        grouped[date][model].push(d);
     });
-  });
 
-  return sorted;
+    // Sort tanggal descend dan model ascend
+    const sorted: Record<string, Record<string, PayrollDetail[]>> = {};
+    Object.keys(grouped)
+        .sort((a, b) => b.localeCompare(a))
+        .forEach((date) => {
+            sorted[date] = {};
+            Object.keys(grouped[date])
+                .sort()
+                .forEach((model) => {
+                    sorted[date][model] = grouped[date][model];
+                });
+        });
+
+    return sorted;
 };
-
 </script>
 
 <template>
@@ -103,7 +106,6 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                     Tampilkan
                 </Button>
             </div>
-
 
             <!-- Table -->
             <div class="overflow-hidden rounded-md border">
@@ -149,7 +151,7 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
 
                                     <!-- Informasi angka -->
 
-                                    <div :class="['text-[11px] text-gray-700 grid sm:grid-cols-2 sm:gap-x-4']">
+                                    <div :class="['grid text-[11px] text-gray-700 sm:grid-cols-2 sm:gap-x-4']">
                                         <div class="flex justify-between">
                                             <span>Qty</span>
 
@@ -188,9 +190,21 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                                                 {{ Number(emp.net_gaji).toLocaleString() }}
                                             </span>
                                         </div>
-                                    </div>
 
-                               </TableCell>
+                                        <!-- Tombol aksi -->
+                                        <div class="mt-2 flex gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                class="hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                @click="$inertia.visit(`/payroll/${emp.id}/view`)"
+                                            >
+                                                <PrinterCheck class="h-4 w-4" />
+                                                Payslip
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </TableCell>
 
                                 <!-- Rincian Aktivitas (Detail) -->
                                 <TableCell class="p-0 align-top sm:p-2">
@@ -227,7 +241,6 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                     </TableBody>
                 </Table>
             </div>
-
         </div>
     </AppLayout>
 </template>

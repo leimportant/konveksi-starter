@@ -41,7 +41,7 @@ const footerNavItems: NavItem[] = [];
         
         </SidebarHeader>
 
-        <SidebarContent>
+        <SidebarContent class="overflow-y-auto max-h-[calc(100vh-8rem)]">
             <NavMain :items="mainNavItems" />
         </SidebarContent>
 
