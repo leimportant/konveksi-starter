@@ -33,7 +33,7 @@
     <!-- Font & Preconnect -->
     <link rel="preconnect" href="https://fonts.bunny.net" />
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-
+    
     <!-- Theme Handling Script -->
     <script>
 
@@ -65,7 +65,7 @@
     </style>
 
 
-    @routes
+    <!-- @routes -->
     @vite(['resources/js/app.ts'])
     @inertiaHead
   </head>
