@@ -42,9 +42,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'appName' => config('app.name'),
             'auth' => [
-                'user' => $request->user() ? array_merge($request->user()->toArray(), [
-                    'jwt_token' => $request->user()->createToken('aninkafashion-token')->plainTextToken,
-                ]) : null,
+                'user' => $request->user() ? $request->user()->toArray() : null, // <-- HANYA BAGIKAN DATA USER
             ],
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
@@ -69,9 +67,9 @@ class HandleInertiaRequests extends Middleware
         }
 
         // Jika ada debug trigger via URL
-        if (config('app.debug') && $request->has('debug_inertia')) {
-            abort(response()->json($shared, 500)); // dark page JSON
-        }
+        // if (config('app.debug') && $request->has('debug_inertia')) {
+        //     abort(response()->json($shared, 500)); // dark page JSON
+        // }
 
         return $shared;
     }

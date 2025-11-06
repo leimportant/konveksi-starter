@@ -236,16 +236,28 @@ const handleDelete = async (id: string) => {
                   </td>
 
                   <td class="whitespace-nowrap px-3 py-2 align-top">
-                    <div v-if="item.items?.length"
-                      class="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[11px] text-gray-700">
-                      <div v-for="(size, index) in item.items" :key="index"
-                        class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm">
-                        <span>{{ size.size_id }} - {{ size.variant }}</span>
-                        <span class="font-semibold">{{ size.qty }}</span>
-                      </div>
-                    </div>
-                    <span v-else class="text-xs italic text-gray-400">-</span>
-                  </td>
+  <div v-if="item.items?.length"
+    class="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[11px] text-gray-700">
+
+    <!-- Loop over items -->
+    <div v-for="(size, index) in item.items" :key="index"
+      class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm">
+      <span>{{ size.size_id }} - {{ size.variant }}</span>
+      <span class="font-semibold">{{ size.qty }}</span>
+    </div>
+
+    <!-- Add total if more than 1 item -->
+    <div v-if="item.items.length > 1"
+      class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm order-t border-gray-300 px-1.5 pt-0.5 mt-0.5 font-semibold text-[11px] text-gray-800">
+      <span>Total</span>
+      <span>{{ item.items.reduce((sum: number, s: any) => sum + Number(s.qty || 0), 0) }}</span>
+    </div>
+
+  </div>
+
+  <span v-else class="text-xs italic text-gray-400">-</span>
+</td>
+
 
                   <td class="truncate px-3 py-2 align-top">
                     {{ formatRupiah(item?.price_per_pcs || 0) }}
