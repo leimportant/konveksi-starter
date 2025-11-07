@@ -46,7 +46,7 @@ class ModelRefController extends Controller
                 'remark' => $validated['remark'],
                 'estimation_price_pcs' => $validated['estimation_price_pcs'] ?? null,
                 'estimation_qty' => $validated['estimation_qty'] ?? null,
-                'start_date' => $validated['start_date'],
+                'start_date' => $validated['start_date'] ?? null,
                 'end_date' => $validated['end_date'] ?? null,
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id()
@@ -55,9 +55,9 @@ class ModelRefController extends Controller
             // Store sizes
             foreach ($validated['sizes'] as $size) {
                 $model->sizes()->create([
-                    'size_id' => $size['size_id'],
-                    'variant' => $size['variant'],
-                    'qty' => $size['qty'],
+                    'size_id' => $size['size_id'] ?? "",
+                    'variant' => $size['variant'] ?? "",
+                    'qty' => $size['qty'] ?? 1,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id()
                 ]);
