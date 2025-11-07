@@ -22,7 +22,7 @@ import OrderItem from './components/Order/OrderItem.vue';
 import { PWAInstallPrompt } from './components/ui/pwa-install-prompt';
 import { usePWAStore } from './stores/usePWAStore';
 // Import Push Notification Manager
-import pushNotificationManager from './push-notifications';
+// import pushNotificationManager from './push-notifications';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Aninkafashion';
 
@@ -79,32 +79,32 @@ createInertiaApp({
         // =========================================================================
 
         // Cek support Service Worker dan Public VAPID Key
-        if ('serviceWorker' in navigator && import.meta.env.VITE_VAPID_PUBLIC_KEY) {
-            // 1. Registrasi Service Worker
-            navigator.serviceWorker
-                .register('/service-worker.js', { scope: '/' })
-                .then((registration) => {
-                    console.log('SW registered successfully with scope:', registration.scope);
+        // if ('serviceWorker' in navigator && import.meta.env.VITE_VAPID_PUBLIC_KEY) {
+        //     // 1. Registrasi Service Worker
+        //     navigator.serviceWorker
+        //         .register('/service-worker.js', { scope: '/' })
+        //         .then((registration) => {
+        //             console.log('SW registered successfully with scope:', registration.scope);
 
-                    // 2. Setelah SW siap, inisialisasi Push Manager
-                    navigator.serviceWorker.ready.then(async () => {
-                        // Tambahkan Public Key ke window (sebagai fallback untuk manager)
-                        (window as any).vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        //             // 2. Setelah SW siap, inisialisasi Push Manager
+        //             navigator.serviceWorker.ready.then(async () => {
+        //                 // Tambahkan Public Key ke window (sebagai fallback untuk manager)
+        //                 (window as any).vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
-                        // Inisialisasi Push Notification Manager
-                        const initialized = await pushNotificationManager.initialize();
+        //                 // Inisialisasi Push Notification Manager
+        //                 const initialized = await pushNotificationManager.initialize();
 
-                        if (initialized) {
-                            console.log('Push notification manager initialized successfully.');
-                        }
-                    });
-                })
-                .catch((error) => {
-                    console.error('ServiceWorker registration failed:', error);
-                });
-        } else {
-            console.warn('Push notifications not supported or VAPID key missing.');
-        }
+        //                 if (initialized) {
+        //                     console.log('Push notification manager initialized successfully.');
+        //                 }
+        //             });
+        //         })
+        //         .catch((error) => {
+        //             console.error('ServiceWorker registration failed:', error);
+        //         });
+        // } else {
+        //     console.warn('Push notifications not supported or VAPID key missing.');
+        // }
     },
     progress: {
         color: '#4B5563',
