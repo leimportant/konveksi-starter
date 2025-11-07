@@ -149,7 +149,7 @@ class KasbonController extends Controller
                 ->sum('amount');
 
             // sisa kasbon = total kasbon - total pembayaran + kasbon baru
-            $sisaKasbon = $totalKasbon - $totalPembayaran + $kasbon->amount;
+            $saldoKasbon = $totalKasbon - $totalPembayaran + $kasbon->amount;
 
             // --- Insert ke mutasi_kasbon ---
             DB::table('mutasi_kasbon')->insert([
@@ -157,7 +157,7 @@ class KasbonController extends Controller
                 'employee_id' => $employeeId,
                 'amount' => $kasbon->amount,
                 'description' => $kasbon->description,
-                'sisa_kasbon' => $sisaKasbon,
+                'saldo_kasbon' => $saldoKasbon,
                 'type' => 'Kasbon',
                 'created_at' => now()
             ]);

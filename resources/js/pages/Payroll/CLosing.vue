@@ -294,7 +294,7 @@ const formatRupiah = (value: number | string, withPrefix: boolean = false): stri
                                                 <span>Potongan</span>
                                                 <input
                                                     type="number"
-                                                    v-if="emp.sisa_kasbon > 0"
+                                                    v-if="emp.saldo_kasbon > 0"
                                                     v-model.number="emp.potongan"
                                                     @change="payroll.updatePotongan(emp.employee_id, emp.potongan)"
                                                     class="w-20 border-b border-gray-300 text-right text-sm focus:border-green-500 focus:outline-none"
@@ -312,7 +312,7 @@ const formatRupiah = (value: number | string, withPrefix: boolean = false): stri
                                             <!-- Sisa Kasbon -->
                                             <div class="col-span-full flex items-center justify-between rounded-md bg-red-50 p-1 font-bold">
                                                 <span>Sisa Kasbon</span>
-                                                <span>{{ Number(emp.sisa_kasbon).toLocaleString() }}</span>
+                                                <span>{{ Number(emp.saldo_kasbon).toLocaleString() }}</span>
                                             </div>
                                         </div>
 
