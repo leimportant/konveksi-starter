@@ -21,8 +21,9 @@ class PayrollController extends Controller
 {
     public function index(Request $request)
     {
-        $start = Carbon::parse($request->start)->startOfDay();
-        $end = Carbon::parse($request->end)->endOfDay();
+        $start = Carbon::parse($request->start, 'Asia/Jakarta')->startOfDay();
+        $end = Carbon::parse($request->end, 'Asia/Jakarta')->endOfDay();
+
         $search = $request->input('search');
         $user = Auth::user();
         $userId = $user->id;
@@ -30,7 +31,7 @@ class PayrollController extends Controller
 
         $query = Payroll::query()
             ->with('employee') // relasi ke pegawai
-            ->with([
+            ->with(relations: [
                 'payrollDetails' => function ($q) {
                     // jika pakai relasi ke PayrollDetail model
                     $q->select('payroll_id', 'data');
@@ -38,14 +39,16 @@ class PayrollController extends Controller
             ])
             ->whereBetween('created_at', [$start, $end])
             ->when($search, function ($q) use ($search) {
-                $q->whereHas(
-                    'employee',
-                    fn($e) =>
+                $q->whereHas('employee', function ($e) use ($search) {
                     $e->where('name', 'like', "%$search%")
-                );
+                        ->orWhere('phone_number', 'like', "%$search%");
+                })
+                    ->orWhereHas('payrollDetails', function ($d) use ($search) {
+                        $d->where('data', 'like', "%$search%");
+                    });
             });
 
-        // ✅ Tambahkan filter employee_id hanya jika bukan owner
+
         if ($employee_status !== 'owner') {
             $query->where('employee_id', $userId);
         }
@@ -54,11 +57,15 @@ class PayrollController extends Controller
 
         // decode JSON detail
         $payrolls->getCollection()->transform(function ($payroll) {
-            if (isset($payroll->details)) {
-                $payroll->details = $payroll->details->map(fn($d) => json_decode($d->data, true));
-            }
+            // ubah relasi payrollDetails → detail
+            $payroll->details = $payroll->payrollDetails->map(fn($d) => json_decode($d->data, true));
+
+            // hapus relasi aslinya biar tidak duplikat
+            unset($payroll->payrollDetails);
+
             return $payroll;
         });
+
 
         return response()->json($payrolls);
     }
@@ -177,9 +184,13 @@ class PayrollController extends Controller
 
     public function slip($id)
     {
-        $payroll = Payroll::with(['employee', 'activityRole', 'payrollDetails' => function ($q) {
-            $q->select('payroll_id', 'data');
-        }])->find($id);
+        $payroll = Payroll::with([
+            'employee',
+            'activityRole',
+            'payrollDetails' => function ($q) {
+                $q->select('payroll_id', 'data');
+            }
+        ])->find($id);
 
         if (isset($payroll->payrollDetails)) {
             $payroll->payrollDetails = $payroll->payrollDetails->map(fn($d) => json_decode($d->data, true));
@@ -200,7 +211,7 @@ class PayrollController extends Controller
 
         foreach ($request->employees as $emp) {
             // ambil first untuk $emp['details'] activity_role_id
-           
+
             $service->closePayroll(
                 employeeId: $emp['employee_id'],
                 activityRoleId: $emp['activity_role_id'],

@@ -6,11 +6,29 @@ import { usePayrollStore, type EmployeePayroll } from '@/stores/usePayrollStore'
 import { Head } from '@inertiajs/vue3';
 import { PrinterCheck } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
-import { onMounted } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 const payroll = usePayrollStore();
-const { employees, startDate, endDate, selectedEmployees } = storeToRefs(payroll);
+const { employees, startDate, endDate } = storeToRefs(payroll);
 const breadcrumbs = [{ title: 'Payroll Management', href: `/payroll` }];
+const hideDetail = ref(true);
+const searchQuery = ref('');
+const debouncedSearchQuery = ref('');
+
+let debounceTimer: ReturnType<typeof setTimeout>;
+const debounce = (func: (...args: any[]) => void, delay: number) => {
+    return (...args: any[]) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func(...args), delay);
+    };
+};
+
+watch(searchQuery, (newValue) => {
+    debounce(() => {
+        debouncedSearchQuery.value = newValue;
+        payroll.loadData(newValue); // Call loadData with the debounced value
+    }, 500)(); // 500ms debounce delay
+});
 
 interface PayrollDetail {
     id: string;
@@ -35,6 +53,10 @@ onMounted(() => {
     payroll.loadData();
 });
 
+watch(debouncedSearchQuery, () => {
+    payroll.loadData(debouncedSearchQuery.value);
+});
+
 const formatDate = (iso?: string): string => {
     if (!iso) return '-';
     // Ambil hanya bagian tanggal (sebelum "T")
@@ -44,35 +66,72 @@ const formatDate = (iso?: string): string => {
     return `${d}/${m}/${y}`; // DD/MM/YYYY
 };
 
-const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string, PayrollDetail[]>> => {
-    if (!emp.details) return {};
+const groupByDateAndModel = (
+  emp: EmployeePayroll
+): Record<string, Record<string, PayrollDetail[]>> => {
+  // ✅ jaga supaya nggak error walau undefined atau nested [[...]]
+  const details = Array.isArray(emp.details)
+    ? emp.details.flat() // flatten nested array
+    : [];
 
-    const grouped: Record<string, Record<string, PayrollDetail[]>> = {};
+  if (!details.length) return {};
 
-    emp.details.forEach((d) => {
-        const date = d.created_at?.split('T')[0] || '-';
-        const model = d.model_desc || '-';
+  const grouped: Record<string, Record<string, PayrollDetail[]>> = {};
 
-        if (!grouped[date]) grouped[date] = {};
-        if (!grouped[date][model]) grouped[date][model] = [];
+  details.forEach((d) => {
+    const date = d.created_at?.split("T")[0] || "-";
+    const model = d.model_desc || "-";
 
-        grouped[date][model].push(d);
+    if (!grouped[date]) grouped[date] = {};
+    if (!grouped[date][model]) grouped[date][model] = [];
+
+    grouped[date][model].push(d);
+  });
+
+  // ✅ sort tanggal descend dan model ascend
+  const sorted: Record<string, Record<string, PayrollDetail[]>> = {};
+  Object.keys(grouped)
+    .sort((a, b) => b.localeCompare(a))
+    .forEach((date) => {
+      sorted[date] = {};
+      Object.keys(grouped[date])
+        .sort()
+        .forEach((model) => {
+          sorted[date][model] = grouped[date][model];
+        });
     });
 
-    // Sort tanggal descend dan model ascend
-    const sorted: Record<string, Record<string, PayrollDetail[]>> = {};
-    Object.keys(grouped)
-        .sort((a, b) => b.localeCompare(a))
-        .forEach((date) => {
-            sorted[date] = {};
-            Object.keys(grouped[date])
-                .sort()
-                .forEach((model) => {
-                    sorted[date][model] = grouped[date][model];
-                });
-        });
+  return sorted;
+};
 
-    return sorted;
+const formatRupiah = (value: number | string, withPrefix: boolean = false): string => {
+    if (value === null || value === undefined || value === '') return '';
+    const numberValue = typeof value === 'string' ? parseFloat(value.replace(/[^\d,-]/g, '').replace(/,/g, '.')) : value;
+    if (isNaN(numberValue)) return '';
+
+    const options: Intl.NumberFormatOptions = {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    };
+
+    if (withPrefix) {
+        options.style = 'currency';
+        options.currency = 'IDR';
+    }
+
+    return new Intl.NumberFormat('id-ID', options).format(numberValue);
+};
+
+// Fungsi sumQty
+const sumQty = (details: PayrollDetail[]) => {
+    return details.reduce((total, item) => total + Number(item.qty), 0);
+};
+
+const sumPrice = (details: any[]): number => {
+    return details.reduce((sum, d) => {
+        const price = d.price_per_unit || d.price || 0;
+        return sum + d.qty * price;
+    }, 0);
 };
 </script>
 
@@ -105,6 +164,21 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                 <Button @click="payroll.loadData" size="sm" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
                     Tampilkan
                 </Button>
+                <input
+                    type="text"
+                    placeholder="Cari"
+                    v-model="searchQuery"
+                    class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring"
+                />
+                  <div class="ml-4 flex items-center">
+                    <label class="relative inline-flex cursor-pointer items-center">
+                        <input id="detailToggle" type="checkbox" v-model="hideDetail" class="peer sr-only" />
+                        <div
+                            class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"
+                        ></div>
+                        <span class="ml-3 text-sm">Detail</span>
+                    </label>
+                </div>
             </div>
 
             <!-- Table -->
@@ -113,7 +187,7 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                     <TableHeader>
                         <TableRow class="bg-gray-50">
                             <TableHead>Karyawan</TableHead>
-                            <TableHead>Detail</TableHead>
+                            <TableHead  v-if="hideDetail">Detail</TableHead>
                         </TableRow>
                     </TableHeader>
 
@@ -123,15 +197,7 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                                 <!-- Employee info -->
                                 <TableCell class="align-top">
                                     <div class="flex items-center justify-between rounded bg-gray-200 p-2 font-bold dark:bg-gray-700">
-                                        <!-- Checkbox -->
-                                        <input
-                                            type="checkbox"
-                                            :checked="selectedEmployees.includes(emp.employee_id)"
-                                            @change="() => payroll.toggleSelect(emp.employee_id)"
-                                            class="mr-2 h-4 w-4"
-                                        />
-
-                                        <!-- Nama -->
+                                                    <!-- Nama -->
                                         <span class="flex-1 text-sm font-bold text-gray-800">
                                             {{ emp.employee?.name }}
                                         </span>
@@ -152,12 +218,7 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                                     <!-- Informasi angka -->
 
                                     <div :class="['grid text-[11px] text-gray-700 sm:grid-cols-2 sm:gap-x-4']">
-                                        <div class="flex justify-between">
-                                            <span>Qty</span>
-
-                                            <span class="font-bold text-gray-800">{{ emp.total_qty }}</span>
-                                        </div>
-
+         
                                         <div class="flex justify-between">
                                             <span>Upah</span>
 
@@ -192,11 +253,12 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                                         </div>
 
                                         <!-- Tombol aksi -->
-                                        <div class="mt-2 flex gap-2">
+                                        <div class="mt-2 p-2 flex gap-2">
+
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="icon"
-                                                class="hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                class="flex flex-1 items-center justify-center gap-2 rounded-md bg-green-600 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
                                                 @click="$inertia.visit(`/payroll/${emp.id}/view`)"
                                             >
                                                 <PrinterCheck class="h-4 w-4" />
@@ -207,7 +269,7 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                                 </TableCell>
 
                                 <!-- Rincian Aktivitas (Detail) -->
-                                <TableCell class="p-0 align-top sm:p-2">
+                                <TableCell class="p-0 align-top sm:p-2"  v-if="hideDetail">
                                     <table class="w-full text-xs">
                                         <template v-for="(models, date) in groupByDateAndModel(emp)" :key="date">
                                             <!-- Header tanggal -->
@@ -217,16 +279,38 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
 
                                             <!-- Loop model -->
                                             <template v-for="(details, model) in models" :key="model">
-                                                <tr class="bg-blue-50 font-semibold">
-                                                    <td colspan="4" class="px-3 py-2">🧵 Model: {{ model }}</td>
-                                                </tr>
+                                               <tr class="bg-blue-50 font-semibold px-3 mp-2">
+                                                        <td colspan="5" class="px-3 py-2">🧵 Model: {{ model }}</td>
+                                                    </tr>
+                                                 <tr class="bg-gray-100 font-semibold text-gray-600 dark:bg-gray-700">
+                                                        <td class="w-1/3 p-2 text-left">Size - Variant</td>
+                                                        <td class="w-1/6 p-2 text-right">Qty</td>
+                                                        <td class="w-1/6 p-2 text-right">Price</td>
+                                                        <td class="w-1/3 p-2 text-right">Total Price</td>
+                                                    </tr>
                                                 <!-- Loop detail data -->
-                                                <tr v-for="d in details" :key="d.id" class="border-b bg-white">
-                                                    <td class="p-2">{{ d.size_id }} - {{ d.variant }}</td>
-                                                    <td class="p-2 text-right">
-                                                        {{ Number(d.qty).toLocaleString() }}
-                                                    </td>
-                                                </tr>
+                                                 <tr v-for="d in details" :key="d.id" class="border-b bg-white">
+                                                        <td class="p-2">{{ d.size_id }} - {{ d.variant }}</td>
+                                                        <td class="p-2 text-right">
+                                                            {{ Number(d.qty).toLocaleString() }}
+                                                        </td>
+                                                        <td class="p-2 text-right">
+                                                            {{ formatRupiah(d.price || 0) }}
+                                                        </td>
+                                                        <td class="p-2 text-right font-semibold">
+                                                            {{ formatRupiah(d.qty * (d.price || 0)) }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="bg-blue-100 font-bold">
+                                                        <td class="p-2 text-right">Total :</td>
+                                                        <td class="p-2 text-right">
+                                                            {{ sumQty(details) }}
+                                                        </td>
+                                                        <td></td>
+                                                        <td class="p-2 text-right">
+                                                            {{ formatRupiah(sumPrice(details)) }}
+                                                        </td>
+                                                    </tr>
                                             </template>
                                         </template>
 

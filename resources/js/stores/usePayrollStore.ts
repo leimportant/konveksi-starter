@@ -87,11 +87,15 @@ export const usePayrollStore = defineStore("payroll", () => {
     totalMeal: employees.value.reduce((s, e) => s + e.uang_makan, 0),
   }));
 
-    const loadData = async () => {
+    const loadData = async (searchQuery?: string) => {
     if (isLoading.value) return;
     isLoading.value = true;
 
     if (!startDate.value || !endDate.value) return;
+
+    if (searchQuery !== undefined) {
+      search.value = searchQuery;
+    }
 
     try {
       const res = await axios.get("/api/payroll", {
@@ -172,6 +176,7 @@ const closeSingle = async (emp: EmployeePayroll) => {
         activity_role_id: d.activity_role_id,
         variant: d.variant,
         qty: d.qty,
+        price: d.price,
         model_desc: d.model_desc,
         created_at: d.created_at,
       }));
@@ -255,6 +260,7 @@ const closePayroll = async () => {
             variant: d.variant,
             activity_role_id: d.activity_role_id,
             qty: d.qty,
+            price: d.price,
             model_desc: d.model_desc,
             created_at: d.created_at,
           })),
