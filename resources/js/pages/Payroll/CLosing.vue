@@ -15,9 +15,7 @@ const filteredEmployees = computed(() => {
     if (!searchQuery.value) {
         return employees.value;
     }
-    return employees.value.filter((emp) =>
-        emp.employee_name?.toLowerCase().includes(searchQuery.value.toLowerCase()),
-    );
+    return employees.value.filter((emp) => emp.employee_name?.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 const hideDetail = ref(true);
 
@@ -84,6 +82,12 @@ const sumQty = (details: PayrollDetail[]) => {
     return details.reduce((total, item) => total + Number(item.qty), 0);
 };
 
+const sumPrice = (details: any[]): number => {
+    return details.reduce((sum, d) => {
+        const price = d.price_per_unit || d.price || 0;
+        return sum + d.qty * price;
+    }, 0);
+};
 
 // --- PERBAIKAN: Mengubah Computed menjadi Function ---
 // Fungsi ini sekarang menerima objek karyawan (emp) dan TIDAK bergantung pada props.
@@ -119,9 +123,9 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
 
     const grouped: Record<string, Record<string, PayrollDetail[]>> = {};
 
-    emp.details.forEach(d => {
-        const date = d.created_at?.split("T")[0] || "-";
-        const model = d.model_desc || "-";
+    emp.details.forEach((d) => {
+        const date = d.created_at?.split('T')[0] || '-';
+        const model = d.model_desc || '-';
 
         if (!grouped[date]) grouped[date] = {};
         if (!grouped[date][model]) grouped[date][model] = [];
@@ -131,20 +135,40 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
 
     // Sort tanggal descend dan model ascend
     const sorted: Record<string, Record<string, PayrollDetail[]>> = {};
-    Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(date => {
-        sorted[date] = {};
-        Object.keys(grouped[date]).sort().forEach(model => {
-            sorted[date][model] = grouped[date][model];
+    Object.keys(grouped)
+        .sort((a, b) => b.localeCompare(a))
+        .forEach((date) => {
+            sorted[date] = {};
+            Object.keys(grouped[date])
+                .sort()
+                .forEach((model) => {
+                    sorted[date][model] = grouped[date][model];
+                });
         });
-    });
 
     return sorted;
 };
 
+const formatRupiah = (value: number | string, withPrefix: boolean = false): string => {
+    if (value === null || value === undefined || value === '') return '';
+    const numberValue = typeof value === 'string' ? parseFloat(value.replace(/[^\d,-]/g, '').replace(/,/g, '.')) : value;
+    if (isNaN(numberValue)) return '';
+
+    const options: Intl.NumberFormatOptions = {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    };
+
+    if (withPrefix) {
+        options.style = 'currency';
+        options.currency = 'IDR';
+    }
+
+    return new Intl.NumberFormat('id-ID', options).format(numberValue);
+};
 </script>
 
 <template>
-
     <Head title="Payroll Management" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="space-y-4 p-6">
@@ -152,25 +176,34 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-2">
                 <div class="flex flex-col">
                     <label class="mb-1 text-xs font-medium">Tanggal Mulai</label>
-                    <input type="date" v-model.lazy="startDate"
-                        class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring" />
+                    <input
+                        type="date"
+                        v-model.lazy="startDate"
+                        class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring"
+                    />
                 </div>
 
                 <div class="flex flex-col">
                     <label class="mb-1 text-xs font-medium">Tanggal Akhir</label>
-                    <input type="date" v-model.lazy="endDate"
-                        class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring" />
+                    <input
+                        type="date"
+                        v-model.lazy="endDate"
+                        class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring"
+                    />
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <Button @click="payroll.loadPayrollData" size="sm"
-                    class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                <Button @click="payroll.loadPayrollData" size="sm" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
                     Tampilkan
                 </Button>
 
-                <input type="text" placeholder="Cari Karyawan" v-model.lazy="searchQuery"
-                    class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring" />
+                <input
+                    type="text"
+                    placeholder="Cari Karyawan"
+                    v-model.lazy="searchQuery"
+                    class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring"
+                />
 
                 <!-- <Button @click="shareAllSlips" size="sm" variant="outline" :disabled="selectedEmployees.length === 0"
           class="rounded text-sm bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
@@ -179,16 +212,19 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
             </div>
 
             <div class="flex items-center gap-2">
-                <Button @click="payroll.closePayroll" :disabled="selectedEmployees.length === 0"
-                    class="bg-green-600 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50">
+                <Button
+                    @click="payroll.closePayroll"
+                    :disabled="selectedEmployees.length === 0"
+                    class="bg-green-600 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
                     <CheckCircle class="h-4 w-4" /> Bayar ({{ selectedEmployees.length }})
                 </Button>
                 <div class="ml-4 flex items-center">
                     <label class="relative inline-flex cursor-pointer items-center">
                         <input id="detailToggle" type="checkbox" v-model="hideDetail" class="peer sr-only" />
                         <div
-                            class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white">
-                        </div>
+                            class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"
+                        ></div>
                         <span class="ml-3 text-sm">Detail</span>
                     </label>
                 </div>
@@ -208,71 +244,73 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
                         <template v-for="emp in filteredEmployees" :key="emp.employee_id">
                             <TableRow class="bg-white align-top hover:bg-gray-50">
                                 <!-- Employee info -->
-                                <TableCell class="align-top">
-                                    <div
-                                        class="border rounded-lg bg-white shadow-sm p-3 mb-2 transition hover:shadow-md">
+                                <TableCell class="align-top sm:p-2">
+                                    <div class="rounded-lg border bg-white p-2 shadow-sm transition hover:shadow-md">
                                         <!-- Header: Checkbox + Name + Status -->
-                                        <div class="flex items-center justify-between mb-2">
+                                        <div class="mb-2 flex items-center justify-between">
                                             <div class="flex items-center gap-2">
-                                                <input type="checkbox"
+                                                <input
+                                                    type="checkbox"
                                                     :checked="selectedEmployees.includes(emp.employee_id)"
                                                     @change="() => payroll.toggleSelect(emp.employee_id)"
-                                                    class="h-4 w-4 accent-green-500" />
-                                                <span class="text-sm font-semibold text-gray-900">{{ emp.employee_name
-                                                    }}</span>
+                                                    class="h-4 w-4 accent-green-500"
+                                                />
+                                                <span class="text-sm font-semibold text-gray-900">{{ emp.employee_name }}</span>
                                             </div>
 
-                                            <span :class="[
-                                                'rounded-full px-2 py-0.5 text-xs font-semibold capitalize',
-                                                emp.status === 'closed'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-yellow-100 text-yellow-800'
-                                            ]">
+                                            <span
+                                                :class="[
+                                                    'rounded-full px-2 py-0.5 text-xs font-semibold capitalize',
+                                                    emp.status === 'closed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800',
+                                                ]"
+                                            >
                                                 {{ emp.status }}
                                             </span>
                                         </div>
 
                                         <!-- Informasi angka -->
-                                        <div :class="[
-                                            'grid gap-1 text-sm text-gray-700',
-                                            hideDetail ? 'grid-cols-1' : 'sm:grid-cols-2 md:grid-cols-3'
-                                        ]">
-                                            <div class="flex justify-between items-center">
+                                        <div
+                                            :class="[
+                                                'grid gap-1 text-sm text-gray-700',
+                                                hideDetail ? 'grid-cols-1' : 'sm:grid-cols-2 md:grid-cols-3',
+                                            ]"
+                                        >
+                                            <div class="flex items-center justify-between">
                                                 <span>Qty</span>
                                                 <span class="font-semibold text-gray-900">{{ emp.total_qty }}</span>
                                             </div>
 
-                                            <div class="flex justify-between items-center">
+                                            <div class="flex items-center justify-between">
                                                 <span>Upah</span>
-                                                <span class="font-semibold text-gray-900">{{
-                                                    Number(emp.total_upah).toLocaleString() }}</span>
+                                                <span class="font-semibold text-gray-900">{{ Number(emp.total_upah).toLocaleString() }}</span>
                                             </div>
 
-                                            <div class="flex justify-between items-center">
+                                            <div class="flex items-center justify-between">
                                                 <span>Makan</span>
-                                                <span class="font-semibold text-gray-900">{{
-                                                    Number(emp.uang_makan).toLocaleString() }}</span>
+                                                <span class="font-semibold text-gray-900">{{ Number(emp.uang_makan).toLocaleString() }}</span>
                                             </div>
 
-                                            <div class="flex justify-between items-center">
+                                            <div class="flex items-center justify-between">
                                                 <span>Potongan</span>
-                                                <input type="number" v-if="emp.sisa_kasbon > 0" v-model.number="emp.potongan"
+                                                <input
+                                                    type="number"
+                                                    v-if="emp.sisa_kasbon > 0"
+                                                    v-model.number="emp.potongan"
                                                     @change="payroll.updatePotongan(emp.employee_id, emp.potongan)"
-                                                    class="w-20 text-right text-sm border-b border-gray-300 focus:border-green-500 focus:outline-none" />
-                                                
+                                                    class="w-20 border-b border-gray-300 text-right text-sm focus:border-green-500 focus:outline-none"
+                                                />
+
                                                 <span v-else class="font-semibold text-gray-900">0</span>
                                             </div>
 
                                             <!-- Total Gaji -->
-                                            <div
-                                                class="col-span-full flex justify-between items-center bg-green-50 rounded-md p-1 font-bold">
+                                            <div class="col-span-full flex items-center justify-between rounded-md bg-green-50 p-1 font-bold">
                                                 <span>Total Gaji</span>
                                                 <span>{{ Number(emp.total_gaji).toLocaleString() }}</span>
                                             </div>
 
                                             <!-- Sisa Kasbon -->
-                                            <div
-                                                class="col-span-full flex justify-between items-center bg-red-50 rounded-md p-1 font-bold">
+                                            <div class="col-span-full flex items-center justify-between rounded-md bg-red-50 p-1 font-bold">
                                                 <span>Sisa Kasbon</span>
                                                 <span>{{ Number(emp.sisa_kasbon).toLocaleString() }}</span>
                                             </div>
@@ -280,9 +318,12 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
 
                                         <!-- Tombol aksi -->
                                         <div class="mt-2 flex gap-2">
-                                            <Button variant="outline" @click="payroll.closeSingle(emp)"
+                                            <Button
+                                                variant="outline"
+                                                @click="payroll.closeSingle(emp)"
                                                 :disabled="emp.status === 'closed'"
-                                                class="flex-1 flex items-center justify-center gap-2 rounded-md bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                                                class="flex flex-1 items-center justify-center gap-2 rounded-md bg-green-600 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
                                                 <DollarSign class="h-4 w-4" v-if="emp.status !== 'closed'" />
                                                 <CheckCircle class="h-4 w-4" v-else />
                                                 Bayar
@@ -293,48 +334,56 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
 
                                 <!-- Rincian Aktivitas (Detail) -->
                                 <TableCell class="p-0 align-top sm:p-2" v-if="hideDetail">
-                                    <table class="w-full text-xs">
-                                        <template v-for="(models, date) in groupByDateAndModel(emp)" :key="date">
-                                            <!-- Header tanggal -->
-                                            <tr class="bg-gray-200 font-bold dark:bg-gray-700">
-                                                <td colspan="4" class="px-3 py-2">📅 {{ formatDate(date) }}</td>
-                                            </tr>
-
-                                            <!-- Loop model -->
-                                            <template v-for="(details, model) in models" :key="model">
-                                                <tr class="bg-blue-50 font-semibold">
-                                                    <td colspan="4" class="px-3 py-2">🧵 Model: {{ model }}</td>
+                                    <div class="pr-4">
+                                        <table class="w-full text-xs">
+                                            <template v-for="(models, date) in groupByDateAndModel(emp)" :key="date">
+                                                <tr class="bg-gray-200 font-bold dark:bg-gray-700">
+                                                    <td colspan="4" class="px-3 py-2">📅 {{ formatDate(date) }}</td>
                                                 </tr>
 
-                                                <!-- Header kolom -->
-                                                <!-- <tr class="font-semibold text-gray-600">
-                                                    <td class="p-2 text-left">Size - Variant</td>
-                                                    <td class="p-2 text-right">Qty</td>
-                                                </tr> -->
+                                                <template v-for="(details, model) in models" :key="model">
+                                                    <tr class="bg-blue-50 font-semibold">
+                                                        <td colspan="5" class="px-3 py-2">🧵 Model: {{ model }}</td>
+                                                    </tr>
 
-                                                <!-- Loop detail data -->
-                                                <tr v-for="d in details" :key="d.id" class="border-b bg-white">
-                                                    <td class="p-2">{{ d.size_id }} - {{ d.variant }}</td>
-                                                    <td class="p-2 text-right">
-                                                        {{ Number(d.qty).toLocaleString() }}
-                                                    </td>
-                                                </tr>
+                                                    <tr class="bg-gray-100 font-semibold text-gray-600 dark:bg-gray-700">
+                                                        <td class="w-1/3 p-2 text-left">Size - Variant</td>
+                                                        <td class="w-1/6 p-2 text-right">Qty</td>
+                                                        <td class="w-1/6 p-2 text-right">Price</td>
+                                                        <td class="w-1/3 p-2 text-right">Total Price</td>
+                                                    </tr>
 
-                                                <!-- Total per model  {{ model }} -->
-                                                <tr class="bg-blue-100 font-bold">
-                                                    <td class="p-2 text-right">Total </td>
-                                                    <td class="p-2 text-right">{{ sumQty(details).toLocaleString() }}
-                                                    </td>
-                                                </tr>
+                                                    <tr v-for="d in details" :key="d.id" class="border-b bg-white">
+                                                        <td class="p-2">{{ d.size_id }} - {{ d.variant }}</td>
+                                                        <td class="p-2 text-right">
+                                                            {{ Number(d.qty).toLocaleString() }}
+                                                        </td>
+                                                        <td class="p-2 text-right">
+                                                            {{ formatRupiah(d.price || 0) }}
+                                                        </td>
+                                                        <td class="p-2 text-right font-semibold">
+                                                            {{ formatRupiah(d.qty * (d.price || 0)) }}
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr class="bg-blue-100 font-bold">
+                                                        <td class="p-2 text-right">Total :</td>
+                                                        <td class="p-2 text-right">
+                                                            {{ sumQty(details) }}
+                                                        </td>
+                                                        <td></td>
+                                                        <td class="p-2 text-right">
+                                                            {{ formatRupiah(sumPrice(details)) }}
+                                                        </td>
+                                                    </tr>
+                                                </template>
                                             </template>
-                                        </template>
 
-                                        <!-- Jika kosong -->
-                                        <tr v-if="!emp.details?.length">
-                                            <td colspan="4" class="p-4 text-center text-gray-500">Tidak ada data rincian
-                                                aktivitas.</td>
-                                        </tr>
-                                    </table>
+                                            <tr v-if="!emp.details?.length">
+                                                <td colspan="4" class="p-2 text-center text-gray-500">Tidak ada data rincian aktivitas.</td>
+                                            </tr>
+                                        </table>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         </template>
@@ -344,8 +393,7 @@ const groupByDateAndModel = (emp: EmployeePayroll): Record<string, Record<string
 
             <!-- Bulk close -->
             <div class="flex justify-end">
-                <Button @click="payroll.closePayroll" :disabled="selectedEmployees.length === 0"
-                    class="bg-green-600 text-white">
+                <Button @click="payroll.closePayroll" :disabled="selectedEmployees.length === 0" class="bg-green-600 text-white">
                     Close Selected ({{ selectedEmployees.length }})
                 </Button>
             </div>
