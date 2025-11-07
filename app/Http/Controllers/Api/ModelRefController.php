@@ -310,13 +310,10 @@ class ModelRefController extends Controller
                 $query->whereDate('start_date', '<=', $request->end_date);
             }
 
-            if ($request->filled( 'is_close') != '-') {
-                $query->where('is_close',  $request->is_close);
+            if ($request->has('is_close') && $request->is_close !== '-' && $request->is_close !== '') {
+                $query->where('is_close', $request->is_close);
             }
 
-            $sortField = $request->get('sort_field', 'created_at');
-            $sortOrder = $request->get('sort_order', 'desc');
-            $query->orderBy($sortField, $sortOrder);
 
             $perPage = $request->get('per_page', 50);
             $models = $query->with('sizes')->orderBy('created_at', 'desc')->paginate($perPage);
