@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class KasbonController extends Controller
 {
@@ -153,6 +154,7 @@ class KasbonController extends Controller
 
             // --- Insert ke mutasi_kasbon ---
             DB::table('mutasi_kasbon')->insert([
+                'id' => Str::uuid()->toString(),
                 'kasbon_id' => $kasbon->id,
                 'employee_id' => $employeeId,
                 'amount' => $kasbon->amount,
