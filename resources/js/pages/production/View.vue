@@ -76,7 +76,7 @@ onMounted(fetchData);
           Hasil Produksi
           <!-- <span v-if="activityRole"> - {{ activityRole?.name }}</span> -->
         </h1>
-        <div class="hidden print:block">Printed on: {{ new Date().toLocaleDateString() }}</div>
+        <div class="hidden print:block">Printed on: {{ new Date().toLocaleDateString('id-ID') }}</div>
       </div>
 
       <!-- Production Info -->
@@ -91,7 +91,7 @@ onMounted(fetchData);
 
           <div class="text-gray-500 dark:text-gray-400 font-medium">Tanggal</div>
           <div class="text-gray-900 dark:text-white font-semibold">
-            {{ production?.created_at ? new Date(production.created_at).toLocaleDateString('en-GB') : '-' }}
+            {{ production?.created_at ? new Date(production.created_at).toLocaleDateString('id-ID') : '-' }}
           </div>
 
           <div class="text-gray-500 dark:text-gray-400 font-medium">Harga</div>

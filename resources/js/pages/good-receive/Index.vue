@@ -128,7 +128,7 @@ const handleDelete = async (id: number) => {
                 <template v-else>-</template>
               </TableCell>
               <TableCell class="px-4 py-2 text-gray-600">
-                {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }}
+                {{ item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : '-' }}
               </TableCell>
               <TableCell class="px-4 py-2 text-center">
                 <div class="flex justify-center gap-2">

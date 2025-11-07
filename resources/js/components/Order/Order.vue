@@ -69,7 +69,7 @@ const formatCurrency = (value: number) => {
     <div class="mb-4">
       <p class="text-gray-600">Total Pembayaran: {{ formatCurrency(order.total_amount) }}</p>
       <p class="text-gray-600">Payment Method: {{ order.payment_method }}</p>
-      <p class="text-gray-600">Tanggal: {{ new Date(order.created_at).toLocaleDateString() }}</p>
+      <p class="text-gray-600">Tanggal: {{ new Date(order.created_at).toLocaleDateString('id-ID') }}</p>
     </div>
 
     <div class="mb-4">

@@ -120,7 +120,7 @@ onMounted(() => {
                                                 :is="kas.type === 'Kasbon' ? CreditCard : CheckCircle"
                                                 class="h-4 w-4 text-blue-500"
                                             />
-                                            <span>{{ kas.created_at ? new Date(kas.created_at).toLocaleDateString() : '-' }}</span>
+                                            <span>{{ kas.created_at ? new Date(kas.created_at).toLocaleDateString('id-ID') : '-' }}</span>
                                         </div>
 
                                         <!-- Description on new line, slightly bolder -->
