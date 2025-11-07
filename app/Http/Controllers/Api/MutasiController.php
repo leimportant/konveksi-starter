@@ -18,6 +18,11 @@ class MutasiController extends Controller
     {
         \Log::info('Mutation function hit', $request->all());
         Log::info("aa");
+
+        $user = Auth::user();
+        $userId = $user->id;
+        $employee_status = $user->employee_status ?? "staff";
+
         $employeeId = $request->input('employee_id');
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
@@ -43,8 +48,8 @@ class MutasiController extends Controller
             ->orderBy('m.created_at', 'desc');
 
         // ✅ Filter employee
-        if ($employeeId) {
-            $query->where('m.employee_id', $employeeId);
+        if ($$employee_status !== "owner") {
+            $query->where('m.employee_id', $userId);
         }
 
         // ✅ Filter rentang tanggal
