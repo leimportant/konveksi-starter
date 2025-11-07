@@ -148,7 +148,7 @@ onMounted(fetchSlip);
               </tr>
               <tr>
                 <td class="px-3 py-2">Sisa Kasbon</td>
-                <td class="px-3 py-2 text-right">{{ formatRp(currentSlip.sisa_kasbon) }}</td>
+                <td class="px-3 py-2 text-right">{{ formatRp(currentSlip.saldo_kasbon) }}</td>
               </tr>
             </tbody>
           </table>

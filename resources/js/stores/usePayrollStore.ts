@@ -41,7 +41,7 @@ export interface EmployeePayroll {
   potongan: number;
   total_gaji: number;
   net_gaji: number;
-  sisa_kasbon: number;
+  saldo_kasbon: number;
 
   details: PayrollDetail[];
 }
@@ -58,7 +58,7 @@ export interface Payslip {
   uang_makan?: number;
   lembur?: number;
   potongan?: number;
-  sisa_kasbon?: number;
+  saldo_kasbon?: number;
   net_gaji?: number;
   employee?: {
     id: number;
