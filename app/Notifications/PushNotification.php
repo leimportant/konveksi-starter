@@ -55,6 +55,18 @@ class PushNotification extends Notification
             'user_id' => $notifiable->id ?? 'unknown'
         ]);
         
+        $actions = [];
+        if (!empty($this->url)) {
+            $actions[] = [
+                'action' => 'open', // Gunakan action ID yang sesuai dengan SW Anda ('open')
+                'title' => 'View',
+            ];
+            $actions[] = [
+                'action' => 'dismiss',
+                'title' => 'Dismiss',
+            ];
+        }
+
         // Create the base message with required properties
         $message = (new WebPushMessage)
             ->title($this->title)
@@ -66,21 +78,29 @@ class PushNotification extends Notification
             ->requireInteraction(true) // Keep notification visible until user interacts with it
             ->vibrate([100, 50, 100]) // Vibration pattern for Android
             ->data([
-                'url' => $this->url, 
+                'url' => $this->url,
                 'body' => $this->body,
                 'timestamp' => time(),
                 'id' => uniqid('push_')
             ])
-            ->options(['TTL' => 86400]); // 24 hours TTL
+            ->options([
+                'TTL' => 86400,
+                // TAMBAHKAN ACTIONS DI SINI
+                'actions' => $actions,
+                'renotify' => true,
+                'requireInteraction' => true,
+                'vibrate' => [100, 50, 100],
+            ])
+            ->tag('notification-' . md5($this->title . $this->body));
+        // Catatan: Anda sudah memanggil ->tag() dan ->renotify() di atas, tetapi lebih bersih jika dimasukkan di ->options()
 
-        // Add actions if URL is provided
-        if (!empty($this->url)) {
-            $message->action('View', $this->url);
-            $message->action('Dismiss', 'dismiss');
-            $message->data(['action_url' => $this->url]);
-        }
+        // PENTING: Jika Anda menggunakan versi package yang sangat baru, pastikan
+        // Anda menggabungkan semua opsi yang berhubungan dengan notifikasi (seperti actions)
+        // di dalam array $options yang diteruskan ke ->options().
 
         return $message;
+
+
     }
 
 
