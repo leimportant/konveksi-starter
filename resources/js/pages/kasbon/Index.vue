@@ -211,7 +211,7 @@ const handleReject = async (id?: string) => {
               <TableRow>
                 <TableCell class="w-1/4 px-3 py-1 font-medium">Tanggal</TableCell>
                 <TableCell class="px-3 py-1">
-                  {{ kas.created_at ? new Date(kas.created_at).toLocaleDateString() : '-' }}
+                  {{ kas.created_at ? new Date(kas.created_at).toLocaleDateString('id-ID') : '-' }}
                 </TableCell>
               </TableRow>
 

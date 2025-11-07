@@ -110,7 +110,7 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                             <TableCell>{{ transfer.location?.name }}</TableCell>
                             <TableCell>{{ transfer.location_destination?.name }}</TableCell>
                             <TableCell>{{ transfer.sloc_id }}</TableCell>
-                            <TableCell>{{ transfer.created_at ? new Date(transfer.created_at).toLocaleDateString() : '-' }}</TableCell>
+                            <TableCell>{{ transfer.created_at ? new Date(transfer.created_at).toLocaleDateString('id-ID') : '-' }}</TableCell>
                             <TableCell>
                                 <!-- 'Pending','Accept','Reject' -->
                                 <span

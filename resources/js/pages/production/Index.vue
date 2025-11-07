@@ -178,24 +178,24 @@ const handleDelete = async (id: string) => {
         </div>
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-    <div class="flex flex-1 gap-2 items-center"> 
-        
-        <Button @click="$inertia.visit(`/production/${props.activity_role}/create`)"
-            class="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 flex-shrink-0">
-            <Plus class="h-4 w-4" />
-            Tambah Data
-        </Button>
+          <div class="flex flex-1 gap-2 items-center">
 
-        <Input v-model="searchQuery" placeholder="Search..."
-            class="flex-1 rounded-md border border-gray-300 px-3 py-1 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-0"
-            @keyup.enter="fetchData(1)" />
-            
-        <Button @click="fetchData(1)"
-            class="flex-shrink-0 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500">
-            Cari
-        </Button>
-    </div>
-</div>
+            <Button @click="$inertia.visit(`/production/${props.activity_role}/create`)"
+              class="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 flex-shrink-0">
+              <Plus class="h-4 w-4" />
+              Tambah Data
+            </Button>
+
+            <Input v-model="searchQuery" placeholder="Search..."
+              class="flex-1 rounded-md border border-gray-300 px-3 py-1 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-0"
+              @keyup.enter="fetchData(1)" />
+
+            <Button @click="fetchData(1)"
+              class="flex-shrink-0 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+              Cari
+            </Button>
+          </div>
+        </div>
       </div>
 
 
@@ -231,32 +231,32 @@ const handleDelete = async (id: string) => {
                 <tr v-for="item in group.items" :key="item.id"
                   class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                   <td class="whitespace-nowrap px-3 py-2 align-top">
-                    {{ item.created_at ? new Date(item.created_at).toLocaleDateString() : '-' }} <br />
+                    {{ item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : '-' }} <br />
                     {{ item.activity_role?.name || '-' }}
                   </td>
 
                   <td class="whitespace-nowrap px-3 py-2 align-top">
-  <div v-if="item.items?.length"
-    class="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[11px] text-gray-700">
+                    <div v-if="item.items?.length"
+                      class="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[11px] text-gray-700">
 
-    <!-- Loop over items -->
-    <div v-for="(size, index) in item.items" :key="index"
-      class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm">
-      <span>{{ size.size_id }} - {{ size.variant }}</span>
-      <span class="font-semibold">{{ size.qty }}</span>
-    </div>
+                      <!-- Loop over items -->
+                      <div v-for="(size, index) in item.items" :key="index"
+                        class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm">
+                        <span>{{ size.size_id }} - {{ size.variant }}</span>
+                        <span class="font-semibold">{{ size.qty }}</span>
+                      </div>
 
-    <!-- Add total if more than 1 item -->
-    <div v-if="item.items.length > 1"
-      class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm order-t border-gray-300 px-1.5 pt-0.5 mt-0.5 font-semibold text-[11px] text-gray-800">
-      <span>Total</span>
-      <span>{{ item.items.reduce((sum: number, s: any) => sum + Number(s.qty || 0), 0) }}</span>
-    </div>
+                      <!-- Add total if more than 1 item -->
+                      <div v-if="item.items.length > 1"
+                        class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm order-t border-gray-300 px-1.5 pt-0.5 mt-0.5 font-semibold text-[11px] text-gray-800">
+                        <span>Total</span>
+                        <span>{{item.items.reduce((sum: number, s: any) => sum + Number(s.qty || 0), 0)}}</span>
+                      </div>
 
-  </div>
+                    </div>
 
-  <span v-else class="text-xs italic text-gray-400">-</span>
-</td>
+                    <span v-else class="text-xs italic text-gray-400">-</span>
+                  </td>
 
 
                   <td class="truncate px-3 py-2 align-top">
