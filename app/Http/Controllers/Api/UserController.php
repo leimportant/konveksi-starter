@@ -26,16 +26,23 @@ class UserController extends Controller
 
         $query = User::with('roles', 'location')->whereNull('deleted_at');
 
-        if ($request->has('name')) {
-            $query->where('name', 'like', '%' . $request->name . '%')
-                ->orWhere('email', 'like', '%' . $request->name . '%')
-                ->orWhere('phone_number', 'like', '%' . $request->name . '%');
-        }
-
+        // 1. Terapkan batasan untuk non-owner TERLEBIH DAHULU jika diperlukan
+        // Gunakan where (bukan orWhere) untuk memastikan batasan ini selalu ada
         if ($employee_status !== 'owner') {
             $query->where('id', $userId);
         }
 
+        // 2. KELOMPOKKAN klausa pencarian jika ada
+        if ($request->has('name')) {
+            $searchTerm = '%' . $request->name . '%';
+
+            // Menggunakan closure untuk mengelompokkan kondisi OR: (name LIKE ... OR email LIKE ... OR phone_number LIKE ...)
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', $searchTerm)
+                    ->orWhere('email', 'like', $searchTerm)
+                    ->orWhere('phone_number', 'like', $searchTerm);
+            });
+        }
 
         $perPage = $request->input('perPage', 50);
         $users = $query->orderBy('created_at', 'DESC')->paginate($perPage);

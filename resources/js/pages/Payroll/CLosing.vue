@@ -342,7 +342,7 @@ const formatRupiah = (value: number | string, withPrefix: boolean = false): stri
                                                 </tr>
 
                                                 <template v-for="(details, model) in models" :key="model">
-                                                    <tr class="bg-blue-50 font-semibold">
+                                                    <tr class="bg-blue-50 font-semibold px-3 mp-2">
                                                         <td colspan="5" class="px-3 py-2">🧵 Model: {{ model }}</td>
                                                     </tr>
 
