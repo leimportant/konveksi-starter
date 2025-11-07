@@ -1,6 +1,7 @@
 import axios from "axios";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
+import parsePhoneNumber from 'libphonenumber-js'
 
 
 interface PayrollDetail {
@@ -150,6 +151,18 @@ export const usePayrollStore = defineStore("payroll", () => {
     else selectedEmployees.value.splice(i, 1);
   };
 
+  const formatPhoneNumber = (phone: string) => {
+    try {
+      const phoneNumber = parsePhoneNumber(phone, 'ID')
+      if (phoneNumber) {
+        return phoneNumber.format('INTERNATIONAL')
+      }
+    } catch (error) {
+      console.error('Error parsing phone number:', error)
+    }
+    return phone
+  }
+
   // ✅ Close 1 karyawan
 const closeSingle = async (emp: EmployeePayroll) => {
     try {
@@ -199,7 +212,7 @@ ${startDate.value} s/d ${endDate.value}
 Terima kasih ✅
 `;
 
-      const hp = (emp.phone_number ?? "08976640804")
+      const hp = formatPhoneNumber(emp.phone_number ?? "")
         .replace(/[^0-9]/g, "")
         .replace(/^0/, "62"); // 08xx → 628xx
 
@@ -279,7 +292,7 @@ ${startDate.value} s/d ${endDate.value}
 Terima kasih ✅
       `;
 
-      const hp = (e.phone_number ?? "")
+      const hp = formatPhoneNumber(e.phone_number ?? "")
         .replace(/[^0-9]/g, "")
         .replace(/^0/, "62"); // 08xx → 628xx
 
