@@ -48,7 +48,7 @@ class MutasiController extends Controller
             ->orderBy('m.created_at', 'desc');
 
         // ✅ Filter employee
-        if ($$employee_status !== "owner") {
+        if ($employee_status !== "owner") {
             $query->where('m.employee_id', $userId);
         }
 

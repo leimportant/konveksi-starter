@@ -38,8 +38,7 @@ class KasbonController extends Controller
 
         if ($employee_status !== "owner") {
             $query->where(function ($q) use ($userId) {
-                $q->where('created_by', $userId)
-                    ->orWhere('employee_id', $userId);
+                $q->where('employee_id', $userId);
             });
         }
 
