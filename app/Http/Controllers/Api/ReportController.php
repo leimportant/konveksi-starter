@@ -99,7 +99,9 @@ class ReportController extends Controller
             $query->where(function ($q) use ($searchKey) {
                 $q->where('a.description', 'like', "%{$searchKey}%")
                     ->orWhere('b.activity_role_id', 'like', "%{$searchKey}%")
-                    ->orWhere('c.size_id', 'like', "%{$searchKey}%");
+                    ->orWhere('c.size_id', 'like', "%{$searchKey}%")
+                    ->orWhere('d.name', 'like', "%{$searchKey}%")
+                    ->orwhere('e.name',  'like', "%{$searchKey}%");
             });
         }
 
