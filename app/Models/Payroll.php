@@ -31,6 +31,7 @@ class Payroll extends Model
         'period_end',
         'employee_id',
         'status',
+        'total_upah',
         'total_gaji',
         'uang_makan',
         'lembur',
