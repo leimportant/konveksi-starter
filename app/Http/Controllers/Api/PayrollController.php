@@ -323,10 +323,10 @@ class PayrollController extends Controller
 
         foreach ($request->employees as $emp) {
             // ambil first untuk $emp['details'] activity_role_id
-
+             $activityRoleId = (int) data_get($emp, 'details.0.activity_role_id', 0);
             $service->closePayroll(
                 employeeId: $emp['employee_id'],
-                activityRoleId: 0,
+                activityRoleId: $activityRoleId,
                 periodStart: $request->period_start,
                 periodEnd: $request->period_end,
                 totalGaji: $emp['total_gaji'],

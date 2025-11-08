@@ -24,7 +24,7 @@ class PayrollClosingService
 
         try {
             $payrollId = Str::uuid()->toString();
-
+           
             Payroll::updateOrCreate(
                 [
                     'employee_id' => $employeeId,
@@ -33,7 +33,7 @@ class PayrollClosingService
                 ],
                 [
                     'id' => $payrollId,
-                    'activity_role_id' => 0,
+                    'activity_role_id' => $activityRoleId ?? 0, // ✅ gunakan nilai parameter,
                     'payroll_date' => now(),
                     'total_upah' => $totalGaji,
                     'uang_makan' => $uangMakan,
