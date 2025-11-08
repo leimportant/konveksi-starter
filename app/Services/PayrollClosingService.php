@@ -22,29 +22,36 @@ class PayrollClosingService
     ) {
         DB::beginTransaction();
 
+
         try {
-            $payrollId = Str::uuid()->toString();
-           
-            Payroll::updateOrCreate(
-                [
+            $payroll = Payroll::where('employee_id', $employeeId)
+                ->where('period_start', $periodStart)
+                ->where('period_end', $periodEnd)
+                ->first();
+
+            if (!$payroll) {
+                $payroll = new Payroll([
+                    'id' => Str::uuid()->toString(),
                     'employee_id' => $employeeId,
                     'period_start' => $periodStart,
                     'period_end' => $periodEnd,
-                ],
-                [
-                    'id' => $payrollId,
-                    'activity_role_id' => $activityRoleId ?? 0, // ✅ gunakan nilai parameter,
-                    'payroll_date' => now(),
-                    'total_upah' => $totalGaji,
-                    'uang_makan' => $uangMakan,
-                    'lembur' => $lembur,
-                    'potongan' => $potongan,
-                    'status' => 'closed',
-                    'created_by' => Auth::id(),
-                ]
-            );
+                ]);
+            }
 
-            // Simpan detail payroll sebagai JSON
+            $payroll->activity_role_id = $activityRoleId ?? 0;
+            $payroll->payroll_date = now();
+            $payroll->total_upah = $totalGaji;
+            $payroll->uang_makan = $uangMakan;
+            $payroll->lembur = $lembur;
+            $payroll->potongan = $potongan;
+            $payroll->status = 'closed';
+            $payroll->created_by = Auth::id();
+            $payroll->save(); // ✅ pastikan disave dulu
+
+            // Gunakan ID dari record yang benar-benar tersimpan
+            $payrollId = $payroll->id;
+
+            // Simpan detail payroll
             if (!empty($details)) {
                 DB::table('payrolls_detail')->insert([
                     'payroll_id' => $payrollId,
@@ -52,16 +59,26 @@ class PayrollClosingService
                 ]);
             }
 
+            // Gunakan ID dari record yang benar-benar tersimpan
+            $payrollId = $payroll->id;
+
+            // Simpan detail payroll
+            if (!empty($details)) {
+                DB::table('payrolls_detail')->insert([
+                    'payroll_id' => $payrollId,
+                    'data' => json_encode($details, JSON_UNESCAPED_UNICODE),
+                ]);
+            }
             // jika ada potongan
             // masukan kan ke table mutasi
             if ($potongan > 0) {
                 $kasbonId = DB::table('mutasi_kasbon')
-                            ->where('employee_id', $employeeId)
-                            ->where('type', 'Kasbon')
-                            ->whereBetween('created_at', [$periodStart, $periodEnd])
-                            ->orderByDesc('created_at')
-                            ->first()
-                            ->kasbon_id;
+                    ->where('employee_id', $employeeId)
+                    ->where('type', 'Kasbon')
+                    ->whereBetween('created_at', [$periodStart, $periodEnd])
+                    ->orderByDesc('created_at')
+                    ->first()
+                    ->kasbon_id;
 
                 $totalKasbon = DB::table('mutasi_kasbon')
                     ->where('employee_id', $employeeId)
@@ -69,9 +86,9 @@ class PayrollClosingService
                     ->sum('amount');
 
                 $totalPembayaran = DB::table('mutasi_kasbon')
-                        ->where('employee_id', $employeeId)
-                        ->where('type', 'Pembayaran')
-                        ->sum('amount');
+                    ->where('employee_id', $employeeId)
+                    ->where('type', 'Pembayaran')
+                    ->sum('amount');
 
                 $sisaKasbon = $totalKasbon - $totalPembayaran;
 
