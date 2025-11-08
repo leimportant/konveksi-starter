@@ -6,6 +6,7 @@ use App\Models\Payroll;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class PayrollClosingService
 {
@@ -80,7 +81,10 @@ class PayrollClosingService
                 $kasbonId = DB::table('mutasi_kasbon')
                     ->where('employee_id', $employeeId)
                     ->where('type', 'Kasbon')
-                    ->whereBetween('created_at', [$periodStart, $periodEnd])
+                    ->whereBetween('created_at', [
+                        Carbon::parse($periodStart)->startOfDay(),
+                        Carbon::parse($periodEnd)->endOfDay()
+                    ])
                     ->orderByDesc('created_at')
                     ->first()
                     ->kasbon_id;
@@ -114,7 +118,10 @@ class PayrollClosingService
             // Update tr_production status
             DB::table('tr_production')
                 ->where('employee_id', $employeeId)
-                ->whereBetween('created_at', [$periodStart, $periodEnd])
+                ->whereBetween('created_at', [
+                    Carbon::parse($periodStart)->startOfDay(),
+                    Carbon::parse($periodEnd)->endOfDay()
+                ])
                 ->update(['status' => 2]);
 
             DB::commit(); // ✅ commit transaksi jika semua berhasil
