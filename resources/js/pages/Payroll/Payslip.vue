@@ -107,7 +107,7 @@ onMounted(fetchSlip);
             <p class="text-xs text-gray-500">Nama Karyawan</p>
           </div>
           <div>
-            <p class="text-sm font-medium">{{ currentSlip.activity_role?.name || '-' }}</p>
+            <p class="text-sm font-medium">{{ currentSlip.activity_role?.name || 'Staff' }}</p>
             <p class="text-xs text-gray-500">Bagian</p>
           </div>
         </div>
