@@ -296,7 +296,7 @@ const formatRupiah = (value: number | string, withPrefix: boolean = false): stri
                                                     type="number"
                                                     v-if="emp.saldo_kasbon > 0"
                                                     v-model.number="emp.potongan"
-                                                    @change="payroll.updatePotongan(emp.employee_id, emp.potongan)"
+                                                    @input="payroll.updatePotongan(emp.employee_id, emp.potongan)"
                                                     class="w-20 border-b border-gray-300 text-right text-sm focus:border-green-500 focus:outline-none"
                                                 />
 
