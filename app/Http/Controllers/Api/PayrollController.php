@@ -326,7 +326,7 @@ class PayrollController extends Controller
 
             $service->closePayroll(
                 employeeId: $emp['employee_id'],
-                activityRoleId: $emp['activity_role_id'] ?? null,
+                activityRoleId: 0,
                 periodStart: $request->period_start,
                 periodEnd: $request->period_end,
                 totalGaji: $emp['total_gaji'],
