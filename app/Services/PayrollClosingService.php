@@ -62,6 +62,11 @@ class PayrollClosingService
             // Gunakan ID dari record yang benar-benar tersimpan
             $payrollId = $payroll->id;
 
+            // 🧹 Hapus detail lama kalau ada
+            DB::table('payrolls_detail')
+                ->where('payroll_id', $payrollId)
+                ->delete();
+
             // Simpan detail payroll
             if (!empty($details)) {
                 DB::table('payrolls_detail')->insert([
