@@ -141,13 +141,20 @@ export const usePayrollStore = defineStore("payroll", () => {
     }
   };
 
-  const updatePotongan = (id: number, pot: number) => {
-    const emp = employees.value.find((e) => e.employee_id === id);
-    if (emp) {
-      emp.potongan = pot;
-      emp.total_gaji = emp.total_upah + emp.uang_makan + emp.lembur - emp.potongan;
-    }
-  };
+const updatePotongan = (id: number, pot: number) => {
+  const emp = employees.value.find((e) => e.employee_id === id);
+  if (emp) {
+    emp.potongan = Number(String(pot).replace(/[^0-9.-]/g, "")); // hilangkan koma/dot selain angka
+
+    const totalUpah = Number(String(emp.total_upah).replace(/[^0-9.-]/g, ""));
+    const uangMakan = Number(String(emp.uang_makan).replace(/[^0-9.-]/g, ""));
+    const lembur = Number(String(emp.lembur ?? 0).replace(/[^0-9.-]/g, ""));
+    const potongan = Number(String(emp.potongan).replace(/[^0-9.-]/g, ""));
+
+    emp.total_gaji = totalUpah + uangMakan + lembur - potongan;
+  }
+};
+
 
   const toggleSelect = (id: number) => {
     const i = selectedEmployees.value.indexOf(id);
