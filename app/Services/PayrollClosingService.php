@@ -33,7 +33,7 @@ class PayrollClosingService
                 ],
                 [
                     'id' => $payrollId,
-                    'activity_role_id' => $activityRoleId,
+                    'activity_role_id' => $emp['details'][0]['activity_role_id'] ?? 0,
                     'payroll_date' => now(),
                     'total_upah' => $totalGaji,
                     'uang_makan' => $uangMakan,
