@@ -21,6 +21,8 @@ class ProductionController extends Controller
             $user = Auth::user();
             $userId = $user->id;
             $employee_status = $user->employee_status ?? "staff";
+            $status = $request->input('status') ?? 1;
+
 
             \Log::info($employee_status);
 
@@ -28,8 +30,6 @@ class ProductionController extends Controller
             $dateFrom = $request->input('date_from');
             $dateTo = $request->input('date_to');
             $perPage = $request->input('per_page', 50);
-            $sortField = $request->input('sort_field', 'created_at');
-            $sortDir = $request->input('sort_direction', 'desc');
 
             $activityRoleId = match ($activityRole) {
                 "CUTTING" => [1],
@@ -45,6 +45,10 @@ class ProductionController extends Controller
                 ->when(!empty($activityRoleId), function ($q) use ($activityRoleId) {
                     $q->whereIn('activity_role_id', $activityRoleId);
                 })
+                ->when(!empty($status), function ($q) use ($status) {
+                    $q->where('status', $status);
+                })
+                ->whereNull('deleted_at')
                 ->orderBy('created_at', 'DESC');
 
             if ($employee_status !== "owner") {
