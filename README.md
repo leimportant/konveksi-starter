@@ -6,3 +6,6 @@ php8 D:\composer\php7\composer7.phar dump-autoload
 
 php8 D:\composer\php7\composer7.phar require laravel-notification-channels/webpush
 composer require laravel-notification-channels/webpush
+
+
+php8 D:\composer\php7\composer7.phar global require minishlink/web-push
