@@ -36,7 +36,8 @@ class ProductionController extends Controller
                 "SEWING" => [2, 6, 10],
                 "PENGIRIMAN" => [12],
                 "QUALITY_CHECK" => [11],
-                "FINISHING" => [3, 5, 8, 9],
+                "FINISHING" => [3, 8, 9],
+                "PAKING" => [5],
                 "LUBANG_KANCING" => [4],
                 default => [],
             };
