@@ -198,35 +198,25 @@ class ProductionController extends Controller
                 8 => [2, 10],
                 9 => [2, 10],
                 11 => [2, 10],
+                12 => [2, 10],
             ];
 
             $productions = [];
 
             foreach ($activityRoleIds as $activityRoleId) {
+                // === VALIDASI QTY ANTAR PROSES ===
                 if ($activityRoleId != 1) {
-                    $previousRoleIds = $previousRoleMap[$activityRoleId] ?? null;
-                    if (!$previousRoleIds) {
-                        DB::rollBack();
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => "Tidak bisa menentukan proses sebelumnya ($activityRoleId)"
-                        ], 422);
-                    }
 
                     $availableQty = [];
                     $usedQty = [];
 
-                    // a. Ambil qty dari proses sebelumnya
-                    foreach ($previousRoleIds as $previousRoleId) {
-                        $roleIdsToCheck = in_array($previousRoleId, [2, 10]) ? [2, 10] : [$previousRoleId];
+                    if (in_array($activityRoleId, [2, 10])) {
+                        // Special case: sewing group
+                        // Ambil total dari CUTTING (1)
                         $previousProductions = Production::with('items')
                             ->where('model_id', $request->model_id)
-                            ->whereIn('activity_role_id', $roleIdsToCheck)
+                            ->where('activity_role_id', 1)
                             ->get();
-
-                        \Log::info('prev');
-                        \Log::info($previousProductions);
-
 
                         foreach ($previousProductions as $prod) {
                             foreach ($prod->items as $item) {
@@ -234,8 +224,62 @@ class ProductionController extends Controller
                                 $availableQty[$key] = ($availableQty[$key] ?? 0) + $item->qty;
                             }
                         }
+
+                        // Ambil total yang sudah dipakai di jahit + obras (2,10)
+                        $existingProductions = Production::with('items')
+                            ->where('model_id', $request->model_id)
+                            ->whereIn('activity_role_id', [2, 10])
+                            ->get();
+
+                        foreach ($existingProductions as $prod) {
+                            foreach ($prod->items as $item) {
+                                $key = $item->size_id . '-' . $normalizeVariant($item->variant);
+                                $usedQty[$key] = ($usedQty[$key] ?? 0) + $item->qty;
+                            }
+                        }
+                    } else {
+                        // Default case (pakai mapping previousRoleMap)
+                        $previousRoleIds = $previousRoleMap[$activityRoleId] ?? null;
+                        if (!$previousRoleIds) {
+                            DB::rollBack();
+                            return response()->json([
+                                'status' => 'error',
+                                'message' => "Tidak bisa menentukan proses sebelumnya ($activityRoleId)"
+                            ], 422);
+                        }
+
+                        // Ambil qty dari proses sebelumnya
+                        foreach ($previousRoleIds as $previousRoleId) {
+                            $roleIdsToCheck = in_array($previousRoleId, [2, 10]) ? [2, 10] : [$previousRoleId];
+                            $previousProductions = Production::with('items')
+                                ->where('model_id', $request->model_id)
+                                ->whereIn('activity_role_id', $roleIdsToCheck)
+                                ->get();
+
+                            foreach ($previousProductions as $prod) {
+                                foreach ($prod->items as $item) {
+                                    $key = $item->size_id . '-' . $normalizeVariant($item->variant);
+                                    $availableQty[$key] = ($availableQty[$key] ?? 0) + $item->qty;
+                                }
+                            }
+                        }
+
+                        // Ambil qty dari proses saat ini (sudah digunakan)
+                        $roleIdsToCheck = [$activityRoleId];
+                        $existingProductions = Production::with('items')
+                            ->where('model_id', $request->model_id)
+                            ->whereIn('activity_role_id', $roleIdsToCheck)
+                            ->get();
+
+                        foreach ($existingProductions as $prod) {
+                            foreach ($prod->items as $item) {
+                                $key = $item->size_id . '-' . $normalizeVariant($item->variant);
+                                $usedQty[$key] = ($usedQty[$key] ?? 0) + $item->qty;
+                            }
+                        }
                     }
 
+                    // Validasi payload qty
                     if (empty($availableQty)) {
                         DB::rollBack();
                         return response()->json([
@@ -244,21 +288,6 @@ class ProductionController extends Controller
                         ], 422);
                     }
 
-                    // b. Hitung total used qty di role saat ini
-                    $roleIdsToCheck = in_array($activityRoleId, [2, 10]) ? [2, 10] : [$activityRoleId];
-                    $existingProductions = Production::with('items')
-                        ->where('model_id', $request->model_id)
-                        ->whereIn('activity_role_id', $roleIdsToCheck)
-                        ->get();
-
-                    foreach ($existingProductions as $prod) {
-                        foreach ($prod->items as $item) {
-                            $key = $item->size_id . '-' . $normalizeVariant($item->variant);
-                            $usedQty[$key] = ($usedQty[$key] ?? 0) + $item->qty;
-                        }
-                    }
-
-                    // c. Validasi payload qty
                     foreach ($validItems as $item) {
                         $key = $item['size_id'] . '-' . $normalizeVariant($item['variant']);
                         $sizeId = $item['size_id'];
@@ -268,8 +297,6 @@ class ProductionController extends Controller
                         $used = $usedQty[$key] ?? 0;
 
                         $totalAfterInsert = $used + $requestedQty;
-
-                        \Log::info("VALIDASI [$key] => available:$available used:$used request:$requestedQty totalAfter:$totalAfterInsert");
 
                         if ($totalAfterInsert > $available) {
                             DB::rollBack();
@@ -281,7 +308,7 @@ class ProductionController extends Controller
                     }
                 }
 
-                // Simpan data
+                // === SIMPAN DATA PRODUKSI ===
                 $production = Production::create([
                     'id' => 'PRD-' . uniqid(),
                     'model_id' => $request->model_id,
@@ -314,6 +341,7 @@ class ProductionController extends Controller
                 'message' => 'Production created successfully',
                 'data' => count($productions) === 1 ? $productions[0] : $productions
             ], 201);
+
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -323,7 +351,6 @@ class ProductionController extends Controller
             ], 500);
         }
     }
-
 
 
     public function update(Request $request, $id)
