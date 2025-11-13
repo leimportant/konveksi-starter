@@ -111,6 +111,14 @@ const submit = async () => {
       taskIds = 4; // Assuming 'LUBANG_KANCING' maps to activity role ID 1
     }
 
+    if (props.activity_role == 'PENGIRIMAN') {
+      taskIds = 12;
+    }
+
+    if (props.activity_role == "QUALITY_CHECK") {
+      taskIds = 11;
+    }
+
    const employeeId =
   typeof selectedEmployeeId.value === 'number'
     ? selectedEmployeeId.value
