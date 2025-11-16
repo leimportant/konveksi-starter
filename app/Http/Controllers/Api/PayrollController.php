@@ -37,16 +37,20 @@ class PayrollController extends Controller
                     $q->select('payroll_id', 'data');
                 }
             ])
-            ->whereBetween('created_at', [$start, $end])
-            ->when($search, function ($q) use ($search) {
+            ->whereBetween('created_at', [$start, $end]);
+
+       if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
                 $q->whereHas('employee', function ($e) use ($search) {
                     $e->where('name', 'like', "%$search%")
-                        ->orWhere('phone_number', 'like', "%$search%");
+                    ->orWhere('phone_number', 'like', "%$search%");
                 })
-                    ->orWhereHas('payrollDetails', function ($d) use ($search) {
-                        $d->where('data', 'like', "%$search%");
-                    });
+                ->orWhereHas('payrollDetails', function ($d) use ($search) {
+                    $d->where('data', 'like', "%$search%");
+                });
             });
+        }
+
 
 
         if ($employee_status !== 'owner') {
