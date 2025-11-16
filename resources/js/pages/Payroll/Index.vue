@@ -26,8 +26,12 @@ const debounce = (func: (...args: any[]) => void, delay: number) => {
 watch(searchQuery, (newValue) => {
     debounce(() => {
         debouncedSearchQuery.value = newValue;
-        payroll.loadData(newValue); // Call loadData with the debounced value
-    }, 500)(); // 500ms debounce delay
+        if (newValue && newValue.trim()) {
+            payroll.loadData(newValue);
+        } else {
+            payroll.loadData();
+        }
+    }, 500)();
 });
 
 interface PayrollDetail {
@@ -43,14 +47,10 @@ interface PayrollDetail {
 }
 
 onMounted(() => {
-    startDate.value = '2025-11-01';
+    startDate.value = '2025-10-30';
     endDate.value = '2025-11-16';
 
     payroll.loadData();
-});
-
-watch(debouncedSearchQuery, () => {
-    payroll.loadData(debouncedSearchQuery.value);
 });
 
 const formatDate = (iso?: string): string => {
