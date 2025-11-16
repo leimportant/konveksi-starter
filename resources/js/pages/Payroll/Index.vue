@@ -43,12 +43,8 @@ interface PayrollDetail {
 }
 
 onMounted(() => {
-    const today = new Date();
-    const sixDaysAgo = new Date();
-    sixDaysAgo.setDate(today.getDate() - 6);
-
-    startDate.value = sixDaysAgo.toISOString().split('T')[0];
-    endDate.value = today.toISOString().split('T')[0];
+    startDate.value = '2025-11-01';
+    endDate.value = '2025-11-16';
 
     payroll.loadData();
 });
@@ -161,15 +157,15 @@ const sumPrice = (details: any[]): number => {
             </div>
 
             <div class="flex items-center gap-2">
-                <Button @click="payroll.loadData" size="sm" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
-                    Tampilkan
-                </Button>
                 <input
                     type="text"
                     placeholder="Cari"
                     v-model="searchQuery"
                     class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring"
                 />
+                <Button @click="payroll.loadData" size="sm" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                    Tampilkan
+                </Button>
                   <div class="ml-4 flex items-center">
                     <label class="relative inline-flex cursor-pointer items-center">
                         <input id="detailToggle" type="checkbox" v-model="hideDetail" class="peer sr-only" />
