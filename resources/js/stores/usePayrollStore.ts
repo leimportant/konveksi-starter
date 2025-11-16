@@ -93,16 +93,16 @@ export const usePayrollStore = defineStore("payroll", () => {
 
     if (!startDate.value || !endDate.value) return;
 
-    if (searchQuery !== undefined) {
-      search.value = searchQuery;
-    }
+   if (searchQuery !== undefined) {
+    search.value = searchQuery || "";
+  }
 
     try {
       const res = await axios.get("/api/payroll", {
         params: {
           start: startDate.value,
           end: endDate.value,
-          search: search.value,
+          search: search.value ?? "",
         },
       });
 
