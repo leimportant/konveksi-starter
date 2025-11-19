@@ -19,8 +19,8 @@ class User extends Authenticatable
 
     protected $keyType = 'int';
 
-    public  $incrementing = false;
-    
+    public $incrementing = false;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -76,21 +76,37 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function ($model) {
+
+            // Lock table to avoid race condition
+            \DB::statement('LOCK TABLES users WRITE');
+
             if (!empty($model->google_id)) {
-                // Untuk user dari Google: mulai dari 30001
-                $lastGoogleUser = self::whereNotNull('google_id')->orderBy('id', 'desc')->first();
-                $model->id = $lastGoogleUser && $lastGoogleUser->id >= 30001
+
+                // Untuk user Google (30001++)
+                $lastGoogleUser = self::whereNotNull('google_id')
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                $model->id = $lastGoogleUser
                     ? $lastGoogleUser->id + 1
                     : 30001;
+
             } else {
-                // Untuk user dari admin/manual: mulai dari 10001
-                $lastManualUser = self::whereNull('google_id')->orderBy('id', 'desc')->first();
-                $model->id = $lastManualUser && $lastManualUser->id >= 10001
-                    ? $lastManualUser->id + 1
+
+                // Untuk user manual (10001++)
+                $lastManualUser = self::whereNull('google_id')
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                $model->id = $lastManualUser
+                    ? max($lastManualUser->id + 1, 10001)
                     : 10001;
             }
+
+            \DB::statement('UNLOCK TABLES');
         });
     }
+
 
     /**
      * Check if user has a specific role
