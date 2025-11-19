@@ -83,7 +83,7 @@ class User extends Authenticatable
             if (!empty($model->google_id)) {
 
                 // Untuk user Google (30001++)
-                $lastGoogleUser = self::whereNotNull('google_id')
+                $lastGoogleUser = self::withTrashed()->whereNotNull('google_id')
                     ->orderBy('id', 'desc')
                     ->first();
 
@@ -94,7 +94,7 @@ class User extends Authenticatable
             } else {
 
                 // Untuk user manual (10001++)
-                $lastManualUser = self::whereNull('google_id')
+                $lastManualUser = self::withTrashed()->whereNull('google_id')
                     ->orderBy('id', 'desc')
                     ->first();
 
