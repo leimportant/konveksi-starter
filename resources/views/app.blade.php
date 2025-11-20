@@ -44,5 +44,6 @@
 
   <body class="font-sans antialiased">
     @inertia
+    <div id="radix-vue-teleports"></div>
   </body>
 </html>

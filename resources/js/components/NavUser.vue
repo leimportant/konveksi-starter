@@ -13,27 +13,39 @@ const { isMobile, state } = useSidebar();
 </script>
 
 <template>
-    <SidebarMenu class="flex flex-col justify-between h-full">
-        <SidebarMenuItem>
-            <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                    <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                        <UserInfo :user="user" />
-                        <ChevronsUpDown class="ml-auto size-4" />
-                    </SidebarMenuButton>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-  class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg max-h-[50vh] overflow-y-auto"
-  :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
-  align="end"
-  :side-offset="2"
-  :avoid-collisions="true"
-  :collision-padding="8"
->
-  <UserMenuContent :user="user" />
-</DropdownMenuContent>
+  <SidebarMenu class="flex flex-col justify-between h-full">
+    <SidebarMenuItem>
 
-            </DropdownMenu>
-        </SidebarMenuItem>
-    </SidebarMenu>
+      <!-- FIX: modal=false agar Dropdown bisa muncul di dalam sidebar -->
+      <DropdownMenu :modal="false">
+
+        <!-- FIX: trigger harus memakai wrapper inline-flex -->
+        <DropdownMenuTrigger as-child>
+          <div class="inline-flex w-full">
+            <SidebarMenuButton
+              size="lg"
+              class="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <UserInfo :user="user" />
+              <ChevronsUpDown class="ml-auto size-4" />
+            </SidebarMenuButton>
+          </div>
+        </DropdownMenuTrigger>
+
+        <!-- FIX: teleport ke body + z-index tinggi -->
+        <DropdownMenuContent
+          teleport="body"
+          class="z-[9999] w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg shadow-lg border bg-popover max-h-[60vh] overflow-y-auto"
+          :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
+          align="end"
+          :side-offset="4"
+          :avoid-collisions="true"
+          :collision-padding="12"
+        >
+          <UserMenuContent :user="user" />
+        </DropdownMenuContent>
+
+      </DropdownMenu>
+    </SidebarMenuItem>
+  </SidebarMenu>
 </template>

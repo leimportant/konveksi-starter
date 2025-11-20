@@ -14,7 +14,7 @@ import PrimeVue from 'primevue/config';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import Toast from 'vue-toastification';
-import { ZiggyVue } from 'ziggy-js';
+// import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 
 import Order from './components/Order/Order.vue';
@@ -62,7 +62,6 @@ createInertiaApp({
     // Core plugins
     vueApp
       .use(plugin)
-      .use(ZiggyVue) // Ziggy di-load otomatis dari @routes di Blade
       .use(Toast)
       .use(createPinia())
       .use(PrimeVue)
