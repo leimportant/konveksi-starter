@@ -26,6 +26,14 @@
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
     <style>
+      html, body {
+  font-size: 14px;  /* default kecil */
+}
+
+* {
+  font-size: inherit;
+}
+
       html {
         background-color: oklch(1 0 0);
       }
