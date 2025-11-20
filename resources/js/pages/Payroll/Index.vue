@@ -29,7 +29,7 @@ watch(searchQuery, (newValue) => {
         if (newValue && newValue.trim()) {
             payroll.loadData(newValue);
         } else {
-            payroll.loadData();
+            payroll.loadData('')
         }
     }, 500)();
 });
@@ -160,7 +160,7 @@ const sumPrice = (details: any[]): number => {
                 <input
                     type="text"
                     placeholder="Cari"
-                    v-model="searchQuery"
+                    v-model.lazy="searchQuery"
                     class="rounded-md border px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring"
                 />
                 <Button @click="payroll.loadData" size="sm" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
