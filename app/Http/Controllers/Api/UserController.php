@@ -39,6 +39,7 @@ class UserController extends Controller
             // Menggunakan closure untuk mengelompokkan kondisi OR: (name LIKE ... OR email LIKE ... OR phone_number LIKE ...)
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', $searchTerm)
+                    ->orWhere('id', 'like', $searchTerm)
                     ->orWhere('email', 'like', $searchTerm)
                     ->orWhere('phone_number', 'like', $searchTerm);
             });
