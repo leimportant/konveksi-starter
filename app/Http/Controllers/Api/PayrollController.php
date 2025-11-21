@@ -117,11 +117,11 @@ class PayrollController extends Controller
 
                 return [
                     'activity_role' => $r->activityRole?->name,
-                    'activity_role_id' => $r->activity_role_id,
+                    'activity_role_id' => $r->activity_role_id ?? 0,
                     'model_desc' => $r->model?->description,
-                    'variant' => $d->variant,
-                    'size_id' => $d->size_id,
-                    'qty' => $d->qty,
+                    'variant' => $d->variant ?? "",
+                    'size_id' => $d->size_id ?? "",
+                    'qty' => $d->qty ?? 0,
                     'price' => $price,
                     'total' => $subtotal,
                     'created_at' => $r->created_at,
@@ -169,8 +169,8 @@ class PayrollController extends Controller
 
         return [
             'employee_id' => $employeeId,
-            'employee_name' => $employee->name,
-            'phone_number' => $employee->phone_number,
+            'employee_name' => $employee->name ?? "",
+            'phone_number' => $employee->phone_number ?? "",
             'status' => 'open',
             'total_qty' => $totalQty,
             'total_upah' => $totalUpah,
@@ -329,12 +329,12 @@ class PayrollController extends Controller
             // ambil first untuk $emp['details'] activity_role_id
              $activityRoleId = (int) data_get($emp, 'details.0.activity_role_id', 0);
             $service->closePayroll(
-                employeeId: $emp['employee_id'],
-                activityRoleId: $activityRoleId,
-                periodStart: $request->period_start,
-                periodEnd: $request->period_end,
-                totalGaji: $emp['total_gaji'],
-                uangMakan: $emp['uang_makan'],
+                employeeId: $emp['employee_id'] ?? null,
+                activityRoleId: $activityRoleId ?? null,
+                periodStart: $request->period_start ?? null,
+                periodEnd: $request->period_end ?? null,
+                totalGaji: $emp['total_gaji'] ?? 0,
+                uangMakan: $emp['uang_makan'] ?? 0,
                 lembur: $emp['lembur'] ?? 0,
                 potongan: $emp['potongan'] ?? 0,
                 details: $emp['details'] ?? []
