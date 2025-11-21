@@ -169,7 +169,7 @@ class PayrollController extends Controller
 
         return [
             'employee_id' => $employeeId,
-            'employee_name' => $employee->name ?? "",
+            'employee_name' => $employee->name ?? $employeeId,
             'phone_number' => $employee->phone_number ?? "",
             'status' => 'open',
             'total_qty' => $totalQty,
