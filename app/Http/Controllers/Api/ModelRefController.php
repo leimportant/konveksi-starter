@@ -24,16 +24,16 @@ class ModelRefController extends Controller
             'estimation_qty' => 'required|integer|min:1',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
-            'sizes' => 'required|array|min:1',
+            'sizes' => 'nullable|array',
             'sizes.*.size_id' => 'required|exists:mst_size,id',
             'sizes.*.variant' => 'required|string|max:100',
             'sizes.*.qty' => 'required|integer|min:1',
             'sizes.*.price_store' => 'required|numeric|min:1',
             'sizes.*.price_grosir' => 'required|numeric|min:1',
-            'activity' => 'required|array|min:1',
+            'activity' => 'nullable|array',
             'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
             'activity.*.price' => 'required|numeric|min:1',
-            'modelMaterials' => 'required|array|min:1',
+            'modelMaterials' => 'nullable|array',
             'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
             'modelMaterials.*.qty' => 'required|numeric|min:1',
             'modelMaterials.*.price' => 'required|numeric|min:1',
@@ -61,29 +61,32 @@ class ModelRefController extends Controller
             // jika sizes ada
             // Store sizes
             if ($request->has('sizes')) {
-                foreach ($validated['sizes'] as $size) {
-                    $model->sizes()->create([
-                        'size_id' => $size['size_id'] ?? "",
-                        'variant' => $size['variant'] ?? "",
-                        'qty' => $size['qty'] ?? 1,
-                        'price_store' => $size['price_store'] ?? 0,
-                        'price_grosir' => $size['price_grosir'] ?? 0,
-                        'created_by' => Auth::id(),
-                        'updated_by' => Auth::id()
-                    ]);
+                if (!empty($validated['sizes'])) {
+                    foreach ($validated['sizes'] as $size) {
+                        $model->sizes()->create([
+                            'size_id' => $size['size_id'] ?? "",
+                            'variant' => $size['variant'] ?? "",
+                            'qty' => $size['qty'] ?? 1,
+                            'price_store' => $size['price_store'] ?? 0,
+                            'price_grosir' => $size['price_grosir'] ?? 0,
+                            'created_by' => Auth::id(),
+                            'updated_by' => Auth::id()
+                        ]);
+                    }
                 }
-
             }
 
             // Store activities
             if ($request->has('activity')) {
-                foreach ($validated['activity'] as $activity) {
-                    $model->activities()->create([
-                        'activity_role_id' => $activity['activity_role_id'],
-                        'price' => $activity['price'] ?? 0,
-                        'created_by' => Auth::id(),
-                        'updated_by' => Auth::id()
-                    ]);
+                if (!empty($validated['activity'])) {
+                    foreach ($validated['activity'] as $activity) {
+                        $model->activities()->create([
+                            'activity_role_id' => $activity['activity_role_id'],
+                            'price' => $activity['price'] ?? 0,
+                            'created_by' => Auth::id(),
+                            'updated_by' => Auth::id()
+                        ]);
+                    }
                 }
             }
 
@@ -109,12 +112,14 @@ class ModelRefController extends Controller
             }
 
 
-            if (!empty($validated['sizes'])) {
-                ProductService::createProduct(
-                    $model,
-                    $validated['sizes'],
-                    $request
-                );
+            if ($request->has('sizes')) {
+                if (!empty($validated['sizes'])) {
+                    ProductService::createProduct(
+                        $model,
+                        $validated['sizes'],
+                        $request
+                    );
+                }
             }
             
 
@@ -195,15 +200,15 @@ class ModelRefController extends Controller
             'estimation_price_pcs' => 'nullable|numeric|min:0',
             'estimation_qty' => 'required|integer|min:1',
             'start_date' => 'required|date',
-            'sizes' => 'required|array|min:1',
+            'sizes' => 'nullable|array',
             'sizes.*.size_id' => 'required|exists:mst_size,id',
             'sizes.*.qty' => 'required|integer|min:1',
             'sizes.*.price_store' => 'required|numeric|min:1',
             'sizes.*.price_grosir' => 'required|numeric|min:1',
-            'activity' => 'required|array|min:1',
+            'activity' => 'nullable|array',
             'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
             'activity.*.price' => 'required|numeric|min:1',
-            'modelMaterials' => 'required|array|min:1',
+            'modelMaterials' => 'nullable|array',
             'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
             'modelMaterials.*.qty' => 'required|numeric|min:1',
             'modelMaterials.*.price' => 'required|numeric|min:1',
@@ -236,28 +241,32 @@ class ModelRefController extends Controller
             ]);
 
             // Update sizes - gunakan forceDelete untuk memastikan record lama terhapus
-            $model->sizes()->forceDelete();
-            foreach ($request->sizes as $size) {
-                $model->sizes()->create([
-                    'size_id' => $size['size_id'] ?? "",
-                    'variant' => $size['variant'] ?? "",
-                    'qty' => $size['qty'] ?? 1,
-                    'price_store' => $size['price_store'] ?? 0,
-                    'price_grosir' => $size['price_grosir'] ?? 0,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id()
-                ]);
+            if (!empty($request->sizes)) {
+                $model->sizes()->forceDelete();
+                foreach ($request->sizes as $size) {
+                    $model->sizes()->create([
+                        'size_id' => $size['size_id'] ?? "",
+                        'variant' => $size['variant'] ?? "",
+                        'qty' => $size['qty'] ?? 1,
+                        'price_store' => $size['price_store'] ?? 0,
+                        'price_grosir' => $size['price_grosir'] ?? 0,
+                        'created_by' => Auth::id(),
+                        'updated_by' => Auth::id()
+                    ]);
+                }
             }
 
             // Update activities - gunakan forceDelete untuk memastikan record lama terhapus
-            $model->activities()->forceDelete();
-            foreach ($request->activity as $activity) {
-                $model->activities()->create([
-                    'activity_role_id' => $activity['activity_role_id'] ?? 1,
-                    'price' => $activity['price'] ?? 0,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id()
-                ]);
+            if (!empty($request->activity)) {
+                $model->activities()->forceDelete();
+                foreach ($request->activity as $activity) {
+                    $model->activities()->create([
+                        'activity_role_id' => $activity['activity_role_id'] ?? 1,
+                        'price' => $activity['price'] ?? 0,
+                        'created_by' => Auth::id(),
+                        'updated_by' => Auth::id()
+                    ]);
+                }
             }
 
             if (!empty($request->modelMaterials)) {
@@ -282,12 +291,13 @@ class ModelRefController extends Controller
 
             }
 
-
-            ProductService::createProduct(
-                $model,
-                $request->sizes,
-                $request
-            );
+            if (!empty($request->sizes)) {
+                ProductService::createProduct(
+                    $model,
+                    $request->sizes,
+                    $request
+                );
+            }
 
 
             DB::commit();
