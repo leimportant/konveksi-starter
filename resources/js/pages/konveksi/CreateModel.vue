@@ -285,29 +285,12 @@ const validateBeforeSubmit = () => {
     valid = false;
   }
 
-  if (!form.category_id) {
-    errors.value.category_id = ['Kategori wajib diisi'];
+  if (!form.category_id) {    errors.value.category_id = ['Kategori wajib diisi'];
     toast.error('Kategori wajib diisi');
     valid = false;
   }
 
-  if (sizeItems.value.length === 0) {
-    errors.value.sizes = ['Data ukuran minimal 1'];
-    toast.error('Data Size minimal 1');
-    valid = false;
-  }
 
-  if (activityItems.value.length === 0) {
-    errors.value.activity = ['Data aktivitas minimal 1'];
-    toast.error('Data Activity minimal 1');
-    valid = false;
-  }
-
-  if (modelMaterials.value.length === 0) {
-    errors.value.modelMaterials = ['Data material minimal 1'];
-    toast.error('Data Material minimal 1');
-    valid = false;
-  }
 
   return valid;
 };
