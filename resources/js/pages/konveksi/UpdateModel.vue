@@ -224,31 +224,6 @@ const validateBeforeSubmit = () => {
     valid = false;
   }
 
-  if (!form.estimation_price_pcs || form.estimation_price_pcs < 0) {
-    errors.value.estimation_price_pcs = ['Estimasi harga harus angka dan >= 0'];
-    valid = false;
-  }
-
-  if (!form.estimation_qty || form.estimation_qty < 1) {
-    errors.value.estimation_qty = ['Estimasi qty harus angka dan >= 1'];
-    valid = false;
-  }
-
-  if (sizeItems.value.length === 0) {
-    errors.value.sizes = ['Data ukuran minimal 1'];
-    valid = false;
-  }
-
-  if (activityItems.value.length === 0) {
-    errors.value.activity = ['Data aktivitas minimal 1'];
-    valid = false;
-  }
-
-  if (modelMaterials.value.length === 0) {
-    errors.value.modelMaterials = ['Data material minimal 1'];
-    valid = false;
-  }
-
   return valid;
 };
 

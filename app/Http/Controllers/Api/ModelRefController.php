@@ -57,53 +57,66 @@ class ModelRefController extends Controller
                 'updated_by' => Auth::id()
             ]);
 
+
+            // jika sizes ada
             // Store sizes
-            foreach ($validated['sizes'] as $size) {
-                $model->sizes()->create([
-                    'size_id' => $size['size_id'] ?? "",
-                    'variant' => $size['variant'] ?? "",
-                    'qty' => $size['qty'] ?? 1,
-                    'price_store' => $size['price_store'] ?? 0,
-                    'price_grosir' => $size['price_grosir'] ?? 0,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id()
-                ]);
+            if ($request->has('sizes')) {
+                foreach ($validated['sizes'] as $size) {
+                    $model->sizes()->create([
+                        'size_id' => $size['size_id'] ?? "",
+                        'variant' => $size['variant'] ?? "",
+                        'qty' => $size['qty'] ?? 1,
+                        'price_store' => $size['price_store'] ?? 0,
+                        'price_grosir' => $size['price_grosir'] ?? 0,
+                        'created_by' => Auth::id(),
+                        'updated_by' => Auth::id()
+                    ]);
+                }
+
             }
 
             // Store activities
-            foreach ($validated['activity'] as $activity) {
-                $model->activities()->create([
-                    'activity_role_id' => $activity['activity_role_id'],
-                    'price' => $activity['price'] ?? 0,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id()
-                ]);
-            }
-
-            if (!empty($validated['modelMaterials'])) {
-                foreach ($validated['modelMaterials'] as $index => $modelMaterial) {
-                    $productId = is_array($modelMaterial['product_id'])
-                        ? $modelMaterial['product_id']['id'] ?? null
-                        : $modelMaterial['product_id'];
-
-                    $model->modelMaterial()->create([
-                        'product_id' => $productId,
-                        'item' => $index + 1,
-                        'remark' => $modelMaterial['remark'] ?? null,
-                        'qty' => $modelMaterial['qty'] ?? 1,
-                        'price' => $modelMaterial['price'] ?? 0,
-                        'uom_id' => $modelMaterial['uom_id'] ?? null,
+            if ($request->has('activity')) {
+                foreach ($validated['activity'] as $activity) {
+                    $model->activities()->create([
+                        'activity_role_id' => $activity['activity_role_id'],
+                        'price' => $activity['price'] ?? 0,
                         'created_by' => Auth::id(),
                         'updated_by' => Auth::id()
                     ]);
                 }
             }
 
-            ProductService::createProduct(
-                $model,                    
-                $validated['sizes'],      
-                $request                 
-            );
+            if ($request->has('modelMaterials')) {
+                if (!empty($validated['modelMaterials'])) {
+                    foreach ($validated['modelMaterials'] as $index => $modelMaterial) {
+                        $productId = is_array($modelMaterial['product_id'])
+                            ? $modelMaterial['product_id']['id'] ?? null
+                            : $modelMaterial['product_id'];
+
+                        $model->modelMaterial()->create([
+                            'product_id' => $productId,
+                            'item' => $index + 1,
+                            'remark' => $modelMaterial['remark'] ?? null,
+                            'qty' => $modelMaterial['qty'] ?? 1,
+                            'price' => $modelMaterial['price'] ?? 0,
+                            'uom_id' => $modelMaterial['uom_id'] ?? null,
+                            'created_by' => Auth::id(),
+                            'updated_by' => Auth::id()
+                        ]);
+                    }
+                }
+            }
+
+
+            if (!empty($validated['sizes'])) {
+                ProductService::createProduct(
+                    $model,
+                    $validated['sizes'],
+                    $request
+                );
+            }
+            
 
             // Store documents
 
@@ -270,10 +283,10 @@ class ModelRefController extends Controller
             }
 
 
-             ProductService::createProduct(
-                $model,                    
-                $request->sizes,      
-                $request                 
+            ProductService::createProduct(
+                $model,
+                $request->sizes,
+                $request
             );
 
 
