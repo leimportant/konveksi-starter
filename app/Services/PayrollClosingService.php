@@ -23,95 +23,90 @@ class PayrollClosingService
     ) {
         DB::beginTransaction();
 
-
         try {
-            $payroll = Payroll::where('employee_id', $employeeId)
-                ->where('period_start', $periodStart)
-                ->where('period_end', $periodEnd)
-                ->first();
 
-            if (!$payroll) {
-                $payroll = new Payroll([
-                    'id' => Str::uuid()->toString(),
-                    'employee_id' => $employeeId,
-                    'period_start' => $periodStart,
-                    'period_end' => $periodEnd,
-                ]);
+            // 🔹 Simpan / update header payroll
+            $payroll = Payroll::firstOrNew([
+                'employee_id'  => $employeeId,
+                'period_start' => $periodStart,
+                'period_end'   => $periodEnd,
+            ]);
+
+            if (!$payroll->exists) {
+                $payroll->id = Str::uuid()->toString();
             }
 
             $payroll->activity_role_id = $activityRoleId ?? 0;
-            $payroll->payroll_date = now();
-            $payroll->total_upah = $totalGaji;
-            $payroll->uang_makan = $uangMakan;
-            $payroll->lembur = $lembur;
-            $payroll->potongan = $potongan;
-            $payroll->status = 'closed';
-            $payroll->created_by = Auth::id();
-            $payroll->save(); // ✅ pastikan disave dulu
+            $payroll->payroll_date     = now();
+            $payroll->total_upah       = $totalGaji;
+            $payroll->uang_makan       = $uangMakan;
+            $payroll->lembur           = $lembur;
+            $payroll->potongan         = $potongan;
+            $payroll->status           = 'closed';
+            $payroll->created_by       = Auth::id();
+            $payroll->save();
 
-            // Gunakan ID dari record yang benar-benar tersimpan
             $payrollId = $payroll->id;
 
-            // Simpan detail payroll
-            if (!empty($details)) {
-                DB::table('payrolls_detail')->insert([
-                    'payroll_id' => $payrollId,
-                    'data' => json_encode($details, JSON_UNESCAPED_UNICODE),
-                ]);
-            }
-
-            // Gunakan ID dari record yang benar-benar tersimpan
-            $payrollId = $payroll->id;
-
-            // 🧹 Hapus detail lama kalau ada
+            // 🔹 Simpan detail payroll (replace lama)
             DB::table('payrolls_detail')
                 ->where('payroll_id', $payrollId)
                 ->delete();
 
-            // Simpan detail payroll
             if (!empty($details)) {
                 DB::table('payrolls_detail')->insert([
                     'payroll_id' => $payrollId,
-                    'data' => json_encode($details, JSON_UNESCAPED_UNICODE),
+                    'data'       => json_encode($details, JSON_UNESCAPED_UNICODE),
                 ]);
             }
-            // jika ada potongan
-            // masukan kan ke table mutasi
+
+            // 🔹 Jika ada potongan payroll → masukkan mutasi pembayaran kasbon
             if ($potongan > 0) {
+
+                // Ambil kasbon_id terakhir untuk reference
                 $kasbonId = DB::table('mutasi_kasbon')
                     ->where('employee_id', $employeeId)
                     ->where('type', 'Kasbon')
                     ->orderByDesc('created_at')
-                    ->first()
-                    ->kasbon_id;
+                    ->limit(1)
+                    ->value('kasbon_id');
 
-                $totalKasbon = DB::table('mutasi_kasbon')
-                    ->where('employee_id', $employeeId)
-                    ->where('type', 'Kasbon')
-                    ->sum('amount');
-
-                $totalPembayaran = DB::table('mutasi_kasbon')
-                    ->where('employee_id', $employeeId)
-                    ->where('type', 'Pembayaran')
-                    ->sum('amount');
-
-                $sisaKasbon = $totalKasbon - $totalPembayaran;
-
+                // Masukkan mutasi tanpa saldo dulu (saldo dihitung ulang)
+                $mutasiId = Str::uuid()->toString();
                 DB::table('mutasi_kasbon')->insert([
-                    'id' => Str::uuid()->toString(),
+                    'id'           => $mutasiId,
                     'reference_no' => $payrollId,
-                    'employee_id' => $employeeId,
-                    'kasbon_id' => $kasbonId,
-                    'amount' => $potongan,
-                    'saldo_kasbon' => $sisaKasbon,
-                    'description' => 'Potongan Kasbon',
-                    'type' => 'Pembayaran',
-                    'created_at' => now(),
+                    'employee_id'  => $employeeId,
+                    'kasbon_id'    => $kasbonId,
+                    'amount'       => $potongan,
+                    'saldo_kasbon' => 0, // sementara
+                    'description'  => 'Potongan Kasbon Payroll',
+                    'type'         => 'Pembayaran',
+                    'created_at'   => now(),
                 ]);
+
+                // 🔥 Recalculate saldo kasbon per employee (paling aman)
+                DB::statement("
+                    UPDATE mutasi_kasbon m
+                    JOIN (
+                        SELECT
+                            id,
+                            SUM(
+                                CASE 
+                                    WHEN type = 'Kasbon' THEN amount
+                                    WHEN type = 'Pembayaran' THEN -amount
+                                    ELSE 0
+                                END
+                            ) OVER (PARTITION BY employee_id ORDER BY created_at, id)
+                            AS saldo_baru
+                        FROM mutasi_kasbon
+                        WHERE employee_id = $employeeId
+                    ) x ON m.id = x.id
+                    SET m.saldo_kasbon = x.saldo_baru
+                ");
             }
 
-
-            // Update tr_production status
+            // 🔹 Update status produksi
             DB::table('tr_production')
                 ->where('employee_id', $employeeId)
                 ->whereBetween('created_at', [
@@ -120,10 +115,10 @@ class PayrollClosingService
                 ])
                 ->update(['status' => 2]);
 
-            DB::commit(); // ✅ commit transaksi jika semua berhasil
+            DB::commit();
         } catch (\Exception $e) {
-            \Log::info($e);
-            DB::rollback(); // ❌ rollback jika terjadi error
+            DB::rollback();
+            \Log::error($e);
             throw $e;
         }
     }
