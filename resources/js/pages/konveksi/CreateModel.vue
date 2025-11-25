@@ -274,9 +274,56 @@ const cleanModelMaterials = (materials: any[]) => {
   }));
 };
 
+const validateBeforeSubmit = () => {
+  let valid = true;
+
+  errors.value = {}; // reset errors
+
+  if (!form.description) {
+    errors.value.description = ['Deskripsi wajib diisi'];
+    valid = false;
+  }
+
+  if (!form.category_id) {
+    errors.value.category_id = ['Kategori wajib diisi'];
+    valid = false;
+  }
+
+  if (!form.estimation_price_pcs || form.estimation_price_pcs < 0) {
+    errors.value.estimation_price_pcs = ['Estimasi harga harus angka dan >= 0'];
+    valid = false;
+  }
+
+  if (!form.estimation_qty || form.estimation_qty < 1) {
+    errors.value.estimation_qty = ['Estimasi qty harus angka dan >= 1'];
+    valid = false;
+  }
+
+  if (sizeItems.value.length === 0) {
+    errors.value.sizes = ['Data ukuran minimal 1'];
+    valid = false;
+  }
+
+  if (activityItems.value.length === 0) {
+    errors.value.activity = ['Data aktivitas minimal 1'];
+    valid = false;
+  }
+
+  if (modelMaterials.value.length === 0) {
+    errors.value.modelMaterials = ['Data material minimal 1'];
+    valid = false;
+  }
+
+  return valid;
+};
+
 
 // Submit handler
 const handleSubmit = async () => {
+  if (!validateBeforeSubmit()) {
+    return;
+  }
+
   if (!form.start_date) {
     errors.value.start_date = ['Tanggal mulai harus diisi'];
     toast.error('Tanggal mulai harus diisi');
@@ -290,20 +337,20 @@ const handleSubmit = async () => {
     if (isEditMode.value) {
       await modelStore.updateModel(props.modelData.id, {
         ...form,
-        sizes: sizeItems.value,
-        activity: activityItems.value,
-        documents: uploadedDocuments.value,
-        modelMaterials: cleanModelMaterials(modelMaterials.value),
+        sizes: sizeItems.value || [],
+        activity: activityItems.value || [],
+        documents: uploadedDocuments.value || [],
+        modelMaterials: cleanModelMaterials(modelMaterials.value) || [],
       });
       toast.success('Model berhasil diperbarui');
     } else {
       await modelStore.createModel({
         ...form,
-        sizes: sizeItems.value,
-        activity: activityItems.value,
+        sizes: sizeItems.value || [],
+        activity: activityItems.value || [],
         uniqId: uniqId.value, // Ensure unique ID is sent
-        documents: uploadedDocuments.value,
-        modelMaterials: cleanModelMaterials(modelMaterials.value), // Changed from modelMaterial to modelMaterials
+        documents: uploadedDocuments.value || [],
+        modelMaterials: cleanModelMaterials(modelMaterials.value) || [], // Changed from modelMaterial to modelMaterials
       });
       toast.success('Model berhasil dibuat');
     }
