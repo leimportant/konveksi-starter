@@ -71,10 +71,11 @@ class ActivityGroupController extends Controller
         }
 
         $userRoleIds = $user->roles->pluck('id');
+        $isCreateProduksi = $user->roles->pluck('create_prod');
         $roleRef = ActivityRoleRef::whereIn('role_id', $userRoleIds)->get();
         $datas = ActivityGroup::whereIn('id', $roleRef->pluck('activity_group_id'))->get();
 
-        return response()->json(['data' => $datas], 200);
+        return response()->json(['data' => $datas, 'isCreateProduksi' => $isCreateProduksi], 200);
     }
 
     public function getActivityEmployee($id)

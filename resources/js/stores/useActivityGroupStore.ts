@@ -8,6 +8,7 @@ interface ActivityGroup {
   icon: string
   color: string
   bg_color: string
+  isCreate: string
   sorting: number
 }
 
@@ -22,6 +23,7 @@ export const useActivityGroupStore = defineStore('activityGroup', () => {
   const filterName = ref('')
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const isCreateProduksi = ref<string>('N')
 
   // 🔹 Fetch dengan pagination dan filter
   const fetchActivity = async (page = 1, perPage = 50) => {
@@ -82,6 +84,7 @@ const assignToRole = async (roleId: number, selectedGroups: string[]) => {
     try {
       const response = await axios.get('/api/user-activity-group')
       const data = response.data.data
+      isCreateProduksi.value = response.data.isCreateProduksi;
 
       if (Array.isArray(data)) {
         activityGroups.value = data.sort((a, b) => a.sorting - b.sorting)
@@ -111,6 +114,7 @@ const assignToRole = async (roleId: number, selectedGroups: string[]) => {
     filterName,
     isLoading,
     error,
+    isCreateProduksi,
     // actions
     fetchActivity,
     fetchActivityGroups,
