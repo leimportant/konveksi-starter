@@ -87,7 +87,7 @@ class UserController extends Controller
             'password' => Hash::make($request->phone_number), // default password
             'phone_number' => $request->phone_number,
             'location_id' => $request->location_id,
-            'active' => $request->active ?? true,
+            'active' => $request->active ? 'true' : 'false',
         ]);
 
         // Attach role dengan metadata

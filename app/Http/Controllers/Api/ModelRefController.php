@@ -74,7 +74,7 @@ class ModelRefController extends Controller
             foreach ($validated['activity'] as $activity) {
                 $model->activities()->create([
                     'activity_role_id' => $activity['activity_role_id'],
-                    'price' => $activity['price'],
+                    'price' => $activity['price'] ?? 0,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id()
                 ]);
@@ -90,9 +90,9 @@ class ModelRefController extends Controller
                         'product_id' => $productId,
                         'item' => $index + 1,
                         'remark' => $modelMaterial['remark'] ?? null,
-                        'qty' => $modelMaterial['qty'],
-                        'price' => $modelMaterial['price'],
-                        'uom_id' => $modelMaterial['uom_id'],
+                        'qty' => $modelMaterial['qty'] ?? 1,
+                        'price' => $modelMaterial['price'] ?? 0,
+                        'uom_id' => $modelMaterial['uom_id'] ?? null,
                         'created_by' => Auth::id(),
                         'updated_by' => Auth::id()
                     ]);
@@ -226,11 +226,11 @@ class ModelRefController extends Controller
             $model->sizes()->forceDelete();
             foreach ($request->sizes as $size) {
                 $model->sizes()->create([
-                    'size_id' => $size['size_id'],
-                    'variant' => $size['variant'],
-                    'qty' => $size['qty'],
-                    'price_store' => $size['price_store'],
-                    'price_grosir' => $size['price_grosir'],
+                    'size_id' => $size['size_id'] ?? "",
+                    'variant' => $size['variant'] ?? "",
+                    'qty' => $size['qty'] ?? 1,
+                    'price_store' => $size['price_store'] ?? 0,
+                    'price_grosir' => $size['price_grosir'] ?? 0,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id()
                 ]);
@@ -240,8 +240,8 @@ class ModelRefController extends Controller
             $model->activities()->forceDelete();
             foreach ($request->activity as $activity) {
                 $model->activities()->create([
-                    'activity_role_id' => $activity['activity_role_id'],
-                    'price' => $activity['price'],
+                    'activity_role_id' => $activity['activity_role_id'] ?? 1,
+                    'price' => $activity['price'] ?? 0,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id()
                 ]);
@@ -258,10 +258,10 @@ class ModelRefController extends Controller
                     $model->modelMaterial()->create([
                         'product_id' => $productId,
                         'item' => $index + 1, // Increment the number for each model material
-                        'remark' => $modelMaterial['remark'],
-                        'qty' => $modelMaterial['qty'],
-                        'price' => $modelMaterial['price'],
-                        'uom_id' => $modelMaterial['uom_id'],
+                        'remark' => $modelMaterial['remark'] ?? null,
+                        'qty' => $modelMaterial['qty'] ?? 1,
+                        'price' => $modelMaterial['price'] ?? 0,
+                        'uom_id' => $modelMaterial['uom_id'] ?? null,
                         'created_by' => Auth::id(),
                         'updated_by' => Auth::id()
                     ]);
