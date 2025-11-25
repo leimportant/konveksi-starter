@@ -207,11 +207,11 @@ class ModelRefController extends Controller
             'sizes.*.price_grosir' => 'required|numeric|min:1',
             'activity' => 'nullable|array',
             'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
-            'activity.*.price' => 'required|numeric|min:1',
+            'activity.*.price' => 'nullable|numeric|min:0',
             'modelMaterials' => 'nullable|array',
             'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
             'modelMaterials.*.qty' => 'required|numeric|min:1',
-            'modelMaterials.*.price' => 'required|numeric|min:1',
+            'modelMaterials.*.price' => 'nullable|numeric|min:0',
             'modelMaterials.*.uom_id' => 'required|exists:mst_uom,id',
             'modelMaterials.*.remark' => 'nullable|string|max:255',
         ]);
@@ -298,7 +298,6 @@ class ModelRefController extends Controller
                     $request
                 );
             }
-
 
             DB::commit();
 
