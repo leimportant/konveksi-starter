@@ -343,7 +343,7 @@ Route::get('/order/{order}/reject', function ($order) {
 
 // list order untuk admin
 Route::get('/order-request', function () {
-    return Inertia::render('order/OrderRequest');
+    return Inertia::render('Order/OrderRequest');
 })->name('order.request');
 
 // list order untuk customer

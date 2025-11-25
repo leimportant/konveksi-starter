@@ -76,7 +76,7 @@ watch(() => reportStore.currentPage, fetchReport);
                 <input type="date" v-model="endDate" class="rounded border px-2 py-1" />
                 <input type="text" v-model="searchModel" placeholder="Cari Model" class="rounded border px-2 py-1" />
                 <input type="text" v-model="searchKey" placeholder="Search by product name / variant" class="rounded border px-2 py-1" />
-                <button @click="fetchReport" class="rounded bg-blue-600 px-4 py-1 text-white hover:bg-blue-700">Tampilkan</button>
+                <button @click="fetchReport" class="rounded bg-blue-600 px-4 h-10 py-1 text-white hover:bg-blue-700">Tampilkan</button>
             </div>
 
             <!-- Table -->

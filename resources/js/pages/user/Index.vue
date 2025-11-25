@@ -149,8 +149,8 @@
           <!-- Form Buttons -->
           <div class="flex justify-end gap-2 pt-2">
             <Button variant="outline" @click="showCreateModal = false" class="h-10">Cancel</Button>
-            <Button v-if="!form.id" @click="handleCreate">Submit</Button>
-            <Button v-else @click="handleUpdate">Update</Button>
+            <Button v-if="!form.id" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500" @click="handleCreate">Submit</Button>
+            <Button v-else class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500" @click="handleUpdate">Update</Button>
           </div>
         </div>
       </div>

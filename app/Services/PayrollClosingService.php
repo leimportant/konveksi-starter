@@ -81,10 +81,6 @@ class PayrollClosingService
                 $kasbonId = DB::table('mutasi_kasbon')
                     ->where('employee_id', $employeeId)
                     ->where('type', 'Kasbon')
-                    ->whereBetween('created_at', [
-                        Carbon::parse($periodStart)->startOfDay(),
-                        Carbon::parse($periodEnd)->endOfDay()
-                    ])
                     ->orderByDesc('created_at')
                     ->first()
                     ->kasbon_id;

@@ -127,8 +127,8 @@
 
       <!-- Submit -->
       <div class="flex justify-end gap-2">
-        <Button @click="submit" :disabled="form.processing" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded hover:bg-indigo-700">Simpan</Button>
-        <Button @click="resetForm" variant="outline" class="text-sm px-4 py-2">Batal</Button>
+        <Button @click="submit" :disabled="form.processing" class="bg-indigo-600 h-10 text-white text-sm px-4 py-2 rounded hover:bg-indigo-700">Simpan</Button>
+        <Button @click="resetForm" variant="outline" class="text-sm px-4 h-10 py-2">Batal</Button>
       </div>
     </div>
 

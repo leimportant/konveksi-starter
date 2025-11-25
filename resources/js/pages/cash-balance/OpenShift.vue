@@ -46,12 +46,13 @@
               <Button
                 type="button"
                 variant="outline"
+                class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
                 :disabled="loading"
                 @click="$inertia.visit(route('cash-balance.index'))"
               >
                 Cancel
               </Button>
-              <Button type="submit" :disabled="loading || hasErrors">
+              <Button type="submit" class="h-10" :disabled="loading || hasErrors">
                 <span v-if="loading">
                   <Spinner class="mr-2" />
                   Processing...

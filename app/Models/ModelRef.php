@@ -14,6 +14,7 @@ class ModelRef extends BaseModel
 
     protected $fillable = [
         'description',
+        'category_id',
         'remark',
         'estimation_price_pcs',
         'estimation_qty',

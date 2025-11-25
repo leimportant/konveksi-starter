@@ -160,6 +160,11 @@
                                         <span class="block font-semibold text-gray-900">
                                             {{ formatRupiah(item.price_sell || item.price - (item.discount || 0)) }}
                                         </span>
+                                        <!-- variant -->
+                                         <span class="text-[11px] text-gray-600">Variant: {{
+                                            item.variant || '' }}
+                                        </span>
+
                                         <div v-if="item.discount && item.discount > 0"
                                             class="text-[11px] text-green-600">
                                             Diskon: -{{ formatRupiah(item.discount) }}
@@ -253,7 +258,7 @@
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
                 <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
                     <h3 class="mb-4 text-lg font-semibold">Masukkan Jumlah Bayar</h3>
-                    <input type="number" min="0" v-model.number="paidAmount"
+                    <input type="number" min="0" v-model.number="paidAmount" @keypress.enter="confirmPayment"
                         class="mb-4 w-full rounded border px-3 py-2 text-lg"  placeholder="Masukkan jumlah bayar" />
                     <div class="mb-4 flex justify-between">
                         <div>Total:</div>
@@ -463,7 +468,7 @@
 
                     <!-- Items -->
                     <div v-for="(item, index) in lastOrderItems" :key="item.product_id" class="mb-1">
-                        <p class="font-bold">{{ index + 1 }}. {{ item.product_name }} &nbsp; - {{ item.size_id }}</p>
+                        <p class="font-bold">{{ index + 1 }}. {{ item.product_name }} &nbsp; - {{ item.size_id }} {{ item.variant }}</p>
 
                         <div class="flex justify-between p-1">
                             <span>{{ item.quantity }} x {{ formatRupiah(item.price) }}</span>
@@ -609,7 +614,7 @@ interface OrderItem {
     price: number;
     discount: number;
     price_sell: number;
-    variant: string;
+    variant: string | null;
     uom_id: string;
     size_id: string | null; // Optional size ID
     qty_stock: number;
@@ -715,7 +720,7 @@ async function selectTransactionForPrint(transaction: Transaction) {
             price: Number(item.price),
             discount: Number(item.discount),
             price_sell: Number(item.price_sell),
-            variant: item.variant,
+            variant: item.variant || '',
             uom_id: item.uom_id,
             size_id: item.size_id,
             qty_stock: item.qty_stock,
@@ -1417,7 +1422,8 @@ function doPrintKasir80mm() {
         lines.push(`Customer: ${selectedCustomerName.value || '-'}`);
         lines.push('--------------------------------------');
         lastOrderItems.value.forEach((item) => {
-            lines.push(`${item.product_name}${item.size_id ? ' - ' + item.size_id : ''}`);
+            // tambahkan variant
+            lines.push(`${item.product_name}${item.size_id ? ' - ' + item.size_id : ''} ${item.variant ? ' ' + item.variant : ''}`);
             lines.push(
                 `${item.quantity} x ${formatRupiah(item.price)}${' '.repeat(20 - (item.quantity + '').length - formatRupiah(item.price).length)}${formatRupiah(item.quantity * item.price)}`,
             );
@@ -1462,7 +1468,7 @@ function doPrintKasir80mm() {
       <div style="text-align:center;">${locationAddress.value}</div>
       <div style="text-align:center;">----------------------------------------</div>
       <div style="display:flex; justify-content:space-between;">
-        <span>Kasir   : ${cashierName.value}</span>
+        <span>Kasir   : ${kasirName}</span>
       </div>
       <div style="display:flex; justify-content:space-between;">
         <span>Tanggal : ${lastOrderDate.value}</span>
@@ -1479,7 +1485,7 @@ function doPrintKasir80mm() {
       ${lastOrderItems.value
             .map(
                 (item) => `
-          <div>${item.product_name} - ${item.size_id}</div>
+          <div>${item.product_name} - ${item.size_id} ${item.variant} </div>
           <div style="display:flex; justify-content:space-between;">
             <span>${item.quantity} x ${formatRupiah(item.price)}</span>
             <span>${formatRupiah(item.quantity * item.price)}</span>
@@ -1562,7 +1568,7 @@ function printToRawBT() {
         `Customer: ${selectedCustomerName.value || '-'}`,
         separator,
         ...lastOrderItems.value.flatMap((item) => {
-            const name = item.product_name + ' - ' + item.size_id;
+            const name = item.product_name + ' - ' + item.size_id + (item.variant ? ' ' + item.variant : '');
             const qtyPrice = `${item.quantity} x ${formatRupiah(item.price)}`;
             const total = formatRupiah(item.quantity * item.price);
 

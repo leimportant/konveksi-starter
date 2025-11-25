@@ -449,8 +449,8 @@ async function submitShipping() {
                     class="h-32 w-full resize-none rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="Tulis pesan..." />
                 <div class="flex justify-end gap-2 pt-2">
-                    <Button @click="showMessageModal = false" variant="outline">Batal</Button>
-                    <Button @click="sendMessage" class="bg-indigo-600 text-white">Kirim</Button>
+                    <Button @click="showMessageModal = false" class="h-10" variant="outline">Batal</Button>
+                    <Button @click="sendMessage" class="bg-indigo-600 h-10 text-white">Kirim</Button>
                 </div>
             </div>
         </Modal>

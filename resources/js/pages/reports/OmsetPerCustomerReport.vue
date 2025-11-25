@@ -60,7 +60,7 @@ onMounted(() => {
                 <Input type="date" v-model="startDate" class="w-full sm:w-auto" />
                 <Input type="date" v-model="endDate" class="w-full sm:w-auto" />
                 <Input type="text" v-model="searchKey" placeholder="Cari customer atau produk..." class="flex-1" />
-                <Button @click="fetchReport(1, 10)" class="bg-indigo-600 text-white transition hover:bg-indigo-700"> Tampilkan </Button>
+                <Button @click="fetchReport(1, 10)" class="bg-indigo-600 text-white transition h-10 hover:bg-indigo-700"> Tampilkan </Button>
             </div>
 
             <div v-if="reportStore.loading">Loading...</div>

@@ -38,18 +38,28 @@
             <small class="text-red-500" v-if="errors.description">{{ errors.description[0] }}</small>
           </div>
 
+          <div>
+          <label for="category_id" class="block mb-1 font-medium">Kategori</label>
+          <select v-model="form.category_id" class="w-full text-xs rounded-md border border-input px-3 py-2" required>
+                  <option value="0">Select Category</option>
+                  <option v-for="category in categories" :key="category.id" :value="category.id">
+                    {{ category.name }}
+                  </option>
+                </select>
+          </div>  
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block mb-1 font-medium" for="start_date">Tanggal Mulai</label>
               <DateInput id="start_date" v-model="form.start_date" />
               <small class="text-red-500" v-if="errors.start_date">{{ errors.start_date[0] }}</small>
             </div>
-            <div>
+            <div class="hidden">
               <label class="block mb-1 font-medium" for="end_date">Estimasi Selesai</label>
               <DateInput id="end_date" v-model="form.end_date" />
               <small class="text-red-500" v-if="errors.end_date">{{ errors.end_date[0] }}</small>
             </div>
-            <div class="sm:col-span-2">
+            <div class="sm:col-span-2 hidden">
               <label class="block mb-1 font-medium" for="estimation_price_pcs">Estimasi Harga</label>
               <Input id="estimation_price_pcs" type="number" v-model="form.estimation_price_pcs" />
               <small class="text-red-500" v-if="errors.estimation_price_pcs">{{ errors.estimation_price_pcs[0] }}</small>
@@ -151,19 +161,22 @@ import { useModelStore } from '@/stores/useModelStore';
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
 import ModelMaterialTab from '@/components/ModelMaterialTab.vue';
+import { useCategoryStore } from '@/stores/useCategoryStore';
 import { Inertia } from '@inertiajs/inertia';
+import { storeToRefs } from 'pinia';
 
 // Props for edit mode
 const props = defineProps<{
   modelData?: any;
 }>();
 
+const categoryStore = useCategoryStore();
 // Tabs setup
 const tabs = ['model', 'size', 'activity', 'gambar', 'bahan_dan_biaya', 'hpp'] as const;
 type Tab = typeof tabs[number];
 const activeTab = ref<Tab>('model');
 
-
+const { items: categories } = storeToRefs(categoryStore);
 
 // Determine mode
 const isEditMode = computed(() => !!props.modelData);
@@ -192,6 +205,7 @@ const toast = useToast();
 // Form setup
 const form = useForm({
   description: '',
+  category_id: null as number | null,
   remark: '',
   start_date: null,
   end_date: null,
@@ -202,7 +216,7 @@ const form = useForm({
 const errors = ref<Record<string, string[]>>({});
 
 // Size items
-const sizeItems = ref<{ size_id: string; qty: number, variant: string }[]>([]);
+const sizeItems = ref<{ size_id: string; qty: number, variant: string, price_store: number, price_grosir: number }[]>([]);
 
 // Total production quantity from size items
 const totalProduction = ref<number>(0);
@@ -220,6 +234,8 @@ const modelMaterials = ref<{
 
 // Initialize form for edit
 onMounted(() => {
+
+  Promise.all([categoryStore.fetchCategories()]);
   if (isEditMode.value) {
     form.description = props.modelData.description;
     form.remark = props.modelData.remark;
