@@ -12,6 +12,8 @@ const activityGroupStore = useActivityGroupStore()
 const { isCreateProduksi } = storeToRefs(activityGroupStore)
 
 const handleClick = (code: string, isCreate: string) => {
+  console.log(isCreate);
+
   switch (code) {
     case 'DESIGN':
       router.visit('/konveksi/model/list')
@@ -20,7 +22,7 @@ const handleClick = (code: string, isCreate: string) => {
       router.visit('/purchase-order')
       break
     default:
-      router.visit(`/production/${code}/create/${isCreate || 'N'}`)
+      router.visit(`/production/${code}`)
       break
   }
 }
