@@ -43,8 +43,8 @@
         </div>
 
         <div class="mt-6 flex justify-end gap-2">
-          <Button type="submit" :disabled="loading">Tutup Shift</Button>
-          <Button type="button" variant="outline" @click="$inertia.visit('/cash-balances')">
+          <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500" :disabled="loading">Tutup Shift</Button>
+          <Button type="button" class="h-10" variant="outline" @click="$inertia.visit('/cash-balances')">
             Batal
           </Button>
         </div>

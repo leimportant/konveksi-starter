@@ -22,7 +22,7 @@ const unreadMessageCount = unreadCount.value;
 
 <template>
   <header
-    class="bg-gray-100 fixed-top dark:bg-gray-50 flex h-16 shrink-0 items-center justify-between border-b border-sidebar-border/70 px-4 md:px-6"
+    class="bg-white fixed-top dark:bg-gray-50 flex h-16 shrink-0 items-center justify-between border-b border-sidebar-border/70 px-4 md:px-6"
   >
     <!-- Left: Sidebar & Breadcrumbs -->
     <div class="flex items-center gap-3">

@@ -181,17 +181,17 @@ const handleDelete = async (id: string) => {
           <div class="flex flex-1 gap-2 items-center">
 
             <Button @click="$inertia.visit(`/production/${props.activity_role}/create`)"
-              class="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 flex-shrink-0">
+              class="flex items-center gap-2 rounded-md bg-indigo-600 h-10 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 flex-shrink-0">
               <Plus class="h-4 w-4" />
               Tambah Data
             </Button>
 
             <Input v-model="searchQuery" placeholder="Search..."
-              class="flex-1 rounded-md border border-gray-300 px-3 py-1 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-0"
+              class="flex-1 rounded-md border border-gray-300 px-3 h-10 py-1 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-0"
               @keyup.enter="fetchData(1)" />
 
             <Button @click="fetchData(1)"
-              class="flex-shrink-0 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+              class="flex-shrink-0 rounded-md bg-green-600 px-3 h-10 py-1.5 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500">
               Cari
             </Button>
           </div>
@@ -205,7 +205,7 @@ const handleDelete = async (id: string) => {
       <div v-if="loading" class="py-4 text-center text-sm text-gray-500">Loading...</div>
 
       <div v-else class="space-y-2">
-        <div class="overflow-x-auto rounded-md border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto rounded-md border border-gray-200 dark:border-gray-700 mt-2">
           <table class="min-w-full table-auto text-left text-sm text-gray-800 dark:text-gray-100">
             <thead
               class="bg-gray-100 text-xs font-semibold uppercase text-gray-600 dark:bg-gray-800 dark:text-gray-300">

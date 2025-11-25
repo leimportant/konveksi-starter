@@ -21,6 +21,8 @@ class ModelSize extends Model
         'size_id',
         'variant',
         'qty',
+        'price_store',
+        'price_grosir',
         'created_by',
         'updated_by',
         'deleted_by'
@@ -31,6 +33,8 @@ class ModelSize extends Model
         'size_id' => 'string',
         'variant'  => 'string',
         'qty' => 'integer',
+        'price_store' => 'decimal:0',
+        'price_grosir' => 'decimal:0',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'

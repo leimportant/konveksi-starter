@@ -27,6 +27,16 @@
             <small class="text-destructive" v-if="errors.description">{{ errors.description[0] }}</small>
           </div>
 
+           <div>
+          <label for="category_id" class="block mb-1 font-medium">Kategori</label>
+          <select v-model="form.category_id" class="w-full text-xs rounded-md border border-input px-3 py-2" required>
+                  <option value="0">Select Category</option>
+                  <option v-for="category in categories" :key="category.id" :value="category.id">
+                    {{ category.name }}
+                  </option>
+                </select>
+          </div>  
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label for="start_date" class="text-sm font-medium">Tanggal Mulai</label>
@@ -34,13 +44,13 @@
                 :class="{ 'border-destructive': errors.start_date }" />
               <small class="text-destructive" v-if="errors.start_date">{{ errors.start_date[0] }}</small>
             </div>
-            <div>
+            <div class="hidden">
               <label for="end_date" class="text-sm font-medium">Estimasi Selesai</label>
               <DateInput v-model="form.end_date" id="end_date"
                 :class="{ 'border-destructive': errors.end_date }" />
               <small class="text-destructive" v-if="errors.end_date">{{ errors.end_date[0] }}</small>
             </div>
-            <div>
+            <div class="hidden">
               <label for="estimation_price_pcs" class="text-sm font-medium">Estimasi Harga</label>
               <Input type="number" v-model="form.estimation_price_pcs" id="estimation_price_pcs"
                 :class="{ 'border-destructive': errors.estimation_price_pcs }" />
@@ -50,7 +60,7 @@
             </div>
           </div>
 
-          <div>
+          <div class="hidden">
             <label for="remark" class="text-sm font-medium">Catatan</label>
             <Input v-model="form.remark" id="remark" placeholder="" :class="{ 'border-destructive': errors.remark }" />
             <small class="text-destructive" v-if="errors.remark">{{ errors.remark[0] }}</small>
@@ -96,7 +106,7 @@
 
         <!-- Submit Buttons -->
         <div class="flex justify-end gap-2">
-          <Button type="button" variant="outline" @click="router.visit('/konveksi/model/list')">
+          <Button type="button" class="bg-amber-600 text-white h-10 rounded-md hover:bg-amber-700" variant="outline" @click="router.visit('/konveksi/model/list')">
             Batal
           </Button>
           <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan Perubahan</Button>
@@ -121,9 +131,11 @@ import ActivityTab from '@/components/ActivityTab.vue';
 import ModelMaterialTab from '@/components/ModelMaterialTab.vue';
 import HPPTab from '@/components/HPPTab.vue';
 import { useModelStore } from '@/stores/useModelStore';
+import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
 import { Inertia } from '@inertiajs/inertia';
+import { storeToRefs } from 'pinia';
 
 // Props
 // Jika Anda menginginkan hanya tipe number:
@@ -138,6 +150,10 @@ const tabs = ['model', 'size', 'activity', 'gambar', 'bahan dan biaya', 'hpp'] a
 type Tab = typeof tabs[number];
 const activeTab = ref<Tab>(tabs[0]);
 const errors = ref<Record<string, string[]>>({});
+
+
+const categoryStore = useCategoryStore();
+const { items: categories } = storeToRefs(categoryStore);
 
 const referenceType = 'Model';
 // Breadcrumbs
@@ -160,6 +176,7 @@ const cleanMaterialData = (materials: any[]) => {
 // Form setup
 const form = useForm({
   description: '',
+  category_id: null as number | null,
   remark: '',
   start_date: null as string | null,
   end_date: null as string | null,
@@ -171,7 +188,7 @@ const form = useForm({
 const uploadedDocuments = ref<{ id: string; url: string; filename: string }[]>([]);
 
 // Size items
-const sizeItems = ref<{ size_id: string; qty: number, variant: string }[]>([]);
+const sizeItems = ref<{ size_id: string; qty: number, variant: string, price_store: number, price_grosir: number }[]>([]);
 
 // Total production quantity from size items
 const totalProduction = ref<number>(0);
@@ -228,6 +245,9 @@ const handleSubmit = async () => {
 // Initialize data
 onMounted(async () => {
   try {
+
+    Promise.all([categoryStore.fetchCategories()]);
+
     const model = await modelStore.fetchModelById(props.modelId);
     console.log('Model Data:', model);
     if (model) {
@@ -243,6 +263,7 @@ onMounted(async () => {
 
       form.estimation_price_pcs = model.data.estimation_price_pcs;
       form.estimation_qty = model.data.estimation_qty;
+      form.category_id = model.data.category_id;
 
       sizeItems.value = model.data.sizes || [];
       activityItems.value = model.data.activities || [];

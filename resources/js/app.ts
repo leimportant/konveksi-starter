@@ -14,7 +14,7 @@ import PrimeVue from 'primevue/config';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import Toast from 'vue-toastification';
-import { ZiggyVue } from 'ziggy-js';
+// import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 
 import Order from './components/Order/Order.vue';
@@ -63,7 +63,7 @@ createInertiaApp({
     vueApp
       .use(plugin)
       .use(Toast)
-      .use(ZiggyVue)
+      // .use(ZiggyVue)
       .use(createPinia())
       .use(PrimeVue)
       .use(i18n)

@@ -46,7 +46,7 @@ onMounted(() => {
             <Input type="date" v-model="startDate" />
             <Input type="date" v-model="endDate" />
             <Input type="text" v-model="searchKey" placeholder="Search by product name" />
-            <Button @click="fetchReport">Generate Report</Button>
+            <Button @click="fetchReport" class="bg-indigo-600 text-white h-10 hover:bg-indigo-700">Tampilkan</Button>
           </div>
 
           <div v-if="reportStore.loading">Loading...</div>

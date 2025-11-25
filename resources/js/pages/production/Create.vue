@@ -14,7 +14,6 @@ const toast = useToast();
 const modelStore = useModelStore();
 const { models, employees } = storeToRefs(modelStore);
 
-
 const props = defineProps<{
   activity_role: string | number;
 }>();
@@ -25,6 +24,7 @@ const selectedEmployeeId: Ref<number | { id: number; name: string }> = ref(0);
 const modelSizes = ref<{ size_id: string; size_name: string; qty: number, variant: string}[]>([]);
 const activityTasks = ref<any[]>([]);
 const selectedTasks = ref<number[]>([]);
+const locations = ref<any[]>([]);
 
 const form = useForm({
   model_id: null as number | null,
@@ -32,6 +32,7 @@ const form = useForm({
   employee_id: null as number | null,
   items: [] as { size_id: string; qty: number, variant: string}[],
   remark: '', // <-- tambahkan properti remark di sini
+  location_destination_id: null as number | null,
 });
 
 const fetchActivityTasks = async (status = 'SEWING') => {
@@ -40,6 +41,15 @@ const fetchActivityTasks = async (status = 'SEWING') => {
     activityTasks.value = res.data.data;
   } catch (err: any) {
     toast.error(err.response?.data?.message || 'Gagal mengambil data tugas finishing');
+  }
+};
+
+const fetchLocations = async () => {
+  try {
+    const res = await axios.get('/api/locations');
+    locations.value = res.data.data;
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || 'Gagal mengambil data lokasi');
   }
 };
 
@@ -66,6 +76,10 @@ onMounted(async () => {
   }
   if (props.activity_role === 'SEWING') {
     await fetchActivityTasks('SEWING');
+  }
+
+  if (props.activity_role === 'PENGIRIMAN') {
+    await fetchLocations();
   }
   await modelStore.fetchActivityEmployee(String(props.activity_role));
 });
@@ -130,6 +144,7 @@ const submit = async () => {
       activity_role: String(props.activity_role),
       employee_id: employeeId, // send just the ID
       remark: form.remark || '',
+      location_destination_id: form.location_destination_id || null,
       items: form.items.filter((item) => item.qty > 0),
     });
 
@@ -191,6 +206,19 @@ const submit = async () => {
           </label>
         </div>
       </div>
+
+      <div v-if="props.activity_role === 'PENGIRIMAN'">
+        <label class="mb-1 block font-medium">Lokasi Tujuan:</label>
+    <Vue3Select id="location.id"
+            v-model="form.location_destination_id"
+            :options="locations"
+            label="name"
+            :reduce="(location: any) => location.id"
+            placeholder="Select Location" class="w-full" />
+        
+      </div>
+
+  
 
       <div v-if="modelSizes.length > 0">
         <h2 class="mb-2 font-semibold">Model Ukuran</h2>

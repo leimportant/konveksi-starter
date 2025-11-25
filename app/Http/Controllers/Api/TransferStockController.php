@@ -23,7 +23,16 @@ class TransferStockController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $status = $request->input('status');
+
+        if (!in_array($status, [null, 'Pending', 'Accepted', 'Rejected'])) {
+           $status = "Pending";
+        }
         $query = TransferStock::with(['location', 'location_destination', 'transfer_detail']);
+
+        if ($status) {
+            $query->where('status', $status);
+        }
         if ($search) {
             $query->where('id', 'like', '%' . $search . '%')
                     ->orWhere('transfer_date', 'like', '%' . $search . '%')
@@ -40,7 +49,7 @@ class TransferStockController extends Controller
                     });
         }
 
-        $datas = $query->latest()->paginate(10);
+        $datas = $query->latest()->paginate(50);
         return response()->json($datas);
     }
 
@@ -186,16 +195,21 @@ class TransferStockController extends Controller
                 $qty = $detail['qty'] ?? 0;
 
                 $sloc_from = $transfer['sloc_id'] != "GS00" ? "GS00" : $transfer['sloc_id'];
-                // 🔻 Kurangi stok dari lokasi asal
-                app(InventoryService::class)->updateOrCreateInventory([
-                    'product_id' => $detail['product_id'],
-                    'location_id' => $transfer['location_id'], // lokasi asal
-                    'uom_id' => $detail['uom_id'],
-                    'sloc_id' => $sloc_from,
-                ], [
-                    'size_id' => $detail['size_id'],
-                    'qty' => -abs($qty),
-                ], 'IN');
+
+                // jika id nya PRD-xxx dari pengiriman, jangan dikurangi stok
+                if (substr($transfer->id, 0, 4) != "PRD-") {
+                    // 🔻 Kurangi stok dari lokasi asal
+                    app(InventoryService::class)->updateOrCreateInventory([
+                        'product_id' => $detail['product_id'],
+                        'location_id' => $transfer['location_id'], // lokasi asal
+                        'uom_id' => $detail['uom_id'],
+                        'sloc_id' => $sloc_from,
+                    ], [
+                        'size_id' => $detail['size_id'],
+                        'qty' => -abs($qty),
+                    ], 'IN');
+                }
+            
 
                 // 🔺 Tambah stok ke lokasi tujuan
                 app(InventoryService::class)->updateOrCreateInventory([

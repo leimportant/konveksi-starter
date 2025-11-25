@@ -56,7 +56,7 @@ const getDetailQty = (detail: any, roleName: string) => {
         <Input type="date" v-model="startDate" class="w-40" />
         <Input type="date" v-model="endDate" class="w-40" />
         <Input type="text" v-model="searchKey" placeholder="Search Model / Activity" class="flex-1 min-w-[200px]" />
-        <Button class="bg-indigo-600 text-white hover:bg-indigo-700" @click="fetchReport">Show</Button>
+        <Button class="bg-indigo-600 text-white h-10 hover:bg-indigo-700" @click="fetchReport">Tampilkan</Button>
       </div>
 
       <!-- Loading / Error -->

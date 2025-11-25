@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
+use App\Services\TransferStockService;
 
 class ProductionController extends Controller
 {
@@ -332,6 +333,17 @@ class ProductionController extends Controller
                 );
 
                 $productions[] = $production->load(['model', 'activityRole', 'items.size']);
+
+                // jika pengiriman store data ke table transfer_stock
+                // jika user yang input dan tanggal sama, update saja jika ada
+                // dan item nya disesuaikan
+
+                if ($activityRoleId == 12) {
+                    $request->merge(['location_id' => $request->location_id ?? 1]); // default location_id 1 jika tidak ada
+                    TransferStockService::createTransfer($production, $validItems, $request);
+                }
+            
+
             }
 
             DB::commit();
@@ -344,9 +356,10 @@ class ProductionController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error creating production: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to create production',
+                'message' => 'Failed to create production' . $e->getMessage(),
                 'error' => $e->getMessage()
             ], 500);
         }

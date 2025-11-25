@@ -100,6 +100,7 @@ export const useProductionStore = defineStore('production', {
       activity_role: string;
       employee_id: number | 0;
       remark?: string;
+      location_destination_id?: number | null;
       items: ProductionItem[];
     }) {
       this.loading = true;

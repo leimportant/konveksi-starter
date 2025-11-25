@@ -364,10 +364,10 @@ const onLocationChange = async () => {
 
           <!-- Form Actions -->
           <div class="flex justify-end gap-4">
-            <Button type="button" variant="outline" @click="router.visit('/stock-opnames')">
+            <Button type="button" class="h-10" variant="outline" @click="router.visit('/stock-opnames')">
               Cancel
             </Button>
-            <Button type="submit" :disabled="loading">
+            <Button type="submit" class="bg-indigo-600 text-white py-2 h-10 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500" :disabled="loading">
               {{ loading ? 'Saving...' : 'Save' }}
             </Button>
           </div>

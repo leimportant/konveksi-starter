@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use \Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Services\ProductService;
 
 class ModelRefController extends Controller
 {
@@ -17,6 +18,7 @@ class ModelRefController extends Controller
     {
         $validated = $request->validate([
             'description' => 'required|string|max:255',
+            'category_id' => 'required|exists:mst_category,id',
             'remark' => 'nullable|string',
             'estimation_price_pcs' => 'required|numeric|min:0',
             'estimation_qty' => 'required|integer|min:1',
@@ -26,6 +28,8 @@ class ModelRefController extends Controller
             'sizes.*.size_id' => 'required|exists:mst_size,id',
             'sizes.*.variant' => 'required|string|max:100',
             'sizes.*.qty' => 'required|integer|min:1',
+            'sizes.*.price_store' => 'required|numeric|min:1',
+            'sizes.*.price_grosir' => 'required|numeric|min:1',
             'activity' => 'required|array',
             'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
             'activity.*.price' => 'required|numeric|min:0',
@@ -43,6 +47,7 @@ class ModelRefController extends Controller
             // Create the model
             $model = ModelRef::create([
                 'description' => $validated['description'],
+                'category_id' => $validated['category_id'] ?? null,
                 'remark' => $validated['remark'],
                 'estimation_price_pcs' => $validated['estimation_price_pcs'] ?? null,
                 'estimation_qty' => $validated['estimation_qty'] ?? null,
@@ -58,6 +63,8 @@ class ModelRefController extends Controller
                     'size_id' => $size['size_id'] ?? "",
                     'variant' => $size['variant'] ?? "",
                     'qty' => $size['qty'] ?? 1,
+                    'price_store' => $size['price_store'] ?? 0,
+                    'price_grosir' => $size['price_grosir'] ?? 0,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id()
                 ]);
@@ -91,6 +98,13 @@ class ModelRefController extends Controller
                     ]);
                 }
             }
+
+            ProductService::createProduct(
+                $model,                    
+                $validated['sizes'],      
+                $request                 
+            );
+
             // Store documents
 
             $uniqId = $request->input('uniqId', null);
@@ -163,13 +177,16 @@ class ModelRefController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'description' => 'required|string',
+            'category_id' => 'required|exists:mst_category,id',
             'remark' => 'nullable|string',
-            'estimation_price_pcs' => 'required|numeric|min:0',
+            'estimation_price_pcs' => 'nullable|numeric|min:0',
             'estimation_qty' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'sizes' => 'required|array',
             'sizes.*.size_id' => 'required|exists:mst_size,id',
             'sizes.*.qty' => 'required|integer|min:1',
+            'sizes.*.price_store' => 'required|numeric|min:1',
+            'sizes.*.price_grosir' => 'required|numeric|min:1',
             'activity' => 'required|array',
             'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
             'activity.*.price' => 'required|numeric|min:0',
@@ -196,6 +213,7 @@ class ModelRefController extends Controller
             // Update main model data
             $model->update([
                 'description' => $request->description,
+                'category_id' => $request->category_id,
                 'remark' => $request->remark,
                 'estimation_price_pcs' => $request->estimation_price_pcs,
                 'estimation_qty' => $request->estimation_qty,
@@ -211,6 +229,8 @@ class ModelRefController extends Controller
                     'size_id' => $size['size_id'],
                     'variant' => $size['variant'],
                     'qty' => $size['qty'],
+                    'price_store' => $size['price_store'],
+                    'price_grosir' => $size['price_grosir'],
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id()
                 ]);
@@ -248,6 +268,13 @@ class ModelRefController extends Controller
                 }
 
             }
+
+
+             ProductService::createProduct(
+                $model,                    
+                $request->sizes,      
+                $request                 
+            );
 
 
             DB::commit();

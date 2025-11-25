@@ -62,7 +62,7 @@ class PosOrderController extends Controller
             'items.*.price' => 'required|numeric|min:0',
             'payment_method_id' => 'required|exists:mst_payment_method,id',
             'paid_amount' => 'nullable|numeric|min:0',
-            'customer_id' => 'nullable|integer|exists:mst_customer,user_id',
+            'customer_id' => 'nullable|integer|exists:mst_customer,id',
         ]);
 
         $userId = Auth::id();

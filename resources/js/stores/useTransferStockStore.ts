@@ -33,6 +33,7 @@ interface TransferDetail {
   size_id: string;
   size_name?: string;
   uom_id: string;
+  variant?: string;
   uom_name?: string;
   qty: number;
   product?: Product;
@@ -40,7 +41,7 @@ interface TransferDetail {
   uom?: Uom;
 }
 
-interface TransferStock {
+export interface TransferStock {
   id?: string;
   location_id: number | null;
   location_destination_id: number | null;
@@ -63,7 +64,7 @@ interface State {
   currentPage: number;
   lastPage: number;
   total: number;
-  filters: { productName: string };
+  filters: { productName: string; status: string };
 }
 
 export const useTransferStockStore = defineStore('transferStock', {
@@ -76,7 +77,7 @@ export const useTransferStockStore = defineStore('transferStock', {
     currentPage: 1,
     lastPage: 1,
     total: 0,
-    filters: { productName: '' },
+    filters: { productName: '', status: '' },
   }),
 
   actions: {
@@ -99,6 +100,7 @@ export const useTransferStockStore = defineStore('transferStock', {
           page,
           per_page: perPage,
           search: this.filters.productName,
+          status: this.filters.status, // Add status to params
         };
         const res = await axios.get('/api/transfer-stock', { params });
         this.transfers = res.data.data;
