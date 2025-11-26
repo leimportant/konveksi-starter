@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use App\Services\ProductService;
 
 class ProductController extends Controller
 {
@@ -183,6 +184,51 @@ class ProductController extends Controller
         return response()->json($data);
     }
 
+    public function saveCustom(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|max:255|unique:mst_product,name',
+        'category_id' => 'required|exists:mst_category,id',
+        'items' => 'required|array|min:1',
+        'items.*.size_id' => 'required|exists:mst_size,id',
+        'items.*.variant' => 'required|string|max:255',
+        'items.*.qty' => 'required|integer|min:1',
+        'items.*.price_store' => 'required|numeric|min:1',
+        'items.*.price_grosir' => 'required|numeric|min:1',
+    ]);
+
+    // Generate product ID
+    $newProductId = $this->generateNumber($validated['category_id']);
+
+    DB::beginTransaction();
+    try {
+
+        $product = Product::create([
+            'id' => $newProductId,
+            'name' => $validated['name'],
+            'category_id' => $validated['category_id'],
+            'uom_id' => 'PCS',
+            'descriptions' => '',
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+        ]);
+
+        // Kirim items ke ProductService
+        ProductService::createProduct(
+            $product,
+            $validated['items'],   // <<<<<<<<<< items di sini
+            $request
+        );
+
+        DB::commit();
+        return response()->json($product, 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Error creating custom product: ' . $e->getMessage());
+        return response()->json(['message' => 'Failed to create custom product.'], 500);
+    }
+}
 
 
 }

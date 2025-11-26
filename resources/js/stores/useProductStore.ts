@@ -89,6 +89,16 @@ export const useProductStore = defineStore('product', {
         console.error('Failed to delete product:', error);
         throw error;
       }
-    }
-  }
+    },
+
+    async saveProductCustom(data: { name: string; category_id: string; items: Array<{ size_id: string; variant: string; qty: number; price_store: number; price_grosir: number }> }) {
+      try {
+        const response = await axios.post('/api/products/custom', data);
+        return response.data; // Return saved product data if needed
+      } catch (error) {
+        console.error('Failed to save custom product:', error);
+        throw error;
+      }
+    },
+  },
 });

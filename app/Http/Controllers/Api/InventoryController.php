@@ -357,39 +357,38 @@ public function stockMonitoring(Request $request)
 
             foreach ($itemsToProcess as $item) {
                 $inCart = $this->getInCartQuantity($item);
-                $availableQty = $item->qty - $inCart;
 
-                $price_store = null;
-                $price_grosir = null;
-                $discount = null;
+                $booking = $this->getBookingQuantity($item);
 
-                if ($item->product_id) {
-                    ['price_store' => $price_store, 'price_grosir' => $price_grosir, 'discount' => $discount] = $this->getProductPriceVariants(
-                        $item->product_id,
-                        $item->size_id,
-                        $item->variant
-                    );
+                $availableQty = max(0, $item->qty - $inCart - $booking);
 
-                    $sizes[] = [
-                        'size_id' => $item->size_id,
-                        'variant' => $item->variant,
-                        'qty_stock' => intval($item->qty),
-                        'qty_in_cart' => intval($inCart),
-                        'qty_available' => intval($availableQty),
-                        'price' => $price_store ? floatval($price_store) : null,
-                        'price_sell' => $price_store ? floatval($price_store - ($price_store * $discount / 100)) : null,
-                        'discount' => $discount ? floatval($discount) : null,
+                ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice] = $this->getProductPrices(
+                    $item->product_id,
+                    $item->size_id,
+                    $item->variant,
+                    $today
+                );
 
-                        'price_retail' => $price_store ? floatval($price_store) : null,
-                        'price_sell_retail' => $price_store ? floatval($price_store - ($price_store * $discount / 100)) : null,
-                        'discount_retail' => $discount ? floatval($discount) : null,
+                $sizes[] = [
+                    'size_id' => $item->size_id,
+                    'variant' => $item->variant,
+                    'qty_stock' => intval($item->qty),
+                    'qty_in_cart' => intval($inCart),
+                    'qty_available' => intval($availableQty),
+                    'price' => $retailPrice ? floatval($retailPrice->price) : null,
+                    'price_sell' => $retailPrice ? floatval($retailPrice->price_sell) : null,
+                    'discount' => $retailPrice ? floatval($retailPrice->discount) : null,
 
-                        'price_grosir' => $price_grosir ? floatval($price_grosir) : null,
-                        'price_sell_grosir' => $price_grosir ? floatval($price_grosir - ($price_grosir * $discount / 100)) : null,
-                        'discount_grosir' => $discount ? floatval($discount) : null,
-                    ];
-                }
+                    'price_retail' => $retailPrice ? floatval($retailPrice->price) : null,
+                    'price_sell_retail' => $retailPrice ? floatval($retailPrice->price_sell) : null,
+                    'discount_retail' => $retailPrice ? floatval($retailPrice->discount) : null,
+
+                    'price_grosir' => $grosirPrice ? floatval($grosirPrice->price) : null,
+                    'price_sell_grosir' => $grosirPrice ? floatval($grosirPrice->price_sell) : null,
+                    'discount_grosir' => $grosirPrice ? floatval($grosirPrice->discount) : null,
+                ];
             }
+
             $result[] = [
                 'product_id' => $product_id,
                 'location_id' => $firstItem->location_id,
@@ -432,29 +431,89 @@ public function stockMonitoring(Request $request)
             ->sum('quantity');
     }
 
-    private function getProductPriceVariants($productId, $sizeId, $variant): array
+    private function getBookingQuantity($item): int
     {
-        $priceVariant = DB::table('mst_product_price_variant')
-            ->where('product_id', $productId)
-            ->where('size_id', $sizeId)
-            ->where(function ($query) use ($variant) {
-                $query->whereNull('variant')
-                    ->orWhere('variant', 'all')
-                    ->orWhere('variant', '')
-                    ->orWhere('variant', $variant);
+        return DB::table('tr_transfer_stock as a')
+            ->join('tr_transfer_stock_detail as b', 'a.id', '=', 'b.transfer_id')
+            ->where('a.location_id', $item->location_id)
+            ->where('a.status', 'Pending')
+            ->where('b.product_id', $item->product_id)
+            ->where('b.uom_id', $item->uom_id)
+            ->where('b.size_id', $item->size_id)
+            ->where('b.variant', $item->variant)
+            ->sum('b.qty');
+    }
+
+    private function getProductPrices($productId, $sizeId, $variant, $today): array
+    {
+        $price = DB::table('mst_product_price as a')
+            ->join('mst_product_price_type as b', 'a.id', '=', 'b.price_id')
+            ->select([
+                'b.price',
+                'b.size_id',
+                'b.price_type_id',
+                'b.discount',
+                'b.price_sell',
+                'a.effective_date',
+                'a.end_date',
+                'a.is_active'
+            ])
+            ->where('a.product_id', $productId)
+            ->where('b.size_id', $sizeId)
+            ->whereDate('a.effective_date', '<=', $today)
+            ->where(function ($query) use ($today) {
+                $query->whereNull('a.end_date')
+                    ->orWhereDate('a.end_date', '>=', $today);
             })
+            ->whereIn('b.price_type_id', [1, 2])
+            ->where(function ($query) use ($variant) {
+                $query->whereNull('a.variant')
+                    ->orWhere('a.variant', 'all')
+                    ->orWhere('a.variant', '');
+            })
+            ->where('a.is_active', 1)
+            ->orderByDesc('a.effective_date')
+            ->get();
+
+        Log::info($price);
+
+        $retailPrice = $price->firstWhere('price_type_id', 1);
+        $grosirPrice = $price->firstWhere('price_type_id', 2);
+
+
+        return ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice];
+    }
+
+    public function delete($product_id, $location_id, $sloc_id, $size_id)
+    {
+        $item = DB::table('tr_inventory')
+            ->where('product_id', $product_id)
+            ->where('location_id', $location_id)
+            ->where('sloc_id', $sloc_id)
+            ->where('size_id', $size_id)
             ->first();
 
-        $price_store = $priceVariant->price_store ?? null;
-        $price_grosir = $priceVariant->price_grosir ?? null;
-        $discount = $priceVariant->discount ?? null;
+        if (!$item) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Item not found',
+                'errors' => 'Item not found',
+            ], 404);
+        }
 
-        return [
-            'price_store' => $price_store,
-            'price_grosir' => $price_grosir,
-            'discount' => $discount
-        ];
+        DB::table('tr_inventory')
+            ->where('product_id', $product_id)
+            ->where('location_id', $location_id)
+            ->where('sloc_id', $sloc_id)
+            ->where('size_id', $size_id)
+            ->where('status', 'IN')
+            ->where('variant', 'all')
+            ->delete();
+
+
+        return response()->json(null, 204);
     }
+
 
     private function getImageGalleries($productId)
     {
