@@ -22,7 +22,7 @@ const currentRole = ref<Role | null>(null);
 const allMenus = ref<any[]>([]);
 const selectedMenus = ref<number[]>([]);
 
-const form = useForm({ name: '' });
+const form = useForm({ name: '', create_prod: 'Y' });
 
 const breadcrumbs = [{ title: 'Role', href: '/roles' }];
 
@@ -105,8 +105,9 @@ const openAssignMenuModal = async (role: Role) => {
 
 const handleCreate = async () => {
     if (!form.name) return toast.error('Name is required');
+    if (!form.create_prod) form.create_prod = 'N';
     try {
-        await roleStore.createRole(form.name);
+        await roleStore.createRole(form.name, form.create_prod);
         toast.success('Role created successfully');
         form.reset();
         roleStore.loaded = false;
@@ -219,6 +220,7 @@ const isAllChecked = computed(() => {
                         <TableRow class="bg-gray-100">
                             <TableHead>Name</TableHead>
                             <TableHead>Apparel (Menu)</TableHead>
+                            <TableHead>Buat Produksi</TableHead>
                             <TableHead class="w-24">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -243,6 +245,10 @@ const isAllChecked = computed(() => {
 
                                     <span v-else class="text-sm italic text-gray-400">No activity groups</span>
                                 </div>
+                            </TableCell>
+                            <TableCell>
+                                <span v-if="role.create_prod == 'Y'" class="text-green-600 font-semibold">Yes</span>
+                                <span v-else class="text-red-600 font-semibold">No</span>
                             </TableCell>
 
                             <TableCell class="flex gap-2">
@@ -330,6 +336,13 @@ const isAllChecked = computed(() => {
                     <form @submit.prevent="handleCreate">
                         <div class="mb-4">
                             <Input v-model="form.name" placeholder="Role Name" required />
+                        </div>
+                        <div class="mb-4">  
+                            <label class="block mb-1 font-medium">Buat Produksi</label>
+                            <select v-model="form.create_prod" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="Y">Yes</option>
+                                <option value="N">No</option>
+                            </select>
                         </div>
                         <div class="flex justify-end gap-2">
                             <Button type="button" variant="outline" @click="showCreateModal = false" class="h-10">Cancel</Button>

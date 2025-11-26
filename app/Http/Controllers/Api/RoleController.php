@@ -27,6 +27,7 @@ class RoleController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:roles',
+            'create_prod' => 'required|string',
             'all_employee' => 'string'
         ]);
 
@@ -34,7 +35,7 @@ class RoleController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $role = Role::create($request->only('name'));
+        $role = Role::create($request->only('name', 'create_prod'));
 
         return response()->json($role, 201);
     }
@@ -54,14 +55,15 @@ class RoleController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
-            'all_employee' => 'string'
+            'all_employee' => 'string',
+            'create_prod' => 'string'
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $role->update($request->only('name'));
+        $role->update($request->only('name', 'create_prod'));
 
         return response()->json($role);
     }
