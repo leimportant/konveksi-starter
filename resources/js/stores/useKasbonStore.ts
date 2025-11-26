@@ -180,5 +180,19 @@ export const useKasbonStore = defineStore('kasbon', {
         this.loading = false
       }
     },
+
+    async bayarKasbon(payload: { employee_id: number; amount: number; type: string }) {
+      this.loading = true;
+      try {
+        await axios.post('/api/kasbon/bayar', payload);
+        // After successful payment, refresh the mutasi list
+        await this.fetchMutasi();
+      } catch (err: any) {
+        this.error = err.response?.data?.message ?? err.message;
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
   },
 })

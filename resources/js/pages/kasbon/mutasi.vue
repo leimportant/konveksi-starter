@@ -1,17 +1,20 @@
 <script setup lang="ts">
+import Modal from '@/components/Modal.vue'; // Assuming you have a Modal component
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useKasbonStore } from '@/stores/useKasbonStore';
-import { Head } from '@inertiajs/vue3';
-import { CheckCircle, CreditCard, Search } from 'lucide-vue-next';
+import { Head, usePage } from '@inertiajs/vue3';
+import { CheckCircle, CreditCard, Plus, Search } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, reactive, ref, Ref } from 'vue';
 
 const kasbonStore = useKasbonStore();
 const { mutasiList, pagination, loading } = storeToRefs(kasbonStore);
-// const page = usePage();
-// const user = page.props.auth.user;
+const toast = useToast();
+const page = usePage();
+const user = page.props.auth.user;
 
 const filterStatus: Ref<string | { value: string; label: string }> = ref('');
 
@@ -20,6 +23,14 @@ const breadcrumbs = [{ title: 'Mutasi Kasbon', href: '/kasbon/mutasi' }];
 const filters = reactive({
     search: '',
 });
+
+const showPaymentDialog = ref(false);
+const paymentForm = reactive({
+    employee_id: 0,
+    amount: 0,
+    lastSaldoKasbon: 0,
+});
+const selectedEmployeeName = ref('');
 
 const handleSearch = () => {
     const statusVal = typeof filterStatus.value === 'string' ? filterStatus.value : (filterStatus.value?.value ?? '');
@@ -50,6 +61,39 @@ const goToPage = async (page: number) => {
 };
 const nextPage = () => goToPage(pagination.value.current_page + 1);
 const prevPage = () => goToPage(pagination.value.current_page - 1);
+
+const tambahPembayaran = (employeeId: number, lastSaldoKasbon: number) => {
+    // Find the employee name from groupedMutasi
+    const employeeGroup = mutasiList.value.find((item) => item.kasbon_id === employeeId);
+    selectedEmployeeName.value = employeeGroup?.employee_name || '-';
+
+    paymentForm.employee_id = employeeId;
+    paymentForm.amount = lastSaldoKasbon; // Default to paying off the full balance
+    paymentForm.lastSaldoKasbon = lastSaldoKasbon;
+    showPaymentDialog.value = true;
+};
+
+const storePembayaran = async () => {
+    if (!confirm('Yakin ingin melakukan pembayaran kasbon ini?')) return;
+
+    const payload = {
+        employee_id: Number(paymentForm.employee_id),
+        amount: Number(paymentForm.amount),
+        type: 'Pembayaran',
+        description: Number(paymentForm.amount) === Number(paymentForm.lastSaldoKasbon)
+            ? 'Pelunasan Kasbon'
+            : 'Pembayaran Kasbon',
+    };
+
+
+    try {
+        await kasbonStore.bayarKasbon(payload);
+        toast.success('Pembayaran kasbon berhasil!');
+        showPaymentDialog.value = false; // Close dialog on success
+    } catch (error: any) {
+        toast.error(error.message || 'Gagal melakukan pembayaran kasbon.');
+    }
+};
 
 // Load initial data
 onMounted(() => {
@@ -105,7 +149,22 @@ onMounted(() => {
                             <!-- Employee Name Row -->
                             <TableRow class="border-b bg-gray-50">
                                 <TableCell class="px-4 py-2 font-semibold text-gray-800" colspan="3">
-                                    {{ employee }}
+                                    <!-- WRAPPER FLEX -->
+                                    <div class="flex w-full items-center justify-between">
+                                        <!-- Employee Name -->
+                                        <span>{{ employee }}</span>
+
+                                        <!-- Tombol Pembayaran Tipis -->
+                                        <Button
+                                            v-if="user.employee_status.toUpperCase() == 'OWNER'"
+                                            @click="tambahPembayaran((group[0] as any).kasbon_id, group[group.length - 1].saldo_kasbon)"
+                                            variant="outline"
+                                            class="flex h-7 items-center gap-1 rounded-md border-purple-600 px-2 py-1 text-purple-700 hover:bg-purple-600 hover:text-white"
+                                        >
+                                            <Plus class="h-4 w-4" />
+                                            <span class="text-xs">Bayar Kasbon</span>
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
 
@@ -124,7 +183,7 @@ onMounted(() => {
                                         </div>
 
                                         <!-- Description on new line, slightly bolder -->
-                                        <div class="mt-1 text-md text-gray-800 uppercase" v-html="kas.description || '-'"></div>
+                                        <div class="text-md mt-1 uppercase text-gray-800">{{ kas.type }}</div>
                                     </TableCell>
 
                                     <TableCell
@@ -163,4 +222,55 @@ onMounted(() => {
             </div>
         </div>
     </AppLayout>
+
+    <Modal :show="showPaymentDialog" @close="showPaymentDialog = false" @confirm="storePembayaran">
+        <div class="space-y-4">
+            <!-- Title -->
+            <div>
+                <h3 class="text-lg font-semibold tracking-tight text-gray-900">Bayar Kasbon</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    Pembayaran untuk <span class="font-semibold text-gray-700">{{ selectedEmployeeName }}</span>
+                </p>
+            </div>
+
+            <!-- Input -->
+            <div class="space-y-2">
+                <label for="amount" class="block text-sm font-medium text-gray-700">Jumlah Pembayaran</label>
+                <input
+                    type="number"
+                    id="amount"
+                    v-model="paymentForm.amount"
+                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm shadow-sm transition focus:border-purple-500 focus:bg-white focus:ring-2 focus:ring-purple-200"
+                />
+            </div>
+
+            <!-- Info Sisa Kasbon -->
+            <p class="text-sm text-gray-600">
+                Sisa kasbon:
+                <span class="font-semibold text-gray-900">
+                    {{ Number(paymentForm.lastSaldoKasbon).toLocaleString() }}
+                </span>
+            </p>
+
+            <!-- Buttons -->
+            <div class="flex justify-end gap-2 pt-2">
+                <!-- Cancel Button -->
+                <Button
+                    @click="showPaymentDialog = false"
+                    variant="outline"
+                    class="h-9 rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                >
+                    Cancel
+                </Button>
+
+                <!-- Save Button -->
+                <Button
+                    @click="storePembayaran"
+                    class="h-9 rounded-md bg-purple-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:ring-2 focus:ring-purple-500"
+                >
+                    Save
+                </Button>
+            </div>
+        </div>
+    </Modal>
 </template>
