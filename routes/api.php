@@ -138,6 +138,7 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/products', ProductController::class);
     Route::get('api/product-with-size', [ProductController::class, 'getProductWithSizeIds']);
     Route::get('api/products-search', [ProductController::class, 'productsBySearch']);
+    Route::post('api/products/custom', [ProductController::class, 'saveCustom']);
     Route::apiResource('api/bahan', BahanController::class);
     Route::get('api/bahan-search', [ProductController::class, 'bahansBySearch']);
     

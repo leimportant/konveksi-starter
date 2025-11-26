@@ -1,5 +1,4 @@
 <template>
-
     <Head title="Point of Sale" />
     <AppLayout>
         <div class="min-h-screen space-y-4 bg-gray-50 p-2 md:p-4">
@@ -8,35 +7,54 @@
                 <section class="flex flex-col md:col-span-2 lg:col-span-2">
                     <div class="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <h2 class="text-sm font-semibold text-gray-800">Produk Tersedia</h2>
-                        <input type="text" v-model="searchText" @input="onSearchInput" placeholder="Cari produk..."
-                            class="focus:ring-primary-500 w-full max-w-xs rounded-md border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-2 md:text-sm" />
+                        <input
+                            type="text"
+                            v-model="searchText"
+                            @input="onSearchInput"
+                            placeholder="Cari produk..."
+                            class="focus:ring-primary-500 w-full max-w-xs rounded-md border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-2 md:text-sm"
+                        />
+                        <Button
+                            @click="showAddProductCustomModal = true"
+                            class="flex items-center justify-center rounded-md bg-purple-600 p-2 text-white hover:bg-purple-700"
+                            title="Tambah Produk"
+                        >
+                            <Plus class="h-4 w-4" /> Tambah Produk
+                        </Button>
                     </div>
                     <div class="flex flex-col gap-2 md:gap-3">
-                        <div v-for="product in products" :key="product.id" @click="viewProductDetail(product)"
-                            class="flex cursor-pointer flex-row items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm transition hover:shadow-md md:gap-3 md:p-3">
+                        <div
+                            v-for="product in products"
+                            :key="product.id"
+                            @click="viewProductDetail(product)"
+                            class="flex cursor-pointer flex-row items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm transition hover:shadow-md md:gap-3 md:p-3"
+                        >
                             <!-- Column 1: Image -->
                             <div class="flex-shrink-0">
-                                <img v-if="product.image_path" :src="getImageUrl(product.image_path)"
-                                    alt="Gambar produk" class="h-16 w-16 rounded object-cover" />
-                                <div v-else
-                                    class="flex h-16 w-16 select-none items-center justify-center rounded bg-gray-200 text-xs text-gray-400">
+                                <img
+                                    v-if="product.image_path"
+                                    :src="getImageUrl(product.image_path)"
+                                    alt="Gambar produk"
+                                    class="h-16 w-16 rounded object-cover"
+                                />
+                                <div v-else class="flex h-16 w-16 select-none items-center justify-center rounded bg-gray-200 text-xs text-gray-400">
                                     Tidak Ada Gambar
                                 </div>
                             </div>
                             <!-- Column 2: Info -->
                             <div class="flex min-w-0 flex-1 flex-col justify-between">
                                 <div class="flex items-center gap-2">
-                                    <p class="flex-1 truncate text-xs font-semibold text-gray-900 md:text-sm">{{
-                                        product.product_name }}</p>
+                                    <p class="flex-1 truncate text-xs font-semibold text-gray-900 md:text-sm">{{ product.product_name }}</p>
                                     <template v-if="product.discount && product.price">
-                                        <span v-if="product.discount > 0"
-                                            class="ml-1 rounded bg-orange-500 px-2 py-0.5 text-[14px] font-bold text-white md:text-xs">
+                                        <span
+                                            v-if="product.discount > 0"
+                                            class="ml-1 rounded bg-orange-500 px-2 py-0.5 text-[14px] font-bold text-white md:text-xs"
+                                        >
                                             {{ Math.round((product.discount / product.price) * 100) }}%
                                         </span>
                                     </template>
                                 </div>
-                                <p class="text-[10px] text-gray-400 md:text-xs">Stok: {{ product.qty_available }} / {{
-                                    product.uom_id }}</p>
+                                <p class="text-[10px] text-gray-400 md:text-xs">Stok: {{ product.qty_available }} / {{ product.uom_id }}</p>
 
                                 <!-- Pilih Varian -->
 
@@ -44,9 +62,11 @@
                                 <div v-if="product.variant" class="mt-2">
                                     <p class="text-xs text-gray-500">Tersedia Ukuran:</p>
                                     <div class="mt-1 flex flex-wrap gap-2">
-                                        <div class="rounded-full border px-3 py-1 text-xs font-medium"
+                                        <div
+                                            class="rounded-full border px-3 py-1 text-xs font-medium"
                                             v-for="size in getSizesForVariant(product.sizes, product.variant)"
-                                            :key="size.size_id">
+                                            :key="size.size_id"
+                                        >
                                             {{ size.size_id }}
                                         </div>
 
@@ -68,16 +88,13 @@
 
                                 <div>
                                     <template v-if="product.discount && product.discount > 0">
-                                        <p class="text-[10px] text-gray-400 line-through md:text-xs">{{
-                                            formatRupiah(product.price) }}</p>
+                                        <p class="text-[10px] text-gray-400 line-through md:text-xs">{{ formatRupiah(product.price) }}</p>
                                         <p class="text-xs font-semibold text-green-600 md:text-sm">
                                             {{ formatRupiah(product.price_sell ?? product.price - product.discount) }}
                                         </p>
-                                        <p class="text-[10px] text-green-500 md:text-xs">(Diskon {{
-                                            formatRupiah(product.discount) }})</p>
+                                        <p class="text-[10px] text-green-500 md:text-xs">(Diskon {{ formatRupiah(product.discount) }})</p>
                                     </template>
-                                    <p v-else class="text-xs font-semibold text-gray-700 md:text-sm">{{
-                                        formatRupiah(product.price) }}</p>
+                                    <p v-else class="text-xs font-semibold text-gray-700 md:text-sm">{{ formatRupiah(product.price) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -88,16 +105,19 @@
 
                 <section class="flex flex-col bg-gray-100 md:col-span-2 lg:col-span-3">
                     <div class="flex flex-wrap gap-1 p-2 md:gap-1">
-                        <Button variant="outline" size="sm" @click="openDiscountDialog"
-                            :disabled="selectedForDiscount.length === 0" class="flex items-center gap-1 bg-indigo-100">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            @click="openDiscountDialog"
+                            :disabled="selectedForDiscount.length === 0"
+                            class="flex items-center gap-1 bg-indigo-100"
+                        >
                             <PercentIcon class="h-4 w-4" /> Disc ({{ selectedForDiscount.length }})
                         </Button>
-                        <Button variant="outline" size="sm" @click="showQrScanner = true"
-                            class="flex items-center gap-1">
+                        <Button variant="outline" size="sm" @click="showQrScanner = true" class="flex items-center gap-1">
                             <ScanQrCode class="h-4 w-4" /> QR
                         </Button>
-                        <Button variant="outline" size="sm" @click="() => applyCustomer()"
-                            class="flex items-center gap-1">
+                        <Button variant="outline" size="sm" @click="() => applyCustomer()" class="flex items-center gap-1">
                             <UserPlusIcon class="h-4 w-4" /> Cust
                         </Button>
 
@@ -113,8 +133,7 @@
                         </Button>
                     </div>
 
-                    <div v-if="selectedProducts.length === 0"
-                        class="select-none py-8 text-center text-xs text-gray-400">
+                    <div v-if="selectedProducts.length === 0" class="select-none py-8 text-center text-xs text-gray-400">
                         Tidak ada item di keranjang
                     </div>
 
@@ -132,13 +151,14 @@
                             <TableBody>
                                 <TableRow v-for="item in selectedProducts" :key="item.id">
                                     <TableCell>
-                                        <div
-                                            class="md-grid-cols-2 relative flex grid-cols-1 items-center justify-center">
-                                            <input type="checkbox"
+                                        <div class="md-grid-cols-2 relative flex grid-cols-1 items-center justify-center">
+                                            <input
+                                                type="checkbox"
                                                 :checked="selectedForDiscount.includes(item.id + item.size_id)"
                                                 @change="toggleProductSelection(item.id + item.size_id)"
                                                 class="text-primary-600 focus:ring-primary-500 absolute left-0 top-0 rounded border-gray-300"
-                                                :title="'Pilih untuk diskon'" />
+                                                :title="'Pilih untuk diskon'"
+                                            />
                                             <!-- <img
               v-if="item.image_path"
               :src="getImageUrl(item.image_path)"
@@ -148,40 +168,36 @@
                                         </div>
                                     </TableCell>
                                     <TableCell class="text-xs">
-                                        <div class="max-w-[140px] truncate font-semibold text-gray-900">{{
-                                            item.product_name }}</div>
-                                        <div class="max-w-[140px] truncate font-semibold text-gray-900">Ukuran : {{
-                                            item.size_id }}
-                                        </div>
-                                        <span v-if="item.discount && item.discount > 0"
-                                            class="text-[10px] text-gray-400 line-through">
+                                        <div class="max-w-[140px] truncate font-semibold text-gray-900">{{ item.product_name }}</div>
+                                        <div class="max-w-[140px] truncate font-semibold text-gray-900">Ukuran : {{ item.size_id }}</div>
+                                        <span v-if="item.discount && item.discount > 0" class="text-[10px] text-gray-400 line-through">
                                             {{ formatRupiah(item.price) }}
                                         </span>
                                         <span class="block font-semibold text-gray-900">
                                             {{ formatRupiah(item.price_sell || item.price - (item.discount || 0)) }}
                                         </span>
                                         <!-- variant -->
-                                         <span class="text-[11px] text-gray-600">Variant: {{
-                                            item.variant || '' }}
-                                        </span>
+                                        <span class="text-[11px] text-gray-600">Variant: {{ item.variant || '' }} </span>
 
-                                        <div v-if="item.discount && item.discount > 0"
-                                            class="text-[11px] text-green-600">
+                                        <div v-if="item.discount && item.discount > 0" class="text-[11px] text-green-600">
                                             Diskon: -{{ formatRupiah(item.discount) }}
                                         </div>
                                     </TableCell>
                                     <TableCell class="text-center">
-                                        <input type="number" min="1" :max="item.qty_available"
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            :max="item.qty_available"
                                             v-model.number="item.quantity"
-                                            class="w-12 rounded border px-1 py-0.5 text-center text-xs" />
+                                            class="w-12 rounded border px-1 py-0.5 text-center text-xs"
+                                        />
                                         <!-- @change="updateQuantity(item)" -->
                                     </TableCell>
                                     <TableCell class="text-right text-xs font-semibold text-gray-900">
                                         {{ formatRupiah(item.quantity * (item.price_sell || item.price)) }}
                                     </TableCell>
                                     <TableCell class="text-center">
-                                        <Button variant="ghost" size="icon" @click="removeFromCart(item.id)"
-                                            class="hover:bg-gray-100">
+                                        <Button variant="ghost" size="icon" @click="removeFromCart(item.id)" class="hover:bg-gray-100">
                                             <Trash2 class="h-4 w-4" />
                                         </Button>
                                     </TableCell>
@@ -190,32 +206,33 @@
                         </Table>
                     </div>
 
-                    <div v-if="selectedCustomerName"
-                        class="mt-4 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2 bg-gray-100 rounded-xl p-4 shadow-sm">
+                    <div
+                        v-if="selectedCustomerName"
+                        class="mt-4 flex flex-col items-start gap-2 rounded-xl bg-gray-100 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                    >
                         <div>
-                            <p class="text-sm text-gray-500 font-medium">Pelanggan</p>
+                            <p class="text-sm font-medium text-gray-500">Pelanggan</p>
                             <p class="text-xs text-gray-800">
-                                {{ selectedCustomerName }} <span class="text-xs text-gray-600">(#{{ selectedCustomerId
-                                    }})</span>
+                                {{ selectedCustomerName }} <span class="text-xs text-gray-600">(#{{ selectedCustomerId }})</span>
                             </p>
                         </div>
 
                         <div>
-                            <p class="text-sm text-gray-500 font-medium">Transaksi Online</p>
+                            <p class="text-sm font-medium text-gray-500">Transaksi Online</p>
                             <p class="text-xs text-gray-800">
                                 {{ transactionNumber }}
                             </p>
                         </div>
                     </div>
 
-
                     <div class="mt-2 gap-4 rounded-lg p-1 p-4 shadow-sm">
                         <label class="mb-1 block text-xs font-medium text-gray-900">Metode Pembayaran</label>
-                        <select v-model="selectedPaymentMethod"
-                            class="focus:ring-primary-500 w-full rounded-lg border border-gray-300 p-1 text-xs focus:outline-none focus:ring-2">
+                        <select
+                            v-model="selectedPaymentMethod"
+                            class="focus:ring-primary-500 w-full rounded-lg border border-gray-300 p-1 text-xs focus:outline-none focus:ring-2"
+                        >
                             <option value="">Pilih metode pembayaran</option>
-                            <option v-for="method in paymentMethods" :key="method.id" :value="method.id">{{ method.name
-                                }}</option>
+                            <option v-for="method in paymentMethods" :key="method.id" :value="method.id">{{ method.name }}</option>
                         </select>
                     </div>
 
@@ -226,7 +243,9 @@
                         </div>
                         <Button
                             class="w-full rounded-md bg-indigo-600 py-2 text-xs font-semibold text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
-                            @click="openPaymentDialog" :disabled="isLoading.placingOrder">
+                            @click="openPaymentDialog"
+                            :disabled="isLoading.placingOrder"
+                        >
                             <span v-if="isLoading.placingOrder">Memproses...</span>
                             <span v-else>Bayar</span>
                         </Button>
@@ -235,18 +254,18 @@
             </div>
 
             <!-- Modals... (Your modal markup remains unchanged, just ensure responsive widths, max widths, and padding) -->
-            <div v-if="showModal"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+            <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
                 <div class="w-full max-w-xs rounded-xl bg-white p-6 shadow-lg">
                     <h3 class="mb-4 text-lg font-semibold">Set Discount</h3>
                     <label class="mb-2 block text-sm font-medium">Discount Price</label>
-                    <input type="number" v-model.number="discountInput"
-                        class="focus:ring-primary-500 mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2" />
+                    <input
+                        type="number"
+                        v-model.number="discountInput"
+                        class="focus:ring-primary-500 mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                    />
                     <div class="flex justify-end gap-3">
-                        <button @click="saveDiscount"
-                            class="rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700">Save</button>
-                        <button @click="showModal = false"
-                            class="rounded bg-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-400">
+                        <button @click="saveDiscount" class="rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700">Save</button>
+                        <button @click="showModal = false" class="rounded bg-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-400">
                             Cancel
                         </button>
                     </div>
@@ -254,12 +273,17 @@
             </div>
 
             <!-- Payment Dialog -->
-            <div v-if="showPaymentDialog"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+            <div v-if="showPaymentDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
                 <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
                     <h3 class="mb-4 text-lg font-semibold">Masukkan Jumlah Bayar</h3>
-                    <input type="number" min="0" v-model.number="paidAmount" @keypress.enter="confirmPayment"
-                        class="mb-4 w-full rounded border px-3 py-2 text-lg"  placeholder="Masukkan jumlah bayar" />
+                    <input
+                        type="number"
+                        min="0"
+                        v-model.number="paidAmount"
+                        @keypress.enter="confirmPayment"
+                        class="mb-4 w-full rounded border px-3 py-2 text-lg"
+                        placeholder="Masukkan jumlah bayar"
+                    />
                     <div class="mb-4 flex justify-between">
                         <div>Total:</div>
                         <div class="font-semibold">{{ formattedTotalAmount }}</div>
@@ -270,8 +294,11 @@
                     </div>
                     <div class="flex justify-end space-x-3">
                         <Button variant="outline" @click="showPaymentDialog = false">Batal</Button>
-                        <Button @click="confirmPayment"
-                            class="rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Konfirmasi</Button>
+                        <Button
+                            @click="confirmPayment"
+                            class="rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                            >Konfirmasi</Button
+                        >
                     </div>
                 </div>
             </div>
@@ -287,10 +314,13 @@
             <Modal :show="showDetailModal" @close="showDetailModal = false" title="Detail Produk">
                 <div v-if="selectedProduct" class="space-y-4">
                     <div class="flex items-center gap-4">
-                        <img v-if="selectedProduct.image_path" :src="getImageUrl(selectedProduct.image_path)"
-                            alt="Gambar produk" class="h-24 w-24 rounded object-cover" />
-                        <div v-else
-                            class="flex h-24 w-24 select-none items-center justify-center rounded bg-gray-200 text-xs text-gray-400">
+                        <img
+                            v-if="selectedProduct.image_path"
+                            :src="getImageUrl(selectedProduct.image_path)"
+                            alt="Gambar produk"
+                            class="h-24 w-24 rounded object-cover"
+                        />
+                        <div v-else class="flex h-24 w-24 select-none items-center justify-center rounded bg-gray-200 text-xs text-gray-400">
                             Tidak Ada Gambar
                         </div>
                         <div>
@@ -298,13 +328,17 @@
                             <span class="mb-1 text-sm font-semibold text-gray-700">Pilih Ukuran </span>
                             <div class="flex flex-wrap gap-2">
                                 <br />
-                                <button v-for="size in sizesForSelectedVariant" :key="size.size_id"
-                                    @click="selectedSize = size.size_id" :class="[
+                                <button
+                                    v-for="size in sizesForSelectedVariant"
+                                    :key="size.size_id"
+                                    @click="selectedSize = size.size_id"
+                                    :class="[
                                         'rounded-full border px-3 py-1 text-sm font-semibold transition',
                                         selectedSize === size.size_id
                                             ? 'border-green-600 bg-green-600 text-white'
                                             : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
-                                    ]">
+                                    ]"
+                                >
                                     <div @click="selectSize(selectedProduct, size)">{{ size.size_id }}</div>
                                 </button>
                             </div>
@@ -315,17 +349,22 @@
                     <div v-if="selectedProduct?.variant !== 'all'" class="mb-4">
                         <h4 class="mb-1 text-sm font-semibold text-gray-700">Variant</h4>
                         <div class="flex flex-wrap gap-2">
-                            <button v-for="variant in uniqueVariants" :key="variant" @click="
-                                () => {
-                                    selectedVariant = variant;
-                                    selectedSize = null;
-                                }
-                            " :class="[
-                                'rounded-full border px-3 py-1 text-sm font-semibold transition',
-                                selectedVariant === variant
-                                    ? 'border-indigo-600 bg-indigo-600 text-white'
-                                    : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
-                            ]">
+                            <button
+                                v-for="variant in uniqueVariants"
+                                :key="variant"
+                                @click="
+                                    () => {
+                                        selectedVariant = variant;
+                                        selectedSize = null;
+                                    }
+                                "
+                                :class="[
+                                    'rounded-full border px-3 py-1 text-sm font-semibold transition',
+                                    selectedVariant === variant
+                                        ? 'border-indigo-600 bg-indigo-600 text-white'
+                                        : 'border-gray-300 bg-gray-200 text-gray-800 hover:bg-gray-300',
+                                ]"
+                            >
                                 {{ variant }}
                             </button>
                         </div>
@@ -336,15 +375,13 @@
                             <p>
                                 Stok: <strong>{{ getSelectedItemDetail.qty_available }}</strong>
                             </p>
-                            <span v-if="(getSelectedItemDetail.discount ?? 0) > 0"
-                                class="mr-2 text-gray-400 line-through">
+                            <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="mr-2 text-gray-400 line-through">
                                 Harga {{ formatRupiah(getSelectedItemDetail.price) }}
                             </span>
                             <br />
                             <span class="font-bold">
-                                Harga Diskon {{ formatRupiah(getSelectedItemDetail.price_sell ||
-                                    getSelectedItemDetail.price) }}
-                            </span><br />
+                                Harga Diskon {{ formatRupiah(getSelectedItemDetail.price_sell || getSelectedItemDetail.price) }} </span
+                            ><br />
                             <span v-if="(getSelectedItemDetail.discount ?? 0) > 0" class="text-xs text-green-600">
                                 (Diskon: {{ formatRupiah(getSelectedItemDetail.discount ?? 0) }})
                             </span>
@@ -353,29 +390,27 @@
 
                     <div class="flex justify-end gap-2">
                         <Button variant="outline" @click="showDetailModal = false">Batal</Button>
-                        <Button @click="addToCart(selectedProduct)"
-                            :disabled="!selectedSize || (!selectedVariant && selectedProduct?.variant !== 'all')">Tambah
-                            ke
-                            Keranjang</Button>
+                        <Button
+                            @click="addToCart(selectedProduct)"
+                            :disabled="!selectedSize || (!selectedVariant && selectedProduct?.variant !== 'all')"
+                            >Tambah ke Keranjang</Button
+                        >
                     </div>
                 </div>
             </Modal>
 
             <Modal :show="showReprintDialog" @close="closeReprintDialog" title="RePrint Struk">
                 <!-- Pencarian -->
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-4">
-                    <Input v-model="searchTransaction" class="w-full sm:w-64 text-sm" placeholder="Cari transaksi..."
-                        aria-label="Search" />
-                    <Button @click="searchprintTransaction()" class="sm:w-auto w-full text-sm px-4 py-2">
-                        Cari
-                    </Button>
+                <div class="mb-4 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                    <Input v-model="searchTransaction" class="w-full text-sm sm:w-64" placeholder="Cari transaksi..." aria-label="Search" />
+                    <Button @click="searchprintTransaction()" class="w-full px-4 py-2 text-sm sm:w-auto"> Cari </Button>
                 </div>
 
                 <!-- Tabel Transaksi -->
-                <div class="overflow-auto max-h-[60vh] border border-gray-200 rounded-lg shadow-sm">
+                <div class="max-h-[60vh] overflow-auto rounded-lg border border-gray-200 shadow-sm">
                     <Table class="min-w-full text-sm">
                         <TableHeader>
-                            <TableRow class="bg-gray-100 text-gray-600 uppercase text-xs">
+                            <TableRow class="bg-gray-100 text-xs uppercase text-gray-600">
                                 <TableHead class="whitespace-nowrap px-2 py-2">Aksi</TableHead>
                                 <TableHead class="whitespace-nowrap px-2 py-2">Tanggal</TableHead>
                                 <TableHead class="whitespace-nowrap px-2 py-2">Customer</TableHead>
@@ -385,44 +420,46 @@
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="transaction in transactions" :key="transaction.id"
-                                class="hover:bg-gray-50 cursor-pointer transition">
+                            <TableRow v-for="transaction in transactions" :key="transaction.id" class="cursor-pointer transition hover:bg-gray-50">
                                 <TableCell class="px-2 py-1">
-                                    <Button variant="outline" size="sm" @click="selectTransactionForPrint(transaction)">
-                                        Cetak
-                                    </Button>
+                                    <Button variant="outline" size="sm" @click="selectTransactionForPrint(transaction)"> Cetak </Button>
                                 </TableCell>
                                 <TableCell class="px-2 py-1">{{ formatDate(transaction.created_at) }}</TableCell>
                                 <TableCell class="px-2 py-1">{{ transaction.customer }}</TableCell>
-                                <TableCell class="px-2 py-1">{{ formatRupiah(Number(transaction.total_amount)) }}
-                                </TableCell>
+                                <TableCell class="px-2 py-1">{{ formatRupiah(Number(transaction.total_amount)) }} </TableCell>
                                 <TableCell class="px-2 py-1">{{ transaction.payment_method }}</TableCell>
                                 <TableCell class="px-2 py-1">{{ transaction.status }}</TableCell>
                             </TableRow>
 
                             <TableRow v-if="transactions.length === 0">
-                                <TableCell colspan="6" class="text-center text-xs text-gray-400 py-3">
-                                    Tidak ada transaksi ditemukan.
-                                </TableCell>
+                                <TableCell colspan="6" class="py-3 text-center text-xs text-gray-400"> Tidak ada transaksi ditemukan. </TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
                 </div>
             </Modal>
 
-
             <Modal :show="showReturnDialog" @close="closeReturnDialog" title="Retur Barang">
                 <div class="space-y-2">
                     <label class="block text-xs font-medium">Produk</label>
-                    <Vue3Select v-model="returnProductId" :options="productReturns" label="product_title" value="id"
-                        :onSearch="searchProducts" :reduce="(product: Product) => ({
-                            ...product,
-                            name: product.product_name,
-                            product_name: product.product_name,
-                            size_id: product.size_id,
-                            uom_id: product.uom_id,
-                            qty_available: 0
-                        })" placeholder="Pilih Produk" />
+                    <Vue3Select
+                        v-model="returnProductId"
+                        :options="productReturns"
+                        label="product_title"
+                        value="id"
+                        :onSearch="searchProducts"
+                        :reduce="
+                            (product: Product) => ({
+                                ...product,
+                                name: product.product_name,
+                                product_name: product.product_name,
+                                size_id: product.size_id,
+                                uom_id: product.uom_id,
+                                qty_available: 0,
+                            })
+                        "
+                        placeholder="Pilih Produk"
+                    />
 
                     <!-- <select v-model="returnProductId" class="w-full rounded border p-1 text-xs">
                         <option value="">Pilih Produk</option>
@@ -433,23 +470,19 @@
                     <label class="block text-xs font-medium">Qty</label>
                     <input type="number" v-model.number="returnQty" min="1" class="w-full rounded border p-1 text-xs" />
                     <label class="block text-xs font-medium">Harga Retur</label>
-                    <input type="number" v-model.number="returnPrice" min="0"
-                        class="w-full rounded border p-1 text-xs" />
+                    <input type="number" v-model.number="returnPrice" min="0" class="w-full rounded border p-1 text-xs" />
                     <div class="mt-2 flex justify-end gap-2">
                         <Button variant="outline" @click="closeReturnDialog">Batal</Button>
                         <Button class="bg-red-600 text-white" @click="handleReturnAddToCart">Simpan</Button>
                     </div>
                     <div v-if="returnError" class="mt-1 text-xs text-red-600">{{ returnError }}</div>
-                    <div v-if="returnSuccess" class="mt-1 text-xs text-red-600">Retur berhasil ditambahkan ke keranjang!
-                    </div>
+                    <div v-if="returnSuccess" class="mt-1 text-xs text-red-600">Retur berhasil ditambahkan ke keranjang!</div>
                 </div>
             </Modal>
 
             <!-- Print Preview Modal -->
-            <div v-if="showPrintPreview"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 p-4">
-                <div class="print-area w-[450px] max-w-full rounded bg-white p-2 font-mono text-[10px] leading-tight shadow"
-                    ref="printArea">
+            <div v-if="showPrintPreview" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 p-4">
+                <div class="print-area w-[450px] max-w-full rounded bg-white p-2 font-mono text-[10px] leading-tight shadow" ref="printArea">
                     <div class="text-center">
                         <p class="text-[12px] font-bold">{{ locationName }}</p>
                         <p>{{ locationAddress }}</p>
@@ -513,37 +546,44 @@
                     <!-- Buttons (hidden when printing) -->
                     <div class="no-print mt-2 flex justify-end gap-2">
                         <Button variant="outline" @click="closePrintPreview">TUTUP</Button>
-                        <Button @click="autoPrint"
-                            class="rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">CETAK</Button>
+                        <Button
+                            @click="autoPrint"
+                            class="rounded-md bg-indigo-600 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+                            >CETAK</Button
+                        >
                     </div>
                 </div>
             </div>
         </div>
-        <CustomerDialog :show="showCustomerDialog" @update:show="showCustomerDialog = $event"
-            @customer-selected="handleCustomerSelected" />
+        <CustomerDialog :show="showCustomerDialog" @update:show="showCustomerDialog = $event" @customer-selected="handleCustomerSelected" />
+
+        <!-- Add Product Custom Modal -->
+        <Modal :show="showAddProductCustomModal" @close="showAddProductCustomModal = false" title="Tambah Produk Custom">
+          <AddProductCustom @product-saved="handleProductCustomSaved" @cancel="showAddProductCustomModal = false" />
+        </Modal>
     </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import axios from 'axios';
-import { computed, nextTick, ref, watch } from 'vue';
 import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/composables/useToast';
+import AppLayout from '@/layouts/AppLayout.vue';
 import type { User } from '@/types';
 import { type SharedData } from '@/types';
-import { usePage } from '@inertiajs/vue3';
-import { PercentIcon, ReplaceAll, ScanQrCode, Trash2, UserPlusIcon, PrinterCheckIcon } from 'lucide-vue-next';
+import { Head, usePage } from '@inertiajs/vue3';
+import axios from 'axios';
+import { PercentIcon, PrinterCheckIcon, ReplaceAll, ScanQrCode, Trash2, UserPlusIcon, Plus } from 'lucide-vue-next';
+import { computed, nextTick, ref, watch } from 'vue';
 import Vue3Select from 'vue3-select';
 import 'vue3-select/dist/vue3-select.css';
 // import jsQR from 'jsqr';
 import CustomerDialog from '@/components/CustomerDialog.vue';
 import Modal from '@/components/Modal.vue';
+import AddProductCustom from '@/components/AddProductCustom.vue';
+import { useCurrencyInput } from '@/composables/useCurrencyInput';
 import { QrcodeStream } from 'vue-qrcode-reader';
-import { useCurrencyInput } from '@/composables/useCurrencyInput'
 
 interface ProductSize {
     size_id: string;
@@ -636,6 +676,7 @@ interface OrderPayload {
 const showModal = ref(false);
 
 const showQrScanner = ref(false);
+const showAddProductCustomModal = ref(false);
 
 const toast = useToast();
 const products = ref<Product[]>([]);
@@ -696,7 +737,7 @@ const selectedSize = ref<string | null>(null);
 async function searchprintTransaction() {
     try {
         const response = await axios.get(`/api/orders/search`, {
-            params: { search: searchTransaction.value }
+            params: { search: searchTransaction.value },
         });
         transactions.value = response.data.data;
     } catch (error) {
@@ -713,7 +754,7 @@ async function selectTransactionForPrint(transaction: Transaction) {
         lastOrderDate.value = formatDate(transaction.created_at);
         transactionNumber.value = transaction.id;
         selectedCustomerName.value = transaction.customer;
-        lastOrderItems.value = transaction.order_items.map(item => ({
+        lastOrderItems.value = transaction.order_items.map((item) => ({
             product_id: item.product_id,
             product_name: item.product_name,
             quantity: Number(item.quantity),
@@ -737,7 +778,6 @@ async function selectTransactionForPrint(transaction: Transaction) {
         closeReprintDialog();
     }
 }
-
 
 const paidAmount = ref<number | null>(null);
 const changeAmount = computed(() => {
@@ -788,8 +828,6 @@ function selectSize(product: Product, size: ProductSize) {
 //     discount: qty > 1 ? size.discount_grosir : size.discount_retail,
 //   };
 // };
-
-
 
 function applyReturn() {
     showReturnDialog.value = true;
@@ -903,7 +941,6 @@ const lastOrderSubTotal = computed(() => lastOrderItems.value.reduce((sum, item)
 
 const showPaymentDialog = ref(false);
 
-
 // Buat computed property dari nama user
 const cashierName = computed(() => userLogin.name ?? 'Kasir');
 
@@ -986,9 +1023,7 @@ const addToCart = (product: Product) => {
         }
 
         currentSelectedSize = product.sizes.find(
-            (s) =>
-                s.size_id === selectedSize.value &&
-                (selectedVariant.value === null || s.variant === selectedVariant.value),
+            (s) => s.size_id === selectedSize.value && (selectedVariant.value === null || s.variant === selectedVariant.value),
         );
 
         if (!currentSelectedSize || currentSelectedSize.qty_stock <= 0) {
@@ -1028,20 +1063,17 @@ const addToCart = (product: Product) => {
         variant: currentSelectedSize?.variant ?? product.variant ?? null,
         sizes: currentSelectedSize
             ? [
-                {
-                    ...currentSelectedSize,
-                    qty_in_cart: quantityToAdd,
-                    qty_available: currentSelectedSize.qty_stock - quantityToAdd,
-                },
-            ]
+                  {
+                      ...currentSelectedSize,
+                      qty_in_cart: quantityToAdd,
+                      qty_available: currentSelectedSize.qty_stock - quantityToAdd,
+                  },
+              ]
             : [],
     };
 
     const existing = selectedProducts.value.find(
-        (item) =>
-            item.id === itemToAdd.id &&
-            item.size_id === itemToAdd.size_id &&
-            item.variant === itemToAdd.variant,
+        (item) => item.id === itemToAdd.id && item.size_id === itemToAdd.size_id && item.variant === itemToAdd.variant,
     );
 
     if (existing) {
@@ -1062,8 +1094,6 @@ const addToCart = (product: Product) => {
         if (orderList.value) orderList.value.scrollTop = orderList.value.scrollHeight;
     });
 };
-
-
 
 function removeFromCart(productId: number) {
     selectedProducts.value = selectedProducts.value.filter((p) => p.id !== productId);
@@ -1155,8 +1185,8 @@ async function confirmPayment() {
 function clearCart() {
     selectedProducts.value = [];
     selectedPaymentMethod.value = null;
-    selectedCustomerName.value = ""
-    transactionNumber.value = ""
+    selectedCustomerName.value = '';
+    transactionNumber.value = '';
     selectedForDiscount.value = []; // Clear discount selections
 }
 
@@ -1166,7 +1196,6 @@ async function applyCustomer(customerId: number | null = null) {
     }
 
     if (typeof selectedCustomerId.value === 'number') {
-
         try {
             const response = await axios.get(`/api/customers/get/${selectedCustomerId.value}`);
             selectedCustomerName.value = response.data.name;
@@ -1229,7 +1258,7 @@ async function placeOrder() {
             total_amount: totalAmount.value,
             paid_amount: paidAmount.value!,
             customer_id: selectedCustomerId.value, // Add customer_id here
-            transaction_number: transactionNumber.value || "", // Add flag for online transaction
+            transaction_number: transactionNumber.value || '', // Add flag for online transaction
         };
 
         const response = await axios.post('/api/pos/orders', orderPayload);
@@ -1288,7 +1317,6 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
         orders.forEach((order: any) => {
             if (order?.order_items?.length) {
                 combinedOrderItems.push(...order.order_items);
-
             }
         });
 
@@ -1312,28 +1340,27 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
             variant: item.variant || 'all',
             sizes: item.size_id
                 ? [
-                    {
-                        size_id: item.size_id,
-                        variant: item.variant || 'all',
-                        qty_stock: item.qty_stock,
-                        qty_in_cart: item.quantity ?? 1,
-                        qty_available: item.qty_stock,
-                        price: item.price,
-                        price_sell: item.price_sell,
-                        discount: item.discount,
-                        price_retail: item.price,
-                        price_sell_retail: item.price_sell,
-                        discount_retail: item.discount,
-                        price_grosir: item.price,
-                        price_sell_grosir: item.price_sell,
-                        discount_grosir: item.discount,
-                    },
-                ]
+                      {
+                          size_id: item.size_id,
+                          variant: item.variant || 'all',
+                          qty_stock: item.qty_stock,
+                          qty_in_cart: item.quantity ?? 1,
+                          qty_available: item.qty_stock,
+                          price: item.price,
+                          price_sell: item.price_sell,
+                          discount: item.discount,
+                          price_retail: item.price,
+                          price_sell_retail: item.price_sell,
+                          discount_retail: item.discount,
+                          price_grosir: item.price,
+                          price_sell_grosir: item.price_sell,
+                          discount_grosir: item.discount,
+                      },
+                  ]
                 : [],
         }));
 
         console.log('Produk dalam pesanan:', products);
-
 
         // ini sesuai list tidak di merge
         // products.forEach((product) => {
@@ -1342,9 +1369,7 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
 
         products.forEach((product) => {
             const existingIndex = selectedProducts.value.findIndex(
-                (p) =>
-                    (p.product_id ?? p.id) === (product.product_id ?? product.id) &&
-                    p.size_id === product.size_id
+                (p) => (p.product_id ?? p.id) === (product.product_id ?? product.id) && p.size_id === product.size_id,
             );
 
             if (existingIndex > -1) {
@@ -1354,14 +1379,12 @@ const onDetect = async (detectedCodes: { rawValue: string }[]) => {
             }
         });
 
-
         toast.success('Order items added to cart!');
 
         // If a customer was identified from the QR scan, apply them
         if (selectedCustomerId.value) {
             applyCustomer(selectedCustomerId.value);
         }
-
     } catch (error) {
         console.error('Error scanning QR code:', error);
         toast.error('Failed to scan QR code or retrieve order details.');
@@ -1390,15 +1413,15 @@ watch(
 
                     size.qty_in_cart = newQty;
                     size.qty_available = size.qty_stock - newQty;
-                }
+                },
             );
         });
     },
-    { deep: true }
+    { deep: true },
 );
 
 watch(paymentInput.internalValue, (newValue) => {
-  paidAmount.value = newValue;
+    paidAmount.value = newValue;
 });
 
 function doPrintKasir80mm() {
@@ -1483,16 +1506,16 @@ function doPrintKasir80mm() {
       </div>
       <div style="text-align:center;">----------------------------------------</div>
       ${lastOrderItems.value
-            .map(
-                (item) => `
+          .map(
+              (item) => `
           <div>${item.product_name} - ${item.size_id} ${item.variant} </div>
           <div style="display:flex; justify-content:space-between;">
             <span>${item.quantity} x ${formatRupiah(item.price)}</span>
             <span>${formatRupiah(item.quantity * item.price)}</span>
           </div>
         `,
-            )
-            .join('')}
+          )
+          .join('')}
       <div style="text-align:center;">----------------------------------------</div>
       <div style="display:flex; justify-content:space-between;">
         <span>Total QTY</span>
@@ -1648,7 +1671,6 @@ function autoPrint() {
     }
 }
 
-
 function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
@@ -1670,11 +1692,16 @@ const formatDate = (date: string | null | undefined) => {
 
     const parts = formatter.formatToParts(dt);
 
-    const get = (type: string) => parts.find(p => p.type === type)?.value || '';
+    const get = (type: string) => parts.find((p) => p.type === type)?.value || '';
 
     return `${get('day')}/${get('month')}/${get('year')} ${get('hour')}:${get('minute')} WIB`;
 };
 
+const handleProductCustomSaved = () => {
+    showAddProductCustomModal.value = false;
+    fetchProducts(); // Refresh the product list
+    toast.success('Produk custom berhasil ditambahkan ke daftar!');
+};
 
 fetchProducts();
 fetchPaymentMethods();
@@ -1687,7 +1714,6 @@ fetchPaymentMethods();
 }
 
 @media print {
-
     .no-print,
     .no-print * {
         display: none !important;
