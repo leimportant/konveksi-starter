@@ -135,7 +135,7 @@
           <Button
             type="submit"
             :loading="form.processing"
-            class="bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+            class="bg-indigo-600 h-10 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
           >
             <i class="pi pi-check mr-1" /> {{ isEditMode ? 'Perbarui' : 'Simpan' }}
           </Button>

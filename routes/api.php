@@ -167,6 +167,7 @@ Route::middleware('auth')->group(function () {
         // approve or reject
         Route::put('/{id}/approve', [KasbonController::class, 'approve']);
         Route::put('/{id}/reject', [KasbonController::class, 'reject']);
+        Route::post('/bayar', [KasbonController::class, 'bayar']);
     });
 
     Route::get('api/payroll', [PayrollController::class, 'index']);

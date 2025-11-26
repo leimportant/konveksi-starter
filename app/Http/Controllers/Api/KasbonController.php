@@ -290,4 +290,61 @@ class KasbonController extends Controller
         return response()->json($mutasi);
     }
 
+    public function bayar(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|numeric',
+            'amount' => 'required|numeric|min:1',
+            'type' => ['required', Rule::in(['Pembayaran'])],
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $employeeId = $validated['employee_id'];
+            $paymentAmount = $validated['amount'];
+
+            $kasbonId = DB::table('mutasi_kasbon')
+                    ->where('employee_id', $employeeId)
+                    ->where('type', 'Kasbon')
+                    ->orderByDesc('created_at')
+                    ->limit(1)
+                    ->value('kasbon_id');
+
+
+            // Calculate current saldo kasbon
+            $totalKasbon = DB::table('mutasi_kasbon')
+                ->where('employee_id', $employeeId)
+                ->where('type', 'Kasbon')
+                ->sum('amount');
+
+            $totalPembayaran = DB::table('mutasi_kasbon')
+                ->where('employee_id', $employeeId)
+                ->where('type', 'Pembayaran')
+                ->sum('amount');
+
+            $currentSaldo = $totalKasbon - $totalPembayaran;
+            $newSaldo = $currentSaldo - $paymentAmount; // Payment reduces saldo
+
+            // Create new mutasi_kasbon entry for payment
+            DB::table('mutasi_kasbon')->insert([
+                'id' => Str::uuid()->toString(),
+                'kasbon_id' => $kasbonId ?? 0, 
+                'employee_id' => $employeeId,
+                'amount' => $paymentAmount,
+                'description' => 'Pembayaran kasbon',
+                'saldo_kasbon' => $newSaldo,
+                'type' => 'Pembayaran',
+                'created_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Pembayaran kasbon berhasil.', 'saldo_terbaru' => $newSaldo], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error during kasbon payment: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal melakukan pembayaran kasbon.', 'error' => $e->getMessage()], 500);
+        }
+    }
 }
