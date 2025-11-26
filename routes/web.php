@@ -323,9 +323,10 @@ Route::get('/good-receive/{id}/edit', function ($id) {
     ]);
 })->middleware(['auth'])->name('good-receive.edit');
 
-Route::get('/production/{activity_role}', function ($activity_role) {
+Route::get('/production/{activity_role}/create/{isCreate}', function ($activity_role, $isCreate) {
     return Inertia::render('production/Index', [
         'activity_role' => $activity_role,
+        'isCreate' => $isCreate,
     ]);
 })->middleware(['auth'])->name('production.idx');
 

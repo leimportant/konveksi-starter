@@ -21,6 +21,7 @@ const sortOrder = ref<'asc' | 'desc'>('desc');
 
 const props = defineProps<{
   activity_role: string | number;
+  isCreate: string;
 }>();
 
 const breadcrumbs = [{ title: 'Production', href: `/production/${props.activity_role}` }];
@@ -180,7 +181,7 @@ const handleDelete = async (id: string) => {
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div class="flex flex-1 gap-2 items-center">
 
-            <Button @click="$inertia.visit(`/production/${props.activity_role}/create`)"
+            <Button v-if="props.isCreate === 'Y'" @click="$inertia.visit(`/production/${props.activity_role}/create`)"
               class="flex items-center gap-2 rounded-md bg-indigo-600 h-10 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 flex-shrink-0">
               <Plus class="h-4 w-4" />
               Tambah Data
@@ -269,7 +270,7 @@ const handleDelete = async (id: string) => {
 
                   <td class="px-3 py-2 align-top">
                     <div class="flex justify-end gap-1 sm:gap-2">
-                      <Button v-if="item.status === 1 || item.status === 3" variant="ghost" size="icon"
+                      <Button v-if="props.isCreate === 'Y' && (item.status === 1 || item.status === 3)" variant="ghost" size="icon"
                         class="hover:bg-gray-100 dark:hover:bg-gray-700"
                         @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)">
                         <Edit class="h-4 w-4" />

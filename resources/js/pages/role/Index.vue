@@ -22,12 +22,16 @@ const currentRole = ref<Role | null>(null);
 const allMenus = ref<any[]>([]);
 const selectedMenus = ref<number[]>([]);
 
+const editingRoleId = ref<number | null>(null);
+const editingCreateProdValue = ref<string>('');
+
 const form = useForm({ name: '', create_prod: 'Y' });
 
 const breadcrumbs = [{ title: 'Role', href: '/roles' }];
 
 const roleStore = useRoleStore();
 const { items: roles } = storeToRefs(roleStore);
+const { updateRole } = roleStore;
 const activityGroupStore = useActivityGroupStore();
 
 const menuStore = useMenuStore();
@@ -105,7 +109,7 @@ const openAssignMenuModal = async (role: Role) => {
 
 const handleCreate = async () => {
     if (!form.name) return toast.error('Name is required');
-    if (!form.create_prod) form.create_prod = 'N';
+    if (!form.create_prod) form.create_prod = 'Y';
     try {
         await roleStore.createRole(form.name, form.create_prod);
         toast.success('Role created successfully');
@@ -128,6 +132,24 @@ const handleDelete = async (id: number) => {
         await roleStore.fetchRoles();
     } catch (error: any) {
         toast.error(error?.response?.data?.message ?? 'Failed to delete role');
+    }
+};
+
+const startEditing = (role: Role) => {
+    editingRoleId.value = role.id;
+    editingCreateProdValue.value = role.create_prod;
+};
+
+const handleUpdateRoleCreateProd = async (roleId: number, createProdValue: string, name: string) => {
+    if (editingRoleId.value === roleId) {
+        try {
+            await updateRole(roleId, name, createProdValue);
+            toast.success('Role updated successfully');
+            editingRoleId.value = null; // Exit editing mode
+            await roleStore.fetchRoles(true); // Refresh roles
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message ?? 'Failed to update role');
+        }
     }
 };
 
@@ -247,8 +269,24 @@ const isAllChecked = computed(() => {
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <span v-if="role.create_prod == 'Y'" class="text-green-600 font-semibold">Yes</span>
-                                <span v-else class="text-red-600 font-semibold">No</span>
+                                <div
+                                    v-if="editingRoleId === role.id"
+                                    @mouseleave="handleUpdateRoleCreateProd(role.id, editingCreateProdValue, role.name)"
+                                    class="flex items-center gap-2"
+                                >
+                                    <select
+                                        v-model="editingCreateProdValue"
+                                        @change="handleUpdateRoleCreateProd(role.id, editingCreateProdValue, role.name)"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                    >
+                                        <option value="Y">Yes</option>
+                                        <option value="N">No</option>
+                                    </select>
+                                </div>
+                                <div v-else @click="startEditing(role)" class="cursor-pointer">
+                                    <span v-if="role.create_prod == 'Y'" class="text-green-600 font-semibold">Yes</span>
+                                    <span v-else class="text-red-600 font-semibold">No</span>
+                                </div>
                             </TableCell>
 
                             <TableCell class="flex gap-2">

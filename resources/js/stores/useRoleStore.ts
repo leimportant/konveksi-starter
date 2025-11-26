@@ -51,6 +51,7 @@ export const useRoleStore = defineStore('role', {
             }
         },
 
+
         async deleteRole(id: number) {
             try {
                 await axios.delete(`/api/roles/${id}`);
