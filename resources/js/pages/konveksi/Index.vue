@@ -22,7 +22,7 @@ const handleClick = (code: string, isCreate: string) => {
       router.visit('/purchase-order')
       break
     default:
-      router.visit(`/production/${code}`)
+      router.visit(`/production/${code}/create/${isCreate}`)
       break
   }
 }
