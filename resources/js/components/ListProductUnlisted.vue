@@ -197,7 +197,7 @@ const fetchUnlistedProducts = async (page = 1) => {
     unlistedProducts.value = response.data.map((item: any) => ({
       ...item,
       category: { name: item.category_name },
-      size: { name: item.size_name },
+      size: { name: item.size_id },
     }));
 
     pagination.value.current_page = response.current_page;

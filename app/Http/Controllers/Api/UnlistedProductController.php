@@ -31,6 +31,7 @@ class UnlistedProductController extends Controller
             // For now, let's use a simple approach, e.g., combining category_id and a timestamp/random string.
 
             $unlistedProduct = UnlistedProduct::create([
+                'id' => UnlistedProduct::generateId(), // Use the new generateId method
                 'category_id' => $validated['category_id'],
                 'uom_id' => 'PCS', // Default UOM for unlisted products
                 'name' => $validated['name'],
