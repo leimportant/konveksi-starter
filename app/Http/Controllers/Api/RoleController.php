@@ -35,7 +35,7 @@ class RoleController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $role = Role::create($request->only('name', 'create_prod'));
+        $role = Role::create($request->only('name', 'create_prod', 'all_employee'));
 
         return response()->json($role, 201);
     }
@@ -63,7 +63,7 @@ class RoleController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $role->update($request->only('name', 'create_prod'));
+        $role->update($request->only('name', 'create_prod', 'all_employee'));
 
         return response()->json($role);
     }
