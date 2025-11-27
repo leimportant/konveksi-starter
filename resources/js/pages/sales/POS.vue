@@ -1202,8 +1202,14 @@ function handleAddToPosCart(unlistedProduct: any) {
         ],
     };
 
+    // Temporarily set selectedSize for validation within addToCart
+    selectedSize.value = transformedProduct.size_id;
+
     addToCart(transformedProduct);
     showListProductUnlistedModal.value = false;
+
+    // Reset selectedSize after adding to cart
+    selectedSize.value = null;
 }
 
 function openPaymentDialog() {

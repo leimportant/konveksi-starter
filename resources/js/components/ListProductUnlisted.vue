@@ -38,9 +38,9 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">Produk</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">Detail</th>
-            <th class="px-4 py-3"></th>
+            <th class="px-3 py-2">Produk</th>
+            <th class="px-3 py-2">Detail</th>
+            <th class="px-3 py-2"></th>
           </tr>
         </thead>
 
@@ -56,14 +56,13 @@
             </td>
 
             <!-- DETAILS -->
-            <td class="px-4 py-4 align-top">
+            <td class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
   <div class="flex flex-col gap-3 w-full text-sm
               bg-gradient-to-br from-gray-50 to-purple-50
               rounded-xl p-4 border border-gray-200 shadow-sm backdrop-blur-sm">
 
     <!-- Kategori -->
     <div class="flex justify-between items-center">
-      <Category class="w-4 h-4 text-purple-600" />
       <span class="font-semibold text-gray-900">
         {{ product.category?.name || '-' }}
       </span>
@@ -71,33 +70,21 @@
 
     <!-- Size -->
     <div class="flex justify-between items-center">
-      <Square class="w-4 h-4 text-blue-600" />
-      <span class="font-semibold text-gray-900">
-        {{ product.size_id }}
+      <span class="font-semibold">
+        {{ product.variant || '-' }} - {{ product.size_id }}
       </span>
     </div>
-
-    <!-- Variant -->
-    <div class="flex justify-between items-center">
-      <Layers class="w-4 h-4 text-green-600" />
-      <span class="font-semibold text-gray-900">
-        {{ product.variant || '-' }}
-      </span>
-    </div>
-
-    <div class="border-t my-2"></div>
 
     <!-- Harga Toko -->
-    <div class="flex justify-between items-center">
-      <Store class="w-4 h-4 text-purple-700" />
-      <span class="font-bold text-purple-700">
-        {{ Number(product.price_store).toLocaleString() }}
+    <div class="flex justify-between items-center font-sm">
+      <span class="font-sm">
+        Harga Toko {{ Number(product.price_store).toLocaleString() }}
       </span>
     </div>
 
     <!-- Harga Grosir -->
-    <div class="flex justify-between items-center">
-      <PackageSearch class="w-4 h-4 text-purple-700" />
+    <div class="flex justify-between items-center font-xs">
+      Harga Grosir
       <span class="font-bold text-purple-700">
         {{ Number(product.price_grosir).toLocaleString() }}
       </span>
@@ -115,7 +102,7 @@
                 size="sm"
                 class="bg-green-600 hover:bg-green-700 text-white rounded-md shadow-sm px-3 py-1 text-xs"
               >
-                Tambah
+                <ShoppingBag  class="h-4 w-4"  />
               </Button>
             </td>
           </tr>
@@ -167,7 +154,7 @@ import { Button } from '@/components/ui/button';
 import Modal from '@/components/Modal.vue';
 import AddProductUnlisted from './AddProductUnlisted.vue';
 import { useToast } from '@/composables/useToast';
-import { Square, Layers, Store, PackageSearch } from 'lucide-vue-next';
+import { ShoppingBag } from 'lucide-vue-next';
 
 
 const toast = useToast();
