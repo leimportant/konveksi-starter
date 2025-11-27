@@ -121,6 +121,7 @@ import { storeToRefs } from 'pinia';
 
 const productStore = useProductStore();
 const toast = useToast();
+const emit = defineEmits(['product-saved']);
 
 const categoryStore = useCategoryStore();
 const sizeStore = useSizeStore();
@@ -131,7 +132,7 @@ const { sizes } = storeToRefs(sizeStore);
 const form = useForm({
   name: '',
   category_id: '',
-  size_id: null, // Changed from '' to null
+  size_id: '', // Changed from null to ''
     variant: '',
     qty: 1,
     price_store: 0,
@@ -145,6 +146,7 @@ const handleSubmit = async () => {
     await productStore.saveProductUnlisted(form.data());
     toast.success('Produk custom berhasil disimpan!');
     form.reset();
+    emit('product-saved');
   } catch (error: any) {
     toast.error(error.message || 'Gagal menyimpan produk custom.');
   }
