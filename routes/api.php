@@ -51,6 +51,7 @@ use App\Http\Controllers\Api\CrossDomainAuthController;
 use App\Http\Controllers\Api\ChatAssistantController;
 use App\Http\Controllers\Api\PayrollController;
 use App\Http\Controllers\Api\MutasiController;
+use App\Http\Controllers\Api\UnlistedProductController;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -188,6 +189,7 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/price-types', PriceTypeController::class);
     Route::apiResource('api/product-prices', ProductPriceController::class);
     Route::apiResource('api/locations', LocationController::class);
+    Route::apiResource('api/unlisted-products', UnlistedProductController::class);
     Route::get('api/locations/get', [LocationController::class, 'getLocations']);
     Route::get('api/stock', [InventoryController::class, 'getStock']);
     Route::apiResource('api/inventories', InventoryController::class);
