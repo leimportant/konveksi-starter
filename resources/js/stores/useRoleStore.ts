@@ -10,6 +10,7 @@ export interface Role {
   id: number;
   name: string;
   create_prod: string;
+  all_employee: string; // Add the new field
   activity_groups?: ActivityGroup[]; // many-to-many
   menus?: NavItem[];
 }
@@ -33,18 +34,18 @@ export const useRoleStore = defineStore('role', {
             }
         },
 
-        async createRole(name: string, create_prod: string) {
+        async createRole(name: string, create_prod: string, all_employee: string) {
             try {
-                await axios.post('/api/roles', { name, create_prod });
+                await axios.post('/api/roles', { name, create_prod, all_employee });
                 await this.fetchRoles();
             } catch (error) {
                 throw error;
             }
         },
 
-        async updateRole(id: number, name: string, create_prod: string) {
+        async updateRole(id: number, name: string, create_prod: string, all_employee: string) {
             try {
-                await axios.put(`/api/roles/${id}`, { name, create_prod });
+                await axios.put(`/api/roles/${id}`, { name, create_prod, all_employee });
                 await this.fetchRoles();
             } catch (error) {
                 throw error;

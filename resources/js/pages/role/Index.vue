@@ -24,8 +24,9 @@ const selectedMenus = ref<number[]>([]);
 
 const editingRoleId = ref<number | null>(null);
 const editingCreateProdValue = ref<string>('');
+const editingAllEmployeeValue = ref<string>(''); // New state for inline editing all_employee
 
-const form = useForm({ name: '', create_prod: 'Y' });
+const form = useForm({ name: '', create_prod: 'Y', all_employee: 'N' }); // Add all_employee to form
 
 const breadcrumbs = [{ title: 'Role', href: '/roles' }];
 
@@ -110,8 +111,9 @@ const openAssignMenuModal = async (role: Role) => {
 const handleCreate = async () => {
     if (!form.name) return toast.error('Name is required');
     if (!form.create_prod) form.create_prod = 'Y';
+    if (!form.all_employee) form.all_employee = 'N'; // Default for all_employee
     try {
-        await roleStore.createRole(form.name, form.create_prod);
+        await roleStore.createRole(form.name, form.create_prod, form.all_employee);
         toast.success('Role created successfully');
         form.reset();
         roleStore.loaded = false;
@@ -138,12 +140,28 @@ const handleDelete = async (id: number) => {
 const startEditing = (role: Role) => {
     editingRoleId.value = role.id;
     editingCreateProdValue.value = role.create_prod;
+    editingAllEmployeeValue.value = role.all_employee; // Initialize for all_employee
 };
 
 const handleUpdateRoleCreateProd = async (roleId: number, createProdValue: string, name: string) => {
     if (editingRoleId.value === roleId) {
         try {
-            await updateRole(roleId, name, createProdValue);
+            // Pass all_employee to updateRole
+            const currentRoleData = roles.value.find(r => r.id === roleId);
+            await updateRole(roleId, name, createProdValue, currentRoleData?.all_employee || 'N');
+            toast.success('Role updated successfully');
+            editingRoleId.value = null; // Exit editing mode
+            await roleStore.fetchRoles(true); // Refresh roles
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message ?? 'Failed to update role');
+        }
+    }
+};
+
+const handleUpdateRoleAllEmployee = async (roleId: number, allEmployeeValue: string, name: string, createProdValue: string) => {
+    if (editingRoleId.value === roleId) {
+        try {
+            await updateRole(roleId, name, createProdValue, allEmployeeValue);
             toast.success('Role updated successfully');
             editingRoleId.value = null; // Exit editing mode
             await roleStore.fetchRoles(true); // Refresh roles
@@ -243,6 +261,7 @@ const isAllChecked = computed(() => {
                             <TableHead>Name</TableHead>
                             <TableHead>Apparel (Menu)</TableHead>
                             <TableHead>Buat Produksi</TableHead>
+                            <TableHead>Access Karyawan</TableHead>
                             <TableHead class="w-24">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -288,6 +307,27 @@ const isAllChecked = computed(() => {
                                     <span v-else class="text-red-600 font-semibold">No</span>
                                 </div>
                             </TableCell>
+                            <TableCell>
+                                <div
+                                    v-if="editingRoleId === role.id"
+                                    @mouseleave="handleUpdateRoleAllEmployee(role.id, editingAllEmployeeValue, role.name, role.create_prod)"
+                                    class="flex items-center gap-2"
+                                >
+                                    <select
+                                        v-model="editingAllEmployeeValue"
+                                        @change="handleUpdateRoleAllEmployee(role.id, editingAllEmployeeValue, role.name, role.create_prod)"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                    >
+                                        <option value="Y">Yes</option>
+                                        <option value="N">No</option>
+                                    </select>
+                                </div>
+                                <div v-else @click="startEditing(role)" class="cursor-pointer">
+                                    <span v-if="role.all_employee == 'Y'" class="text-green-600 font-semibold">Yes</span>
+                                    <span v-else class="text-red-600 font-semibold">No</span>
+                                </div>
+                            </TableCell>
+                            
 
                             <TableCell class="flex gap-2">
                                 <Button variant="ghost" size="icon" @click="openAssignMenuModal(role)">
@@ -378,6 +418,13 @@ const isAllChecked = computed(() => {
                         <div class="mb-4">  
                             <label class="block mb-1 font-medium">Buat Produksi</label>
                             <select v-model="form.create_prod" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="Y">Yes</option>
+                                <option value="N">No</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">  
+                            <label class="block mb-1 font-medium">Access Karyawan</label>
+                            <select v-model="form.all_employee" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="Y">Yes</option>
                                 <option value="N">No</option>
                             </select>
