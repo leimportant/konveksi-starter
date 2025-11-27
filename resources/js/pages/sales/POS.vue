@@ -15,7 +15,7 @@
                             class="focus:ring-primary-500 w-full max-w-xs rounded-md border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-2 md:text-sm"
                         />
                         <Button
-                            @click="showAddProductCustomModal = true"
+                            @click="showListProductUnlistedModal = true"
                             class="flex items-center justify-center rounded-md bg-purple-600 p-2 text-white hover:bg-purple-700"
                             title="Tambah Produk"
                         >
@@ -558,8 +558,13 @@
         <CustomerDialog :show="showCustomerDialog" @update:show="showCustomerDialog = $event" @customer-selected="handleCustomerSelected" />
 
         <!-- Add Product Custom Modal -->
-        <Modal :show="showAddProductCustomModal" @close="showAddProductCustomModal = false" title="Tambah Produk Custom">
-          <AddProductCustom @product-saved="handleProductCustomSaved" @cancel="showAddProductCustomModal = false" />
+        <Modal :show="showAddProductUnlistedModal" @close="showAddProductUnlistedModal = false" title="Tambah Produk Custom">
+          <AddProductUnlistedModal @cancel="showAddProductUnlistedModal = false" />
+        </Modal>
+
+        <!-- List Product Unlisted Modal -->
+        <Modal :show="showListProductUnlistedModal" @close="showListProductUnlistedModal = false" title="Daftar Produk Tanpa Master">
+            <ListProductUnlisted @add-unlisted-to-cart="handleAddToPosCart" />
         </Modal>
     </AppLayout>
 </template>
@@ -581,7 +586,8 @@ import 'vue3-select/dist/vue3-select.css';
 // import jsQR from 'jsqr';
 import CustomerDialog from '@/components/CustomerDialog.vue';
 import Modal from '@/components/Modal.vue';
-import AddProductCustom from '@/components/AddProductCustom.vue';
+import AddProductUnlistedModal from '@/components/AddProductUnlisted.vue';
+import ListProductUnlisted from '@/components/ListProductUnlisted.vue';
 import { useCurrencyInput } from '@/composables/useCurrencyInput';
 import { QrcodeStream } from 'vue-qrcode-reader';
 
@@ -619,6 +625,7 @@ interface Product {
     sizes: ProductSize[];
     variant: string | null;
     isReturn?: boolean;
+    is_unlisted?: boolean; // Add is_unlisted property
 }
 
 interface ProductRetur {
@@ -676,7 +683,8 @@ interface OrderPayload {
 const showModal = ref(false);
 
 const showQrScanner = ref(false);
-const showAddProductCustomModal = ref(false);
+const showAddProductUnlistedModal = ref(false);
+const showListProductUnlistedModal = ref(false);
 
 const toast = useToast();
 const products = ref<Product[]>([]);
@@ -1003,9 +1011,12 @@ function onSearchInput() {
 }
 
 const addToCart = (product: Product) => {
-    if (product.qty_stock <= 0) {
-        toast.error('Stok tidak cukup');
-        return;
+    // Skip stock validation for unlisted products
+    if (!product.is_unlisted) {
+        if (product.qty_stock <= 0) {
+            toast.error('Stok tidak cukup');
+            return;
+        }
     }
 
     if (product.price <= 0 && (!product.price_sell || product.price_sell <= 0)) {
@@ -1018,7 +1029,7 @@ const addToCart = (product: Product) => {
     // Handle size selection
     if (product.sizes && product.sizes.length > 0) {
         if (!selectedSize.value) {
-            toast.error('Silakan pilih ukuran terlebih dahulu');
+            toast.error('Silahkan pilih ukuran terlebih dahulu');
             return;
         }
 
@@ -1026,7 +1037,8 @@ const addToCart = (product: Product) => {
             (s) => s.size_id === selectedSize.value && (selectedVariant.value === null || s.variant === selectedVariant.value),
         );
 
-        if (!currentSelectedSize || currentSelectedSize.qty_stock <= 0) {
+        // Skip stock validation for unlisted products here too
+        if (!product.is_unlisted && (!currentSelectedSize || currentSelectedSize.qty_stock <= 0)) {
             toast.error('Stok ukuran ini tidak tersedia');
             return;
         }
@@ -1070,6 +1082,7 @@ const addToCart = (product: Product) => {
                   },
               ]
             : [],
+        is_unlisted: (product as any).is_unlisted || false, // Add is_unlisted flag
     };
 
     const existing = selectedProducts.value.find(
@@ -1150,6 +1163,47 @@ function saveDiscount() {
     selectedForDiscount.value = [];
     showModal.value = false;
     toast.success('Discount applied successfully');
+}
+
+function handleAddToPosCart(unlistedProduct: any) {
+    // Transform the unlistedProduct to match the 'Product' interface expected by addToCart
+    const transformedProduct: Product = {
+        id: unlistedProduct.id,
+        product_id: unlistedProduct.id,
+        product_name: unlistedProduct.name,
+        uom_id: unlistedProduct.uom_id || 'PCS', // Default UOM for unlisted
+        size_id: unlistedProduct.size_id,
+        qty_stock: unlistedProduct.qty || 1, // Use qty from unlisted product as initial stock
+        qty_available: unlistedProduct.qty || 1,
+        image_path: unlistedProduct.image_path || '',
+        price: unlistedProduct.price_store, // Use price_store as default price
+        price_sell: unlistedProduct.price_store,
+        discount: 0,
+        quantity: 1, // Always add 1 to cart initially
+        variant: unlistedProduct.variant,
+        is_unlisted: true,
+        sizes: [
+            {
+                size_id: unlistedProduct.size_id,
+                variant: unlistedProduct.variant,
+                qty_stock: unlistedProduct.qty || 1,
+                qty_in_cart: 0,
+                qty_available: unlistedProduct.qty || 1,
+                price: unlistedProduct.price_store,
+                price_sell: unlistedProduct.price_store,
+                discount: 0,
+                price_retail: unlistedProduct.price_store,
+                discount_retail: 0,
+                price_sell_retail: unlistedProduct.price_store,
+                price_grosir: unlistedProduct.price_grosir,
+                discount_grosir: 0,
+                price_sell_grosir: unlistedProduct.price_grosir,
+            },
+        ],
+    };
+
+    addToCart(transformedProduct);
+    showListProductUnlistedModal.value = false;
 }
 
 function openPaymentDialog() {
@@ -1695,12 +1749,6 @@ const formatDate = (date: string | null | undefined) => {
     const get = (type: string) => parts.find((p) => p.type === type)?.value || '';
 
     return `${get('day')}/${get('month')}/${get('year')} ${get('hour')}:${get('minute')} WIB`;
-};
-
-const handleProductCustomSaved = () => {
-    showAddProductCustomModal.value = false;
-    fetchProducts(); // Refresh the product list
-    toast.success('Produk custom berhasil ditambahkan ke daftar!');
 };
 
 fetchProducts();

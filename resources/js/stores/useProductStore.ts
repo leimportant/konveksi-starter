@@ -91,13 +91,34 @@ export const useProductStore = defineStore('product', {
       }
     },
 
-    async saveProductCustom(data: { name: string; category_id: string; items: Array<{ size_id: string; variant: string; qty: number; price_store: number; price_grosir: number }> }) {
+    async saveProductUnlisted(data: { name: string; category_id: string; size_id: string; variant: string; qty: number; price_store: number; price_grosir: number }) {
       try {
-        const response = await axios.post('/api/products/custom', data);
+        const response = await axios.post('/api/unlisted-products', data);
         return response.data; // Return saved product data if needed
       } catch (error) {
         console.error('Failed to save custom product:', error);
         throw error;
+      }
+    },
+
+    async fetchProductUnlisted(page = 1, perPage = 50, search = '') {
+      this.loading = true;
+      try {
+        const params = {
+          page,
+          perPage,
+          search,
+        };
+        const response = await axios.get('/api/unlisted-products', { params });
+        // Assuming your API returns data in a similar format to fetchProducts
+        // You might want to have a separate state for unlisted products if needed
+        // For now, I'll just return the data.
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch unlisted products:', error);
+        throw error;
+      } finally {
+        this.loading = false;
       }
     },
   },
