@@ -30,7 +30,7 @@
             <Input type="text" v-model="item.variant" class="w-full" />
           </td>
           <td class="px-6 py-4">
-            <Input type="number" v-model="item.qty" class="w-full" min="0" />
+            <Input type="number" v-model="item.qty" class="w-full" min="0" readonly/>
           </td>
           <td class="px-6 py-4">
             <Input type="number" v-model="item.price_store" class="w-full" min="0" />

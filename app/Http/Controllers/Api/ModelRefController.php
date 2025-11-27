@@ -121,7 +121,7 @@ class ModelRefController extends Controller
                     );
                 }
             }
-            
+
 
             // Store documents
 
@@ -160,7 +160,50 @@ class ModelRefController extends Controller
     {
         try {
 
-            $models = ModelRef::with(['sizes', 'activities', 'modelMaterial'])->latest()->paginate(10);
+            // Ambil semua model + sizes
+            $models = ModelRef::with(['sizes', 'activities', 'modelMaterial'])
+                ->latest()
+                ->paginate(10);
+
+            // Ambil semua model_id dalam pagination
+            $modelIds = $models->pluck('id');
+
+            // Ambil cutting untuk semua model dalam satu query
+            $cuttingData = DB::table('tr_production as p')
+                ->join('tr_production_item as pi', 'pi.production_id', '=', 'p.id')
+                ->whereIn('p.model_id', $modelIds)
+                ->where('p.activity_role_id', 1) // CUTTING
+                ->select(
+                    'p.model_id',
+                    'pi.size_id',
+                    'pi.variant',
+                    DB::raw('SUM(pi.qty) as total_cutting')
+                )
+                ->groupBy('p.model_id', 'pi.size_id', 'pi.variant')
+                ->get();
+
+            // Mapping cepat
+            $cuttingMap = [];
+
+            foreach ($cuttingData as $item) {
+                $variantKey = $item->variant ?: 'all';
+                $cuttingMap[$item->model_id][$item->size_id][$variantKey] = $item->total_cutting;
+            }
+
+            // Gabungkan cutting ke tiap model -> sizes
+            foreach ($models as $model) {
+                foreach ($model->sizes as $size) {
+
+                    $variantKey = $size->variant ?: 'all';
+
+                    $cuttingQty =
+                        $cuttingMap[$model->id][$size->size_id][$variantKey]
+                        ?? $cuttingMap[$model->id][$size->size_id]['all']
+                        ?? 0;
+
+                    $size->cutting_qty = $cuttingQty;
+                }
+            }
 
             return response()->json([
                 'data' => $models
@@ -174,10 +217,41 @@ class ModelRefController extends Controller
         }
     }
 
+
     public function show($id)
     {
         try {
             $model = ModelRef::with(['sizes', 'activities', 'modelMaterial'])->findOrFail($id);
+
+            // --- Ambil data cutting dari tr_production ---
+            $cuttingData = DB::table('tr_production as p')
+                ->join('tr_production_item as pi', 'pi.production_id', '=', 'p.id')
+                ->where('p.model_id', $id)
+                ->where('p.activity_role_id', 1) // CUTTING
+                ->select('pi.size_id', 'pi.variant', DB::raw('SUM(pi.qty) as total_cutting'))
+                ->groupBy('pi.size_id', 'pi.variant')
+                ->get();
+
+            // Buat map untuk pencocokan cepat
+            $cuttingMap = [];
+
+            foreach ($cuttingData as $item) {
+                $variantKey = $item->variant ?: 'all'; // fallback
+                $cuttingMap[$item->size_id][$variantKey] = $item->total_cutting;
+            }
+
+            // --- Gabungkan cutting qty ke struktur model.sizes ---
+            foreach ($model->sizes as $size) {
+
+                $variantKey = $size->variant ?: 'all';
+
+                $cuttingQty =
+                    $cuttingMap[$size->size_id][$variantKey]
+                    ?? $cuttingMap[$size->size_id]['all']
+                    ?? 0;
+
+                $size->cutting_qty = $cuttingQty;
+            }
 
             return response()->json([
                 'data' => $model
@@ -190,6 +264,7 @@ class ModelRefController extends Controller
             ], 404);
         }
     }
+
 
     public function update(Request $request, $id)
     {
