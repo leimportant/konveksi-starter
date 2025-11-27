@@ -146,9 +146,8 @@ const startEditing = (role: Role) => {
 const handleUpdateRoleCreateProd = async (roleId: number, createProdValue: string, name: string) => {
     if (editingRoleId.value === roleId) {
         try {
-            // Pass all_employee to updateRole
-            const currentRoleData = roles.value.find(r => r.id === roleId);
-            await updateRole(roleId, name, createProdValue, currentRoleData?.all_employee || 'N');
+            // Pass the current editing value of all_employee to updateRole
+            await updateRole(roleId, name, createProdValue, editingAllEmployeeValue.value);
             toast.success('Role updated successfully');
             editingRoleId.value = null; // Exit editing mode
             await roleStore.fetchRoles(true); // Refresh roles
