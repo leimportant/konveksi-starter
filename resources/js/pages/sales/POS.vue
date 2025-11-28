@@ -352,12 +352,7 @@
                             <button
                                 v-for="variant in uniqueVariants"
                                 :key="variant"
-                                @click="
-                                    () => {
-                                        selectedVariant = variant;
-                                        selectedSize = null;
-                                    }
-                                "
+                                @click="handleVariantSelection(variant)"
                                 :class="[
                                     'rounded-full border px-3 py-1 text-sm font-semibold transition',
                                     selectedVariant === variant
@@ -816,6 +811,19 @@ const searchProducts = async (search: string) => {
 function getSizesForVariant(sizes: ProductSize[], variant: string): ProductSize[] {
     if (!sizes) return [];
     return sizes.filter((size) => size.variant === variant);
+}
+
+function handleVariantSelection(variant: string) {
+  selectedVariant.value = variant;
+  // Check if the currently selected size is available for the new variant
+  const isSelectedSizeStillAvailable = sizesForSelectedVariant.value.some(
+    (size) => size.size_id === selectedSize.value
+  );
+
+  // If not available, reset selected size
+  if (!isSelectedSizeStillAvailable) {
+    selectedSize.value = null;
+  }
 }
 
 function selectSize(product: Product, size: ProductSize) {

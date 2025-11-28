@@ -108,7 +108,7 @@ import 'vue3-select/dist/vue3-select.css'
 interface Material {
   product_id: number | null;
   qty: number | null;
-  uom_id: number | null;
+  uom_id: string | 'PCS';
   remark: string | "";
   price: number | null;
 }
@@ -142,9 +142,9 @@ const addMaterial = () => {
   materials.push({
     product_id: null,
     qty: 1,
-    uom_id: null,
+    uom_id: 'PCS',
     remark: '',
-    price: null  // Add this line
+    price: null
   });
   emit('update:modelValue', materials);
 };
