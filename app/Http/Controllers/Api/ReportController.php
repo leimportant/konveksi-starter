@@ -430,7 +430,7 @@ class ReportController extends Controller
                 'a.customer_id',
                 DB::raw("COALESCE(c.name, 'Umum') as customer"),
                 'b.product_id',
-                'd.name as product',
+                DB::raw("IFNULL(d.name, b.product_name) as product"),
                 'b.quantity as qty',
                 'b.price',
                 'a.notes',
