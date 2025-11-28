@@ -784,8 +784,7 @@ async function selectTransactionForPrint(transaction: Transaction) {
 
 const paidAmount = ref<number | null>(null);
 const changeAmount = computed(() => {
-    if (paidAmount.value === null) return 0;
-    return paidAmount.value - totalAmount.value > 0 ? paidAmount.value - totalAmount.value : 0;
+    return paidAmount.value !== null && paidAmount.value > totalAmount.value ? paidAmount.value - totalAmount.value : 0;
 });
 
 const uniqueVariants = computed(() => {
@@ -1285,8 +1284,10 @@ const handleCustomerSelected = (customer: { id: number; name: string }) => {
     showCustomerDialog.value = false;
 };
 
-const totalAmount = computed(() => selectedProducts.value.reduce((sum, item) => sum + item.price * item.quantity, 0));
+const totalAmount = computed(() => selectedProducts.value.reduce((sum, item) => sum + (item.price_sell ?? item.price) * item.quantity, 0));
 const formattedTotalAmount = computed(() => `${formatRupiah(totalAmount.value)}`);
+
+// const totalQuantity = computed(() => selectedProducts.value.reduce((sum, item) => sum + item.quantity, 0));
 
 async function placeOrder() {
     if (selectedProducts.value.length === 0) {
