@@ -73,7 +73,7 @@
           </div>
           <div>
             <label class="text-xs font-bold">Qty</label>
-            <Input type="number" v-model="item.qty" class="w-full mt-1" min="0" />
+            <Input type="number" v-model="item.qty" class="w-full mt-1" min="0" readonly/>
           </div>
         </div>
 
@@ -148,7 +148,7 @@ onMounted(() => {
 const addItem = () =>
   modelItems.value.push({
     size_id: "",
-    qty: 0,
+    qty: 1,
     variant: "",
     price_store: 0,
     price_grosir: 0,

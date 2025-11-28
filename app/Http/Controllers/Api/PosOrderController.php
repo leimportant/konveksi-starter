@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Services\InventoryService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PosOrderController extends Controller
 {
@@ -50,14 +51,11 @@ class PosOrderController extends Controller
 
         return response()->json($transactions);
     }
-
-
-
     public function placeOrder(Request $request)
     {
         $request->validate([
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|integer|exists:mst_product,id',
+            'items.*.product_id' => 'required|integer',
             'items.*.quantity' => 'required|integer',
             'items.*.price' => 'required|numeric|min:0',
             'payment_method_id' => 'required|exists:mst_payment_method,id',
@@ -124,6 +122,7 @@ class PosOrderController extends Controller
                 DB::table('pos_transaction_detail')->insert([
                     'transaction_id' => $id,
                     'product_id' => $p['product_id'],
+                    'product_name' => $p['product_name'] ?? "",
                     'quantity' => $p['quantity'],
                     'price' => $p['price'],
                     'uom_id' => $p['uom_id'] ?? null, // Optional UOM
@@ -133,11 +132,18 @@ class PosOrderController extends Controller
                     'updated_at' => Carbon::now(),
                 ]);
 
+                // jika product_id datang nya dari product unlisted
+                // inventory jangan di potong
+
+                $unlisted = DB::table('mst_product_unlisted')
+                    ->where('id', $p['product_id'])
+                    ->first();
                 // jika return, update stock accordingly
                 if ($p['quantity'] < 0) {
                     // Update stock
                     app(InventoryService::class)->updateOrCreateInventory([
                         'product_id' => $p['product_id'],
+                        'product_name' => $p['product_name'] ?? "",
                         'location_id' => $locationId,
                         'uom_id' => $p['uom_id'],
                         'sloc_id' => 'GS00', // Assuming GS01 is the source location
@@ -147,19 +153,22 @@ class PosOrderController extends Controller
                     ], 'IN');
                 } else {
 
-                    app(InventoryService::class)->updateOrCreateInventory([
-                        'product_id' => $p['product_id'],
-                        'location_id' => $locationId,
-                        'uom_id' => $p['uom_id'],
-                        'sloc_id' => 'GS00', // Assuming GS01 is the source location
-                    ], [
-                        'size_id' => $p['size_id'],
-                        'qty' => -abs($p['quantity']), // Reduce stock from source location
-                    ], 'IN');
-
+                    if (!$unlisted) {
+                        app(InventoryService::class)->updateOrCreateInventory([
+                            'product_id' => $p['product_id'],
+                            'product_name' => $p['product_name'] ?? "",
+                            'location_id' => $locationId,
+                            'uom_id' => $p['uom_id'],
+                            'sloc_id' => 'GS00', // Assuming GS01 is the source location
+                        ], [
+                            'size_id' => $p['size_id'],
+                            'qty' => -abs($p['quantity']), // Reduce stock from source location
+                        ], 'IN');
+                    }
                     // Update stock
                     app(InventoryService::class)->updateOrCreateInventory([
                         'product_id' => $p['product_id'],
+                        'product_name' => $p['product_name'] ?? "",
                         'location_id' => $locationId,
                         'uom_id' => $p['uom_id'],
                         'sloc_id' => 'GS00', // Assuming GS01 is the source location
@@ -168,7 +177,6 @@ class PosOrderController extends Controller
                         'qty' => $p['quantity'], // Reduce stock from source location
                     ], 'OUT');
                 }
-
             }
 
             // update ke table Order where in transactionId ini comma
@@ -195,6 +203,7 @@ class PosOrderController extends Controller
                 // 'items' => $request
             ]);
         } catch (\Throwable $e) {
+            Log::info($e);
             DB::rollBack();
             return response()->json(['message' => 'Gagal menempatkan pesanan', 'error' => $e->getMessage()], 500);
         }

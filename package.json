@@ -73,8 +73,7 @@
         "vue-i18n": "^11.1.11",
         "vue-qrcode-reader": "^5.7.2",
         "vue-toastification": "^2.0.0-rc.5",
-        "vue3-select": "^0.1.2",
-        "ziggy-js": "^2.6.0"
+        "vue3-select": "^0.1.2"
     },
     "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.9.5",
