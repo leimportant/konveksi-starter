@@ -248,7 +248,7 @@ class ModelRefController extends Controller
                 $cuttingQty =
                     $cuttingMap[$size->size_id][$variantKey]
                     ?? $cuttingMap[$size->size_id]['all']
-                    ?? 0;
+                    ?? $oriqtySize;
 
                 $size->qty = $cuttingQty ?? $oriqtySize;
             }
@@ -285,7 +285,7 @@ class ModelRefController extends Controller
             'activity.*.price' => 'nullable|numeric|min:0',
             'modelMaterials' => 'nullable|array',
             'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
-            'modelMaterials.*.qty' => 'required|numeric|min:1',
+            'modelMaterials.*.qty' => 'required|numeric|min:0',
             'modelMaterials.*.price' => 'nullable|numeric|min:0',
             'modelMaterials.*.uom_id' => 'required|exists:mst_uom,id',
             'modelMaterials.*.remark' => 'nullable|string|max:255',
