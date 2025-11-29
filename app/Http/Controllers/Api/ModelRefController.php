@@ -193,7 +193,7 @@ class ModelRefController extends Controller
             // Gabungkan cutting ke tiap model -> sizes
             foreach ($models as $model) {
                 foreach ($model->sizes as $size) {
-
+                    $oriqtySize =  $size->qty ?? 1;
                     $variantKey = $size->variant ?: 'all';
 
                     $cuttingQty =
@@ -201,7 +201,7 @@ class ModelRefController extends Controller
                         ?? $cuttingMap[$model->id][$size->size_id]['all']
                         ?? 0;
 
-                    $size->cutting_qty = $cuttingQty;
+                    $size->qty = $cuttingQty ?? $oriqtySize;
                 }
             }
 
@@ -242,7 +242,7 @@ class ModelRefController extends Controller
 
             // --- Gabungkan cutting qty ke struktur model.sizes ---
             foreach ($model->sizes as $size) {
-
+                $oriqtySize =  $size->qty ?? 1;
                 $variantKey = $size->variant ?: 'all';
 
                 $cuttingQty =
@@ -250,7 +250,7 @@ class ModelRefController extends Controller
                     ?? $cuttingMap[$size->size_id]['all']
                     ?? 0;
 
-                $size->cutting_qty = $cuttingQty;
+                $size->qty = $cuttingQty ?? $oriqtySize;
             }
 
             return response()->json([
