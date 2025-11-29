@@ -621,6 +621,7 @@ interface Product {
     variant: string | null;
     isReturn?: boolean;
     is_unlisted?: boolean; // Add is_unlisted property
+    isManualDiscount?: boolean; // Add this new property
 }
 
 interface ProductRetur {
@@ -1090,6 +1091,7 @@ const addToCart = (product: Product) => {
               ]
             : [],
         is_unlisted: (product as any).is_unlisted || false, // Add is_unlisted flag
+        isManualDiscount: false, // Initialize as false
     };
 
     const existing = selectedProducts.value.find(
@@ -1100,7 +1102,8 @@ const addToCart = (product: Product) => {
         existing.quantity += quantityToAdd;
 
         const nowGrosir = existing.quantity > 1;
-        if (currentSelectedSize) {
+        // Only apply dynamic pricing if no manual discount is set
+        if (!existing.isManualDiscount && currentSelectedSize) {
             existing.price = currentSelectedSize[nowGrosir ? 'price_grosir' : 'price_retail'] ?? existing.price;
             existing.price_sell = currentSelectedSize[nowGrosir ? 'price_sell_grosir' : 'price_sell_retail'] ?? existing.price_sell;
             existing.discount = currentSelectedSize[nowGrosir ? 'discount_grosir' : 'discount_retail'] ?? existing.discount;
@@ -1161,6 +1164,7 @@ function saveDiscount() {
                 ...product,
                 discount: discountInput.value,
                 price_sell: product.price - discountInput.value,
+                isManualDiscount: true, // Set the flag when manual discount is applied
             };
         }
         return product;
@@ -1473,15 +1477,26 @@ watch(
                 () => item.quantity,
                 (newQty) => {
                     if (!item.sizes || item.sizes.length === 0) return;
-                    const size = item.sizes[0];
-                    const isGrosir = newQty > 1;
 
-                    item.price = isGrosir ? size.price_grosir : size.price_retail;
-                    item.price_sell = isGrosir ? size.price_sell_grosir : size.price_sell_retail;
-                    item.discount = isGrosir ? size.discount_grosir : size.discount_retail;
+                    // If a manual discount has been applied, preserve it
+                    if (item.isManualDiscount) {
+                        const size = item.sizes[0]; // Declare size here
+                        const isGrosir = newQty > 1;
+                        item.price = isGrosir ? size.price_grosir : size.price_retail; // Update base price if quantity changes
+                        item.price_sell = item.price - (item.discount || 0); // Recalculate price_sell based on new base price and existing discount
+                        size.qty_in_cart = newQty;
+                        size.qty_available = size.qty_stock - newQty;
+                    } else {
+                        const size = item.sizes[0]; // Declare size here
+                        const isGrosir = newQty > 1;
 
-                    size.qty_in_cart = newQty;
-                    size.qty_available = size.qty_stock - newQty;
+                        item.price = isGrosir ? size.price_grosir : size.price_retail;
+                        item.price_sell = isGrosir ? size.price_sell_grosir : size.price_sell_retail;
+                        item.discount = isGrosir ? size.discount_grosir : size.discount_retail;
+                        size.qty_in_cart = newQty;
+                        size.qty_available = size.qty_stock - newQty;
+                    }
+
                 },
             );
         });
