@@ -442,6 +442,46 @@ class ModelRefController extends Controller
             $perPage = $request->get('per_page', 50);
             $models = $query->with('sizes')->orderBy('created_at', 'desc')->paginate($perPage);
 
+            $modelIds = $models->pluck('id');
+
+            // Ambil cutting untuk semua model dalam satu query
+            $cuttingData = DB::table('tr_production as p')
+                ->join('tr_production_item as pi', 'pi.production_id', '=', 'p.id')
+                ->whereIn('p.model_id', $modelIds)
+                ->where('p.activity_role_id', 1) // CUTTING
+                ->select(
+                    'p.model_id',
+                    'pi.size_id',
+                    'pi.variant',
+                    DB::raw('SUM(pi.qty) as total_cutting')
+                )
+                ->groupBy('p.model_id', 'pi.size_id', 'pi.variant')
+                ->get();
+
+              // Mapping cepat
+            $cuttingMap = [];
+
+            foreach ($cuttingData as $item) {
+                $variantKey = $item->variant ?: 'all';
+                $cuttingMap[$item->model_id][$item->size_id][$variantKey] = $item->total_cutting;
+            }
+
+            // Gabungkan cutting ke tiap model -> sizes
+            foreach ($models as $model) {
+                foreach ($model->sizes as $size) {
+                    $oriqtySize =  $size->qty ?? 1;
+                    $variantKey = $size->variant ?: 'all';
+
+                    $cuttingQty =
+                        $cuttingMap[$model->id][$size->size_id][$variantKey]
+                        ?? $cuttingMap[$model->id][$size->size_id]['all']
+                        ?? 0;
+
+                    $size->qty = $cuttingQty ?? $oriqtySize;
+                }
+            }
+
+
             return response()->json([
                 'message' => 'Data model berhasil diambil',
                 'data' => $models
