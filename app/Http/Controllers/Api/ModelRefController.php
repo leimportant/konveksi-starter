@@ -199,7 +199,7 @@ class ModelRefController extends Controller
                     $cuttingQty =
                         $cuttingMap[$model->id][$size->size_id][$variantKey]
                         ?? $cuttingMap[$model->id][$size->size_id]['all']
-                        ?? 0;
+                        ?? $oriqtySize;
 
                     $size->qty = $cuttingQty ?? $oriqtySize;
                 }
@@ -475,7 +475,7 @@ class ModelRefController extends Controller
                     $cuttingQty =
                         $cuttingMap[$model->id][$size->size_id][$variantKey]
                         ?? $cuttingMap[$model->id][$size->size_id]['all']
-                        ?? 0;
+                        ?? $oriqtySize;
 
                     $size->qty = $cuttingQty ?? $oriqtySize;
                 }
