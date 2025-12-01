@@ -25,10 +25,10 @@ class TransferStockController extends Controller
         $search = $request->input('search');
         $status = $request->input('status');
 
-        if (!in_array($status, [null, 'Pending', 'Accepted', 'Rejected'])) {
+        if (!in_array($status, [null, 'Pending', 'Accepted', 'Rejected']) || $status == "") {
            $status = "Pending";
         }
-        $query = TransferStock::with(['location', 'location_destination', 'transfer_detail']);
+        $query = TransferStock::with(['location', 'location_destination', 'transfer_detail.product']);
 
         if ($status) {
             $query->where('status', $status);

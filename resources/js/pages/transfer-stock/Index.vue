@@ -9,7 +9,7 @@ import { Edit, Eye, Search, Trash2 } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
 import debounce from 'lodash-es/debounce';
 import { onMounted, computed, watch, ref, reactive } from 'vue';
-import type { TransferStock } from '@/stores/useTransferStockStore';
+import type { TransferStock, TransferDetail } from '@/stores/useTransferStockStore';
 import Vue3Select from 'vue3-select';
 import 'vue3-select/dist/vue3-select.css';
 
@@ -55,6 +55,19 @@ watch(currentPage, async (newPage) => {
 });
 
 const totalPages = computed(() => lastPage.value || 1);
+
+const groupedDetailsByProduct = computed(() => (details: TransferDetail[]) => {
+  const groups = new Map<string, TransferDetail[]>();
+  details.forEach(detail => {
+    const productName = detail.product?.name || 'Unknown Product';
+    if (!groups.has(productName)) {
+      groups.set(productName, []);
+    }
+    groups.get(productName)?.push(detail);
+  });
+  return Array.from(groups.entries());
+});
+
 const groupedTransfers = computed(() => {
     const groups = new Map<string, TransferStock[]>();
     transfers.value.forEach(transfer => {
@@ -148,25 +161,25 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                             <template v-for="(group) in groupedTransfers" :key="group.key">
                                 <template v-for="transfer in group.items" :key="transfer.id">
                                     <TableRow class="border-b hover:bg-gray-50">
-                                        <TableCell class="whitespace-nowrap py-2 text-sm">
+                                        <TableCell class="whitespace-nowrap py-2 text-sm align-top">
                                             {{ transfer.location_destination?.name || '-' }}
                                             <div class="text-xs text-gray-500">
                                                 <span>{{ group.key }}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell class="py-2 text-sm">
+                                        <TableCell class="py-2 text-sm  align-top">
                                             <div v-if="transfer.transfer_detail?.length" class="mt-1 space-y-1">
-                                                <div
+                                                <div v-for="([productName, details]) in groupedDetailsByProduct(transfer.transfer_detail)" :key="productName"
                                                     class="flex flex-col gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[10px] text-gray-700">
-                                                    <div v-for="(detail, detailIndex) in transfer.transfer_detail"
+                                                    <div class="mb-1 font-semibold text-gray-800">{{ productName }}</div>
+                                                    <div v-for="(detail, detailIndex) in details"
                                                         :key="detailIndex"
                                                         class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm">
-                                                        <span class="truncate">{{ detail.product_id }} - {{
-                                                            detail.size_id }} - {{ detail.variant }}</span>
-                                                        <span class="ml-2 font-semibold flex-shrink-0">{{ detail.qty }}
+                                                        <span class="ml-2 font-semibold flex-shrink-0">{{ detail.variant }} {{ detail.qty }}
                                                             {{ detail.uom_id }}</span>
                                                     </div>
-                                                    <div v-if="transfer.transfer_detail.length > 1"
+                                                </div>
+                                                <div v-if="transfer.transfer_detail.length > 1"
                                                         class="order-t mt-0.5 flex items-center justify-between rounded-md border-gray-300 bg-white px-1.5 pt-0.5 font-semibold text-[10px] text-gray-800 shadow-sm">
                                                         <span>Total</span>
                                                         <span class="ml-2 flex-shrink-0">
@@ -178,7 +191,6 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                                                             }}
                                                         </span>
                                                     </div>
-                                                </div>
                                             </div>
                                         </TableCell>
                                         <TableCell class="w-1/12 py-2 text-right">
