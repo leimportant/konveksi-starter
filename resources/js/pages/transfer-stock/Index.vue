@@ -193,13 +193,13 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                                                 </Button>
                                                 <Button
                                                     v-if="transfer?.id && (transfer.status === 'Pending' || transfer.status === 'Rejected')"
-                                                    variant="ghost" size="icon" class="h-7 w-7 hover:bg-gray-100"
+                                                    variant="ghost" size="icon" class="h-7 hidden w-7 hover:bg-gray-100"
                                                     @click="$inertia.visit(`/transfer-stock/${transfer.id}/edit`)">
                                                     <Edit class="h-4 w-4" />
                                                 </Button>
                                                 <Button
                                                     v-if="transfer?.id && (transfer.status === 'Pending' || transfer.status === 'Rejected')"
-                                                    variant="ghost" size="icon" class="h-7 w-7 hover:bg-gray-100"
+                                                    variant="ghost" size="icon" class="h-7 hidden w-7 hover:bg-gray-100"
                                                     @click="handleDelete(transfer.id)">
                                                     <Trash2 class="h-4 w-4" />
                                                 </Button>
