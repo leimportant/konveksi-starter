@@ -157,7 +157,7 @@ onMounted(() => {
                                         <!-- Tombol Pembayaran Tipis -->
                                         <Button
                                             v-if="user.employee_status.toUpperCase() == 'OWNER'"
-                                            @click="tambahPembayaran((group[0] as any).kasbon_id, group[group.length - 1].saldo_kasbon)"
+                                            @click="tambahPembayaran((group[0] as any).employee_id, group[group.length - 1].saldo_kasbon)"
                                             variant="outline"
                                             class="flex h-7 items-center gap-1 rounded-md border-purple-600 px-2 py-1 text-purple-700 hover:bg-purple-600 hover:text-white"
                                         >
