@@ -25,8 +25,8 @@ class ProductService
         // Ambil default location_id dan sloc_id dari user yang login
         // TODO: Ini bisa diubah menjadi dynamic berdasarkan konfigurasi atau input user jika diperlukan
         $user = Auth::user();
-        $locationId = $user->location_id ?? 'PL001'; // Default value
-        $slocId = $user->sloc_id ?? 'SL001';       // Default value
+        $locationId = $user->location_id ?? 2; // Default value
+        $slocId = $user->sloc_id ?? 'GS00';       // Default value
 
         $productPriceVariants = [];
         $inventoryEntries = [];
