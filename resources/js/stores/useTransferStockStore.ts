@@ -26,7 +26,7 @@ interface Uom {
   name: string;
 }
 
-interface TransferDetail {
+export interface TransferDetail {
   id?: number;
   product_id: number;
   product_name?: string;

@@ -295,6 +295,9 @@ Route::get('/inventory/create', function () {
     return Inertia::render('inventory/Create');
 })->middleware(['auth'])->name('inventory.create');
 
+Route::get('/inventory/transfer-stock', function () {
+    return Inertia::render('transfer-stock/Index');
+})->middleware(['auth'])->name('inventory.transfer-stock');
 
 // transfer-stock
 Route::get('/transfer-stock', function () {
