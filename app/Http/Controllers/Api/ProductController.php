@@ -88,28 +88,29 @@ class ProductController extends Controller
 
     private function generateNumber(int $categoryId): string
     {
-        // Panjang digit category_id (misalnya: 2 untuk '12')
-        $categoryIdStr = (string) $categoryId;
-        $prefixLength = strlen($categoryIdStr);
+        return DB::transaction(function () use ($categoryId) {
+            $categoryIdStr = (string) $categoryId;
+            $prefixLength = strlen($categoryIdStr);
 
-        // Ambil ID terakhir dari produk dalam kategori itu
-        $lastProductId = DB::table('mst_product')
-            ->where('category_id', $categoryId)
-            ->where('id', 'like', $categoryIdStr . '%')
-            ->orderByDesc('id')
-            ->value('id');
+            // Lock the rows for this category
+            $lastProductId = DB::table('mst_product')
+                ->where('category_id', $categoryId)
+                ->where('id', 'like', $categoryIdStr . '%')
+                ->lockForUpdate()   
+                ->orderByDesc('id')
+                ->value('id');
 
-        // Ambil 4 digit terakhir (setelah prefix category_id)
-        $lastNumber = 0;
-        if ($lastProductId) {
-            $lastNumber = (int) substr($lastProductId, $prefixLength);
-        }
+            $lastNumber = 0;
+            if ($lastProductId) {
+                $lastNumber = (int) substr($lastProductId, $prefixLength);
+            }
 
-        $newNumber = $lastNumber + 1;
+            $newNumber = $lastNumber + 1;
 
-        // Gabungkan: category_id + new number (formatted)
-        return $categoryIdStr . str_pad((string) $newNumber, 4, '0', STR_PAD_LEFT);
+            return $categoryIdStr . str_pad((string) $newNumber, 4, '0', STR_PAD_LEFT);
+        });
     }
+
 
     public function update(Request $request, Product $product)
     {
@@ -185,50 +186,50 @@ class ProductController extends Controller
     }
 
     public function saveCustom(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|max:255|unique:mst_product,name',
-        'category_id' => 'required|exists:mst_category,id',
-        'items' => 'required|array|min:1',
-        'items.*.size_id' => 'required|exists:mst_size,id',
-        'items.*.variant' => 'required|string|max:255',
-        'items.*.qty' => 'required|integer|min:1',
-        'items.*.price_store' => 'required|numeric|min:1',
-        'items.*.price_grosir' => 'required|numeric|min:1',
-    ]);
-
-    // Generate product ID
-    $newProductId = $this->generateNumber($validated['category_id']);
-
-    DB::beginTransaction();
-    try {
-
-        $product = Product::create([
-            'id' => $newProductId,
-            'name' => $validated['name'],
-            'category_id' => $validated['category_id'],
-            'uom_id' => 'PCS',
-            'descriptions' => '',
-            'created_by' => Auth::id(),
-            'updated_by' => Auth::id(),
+    {
+        $validated = $request->validate([
+            'name' => 'required|max:255|unique:mst_product,name',
+            'category_id' => 'required|exists:mst_category,id',
+            'items' => 'required|array|min:1',
+            'items.*.size_id' => 'required|exists:mst_size,id',
+            'items.*.variant' => 'required|string|max:255',
+            'items.*.qty' => 'required|integer|min:1',
+            'items.*.price_store' => 'required|numeric|min:1',
+            'items.*.price_grosir' => 'required|numeric|min:1',
         ]);
 
-        // Kirim items ke ProductService
-        ProductService::createProduct(
-            $product,
-            $validated['items'],   // <<<<<<<<<< items di sini
-            $request
-        );
+        // Generate product ID
+        $newProductId = $this->generateNumber($validated['category_id']);
 
-        DB::commit();
-        return response()->json($product, 201);
+        DB::beginTransaction();
+        try {
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Error creating custom product: ' . $e->getMessage());
-        return response()->json(['message' => 'Failed to create custom product.'], 500);
+            $product = Product::create([
+                'id' => $newProductId,
+                'name' => $validated['name'],
+                'category_id' => $validated['category_id'],
+                'uom_id' => 'PCS',
+                'descriptions' => '',
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
+
+            // Kirim items ke ProductService
+            ProductService::createProduct(
+                $product,
+                $validated['items'],   // <<<<<<<<<< items di sini
+                $request
+            );
+
+            DB::commit();
+            return response()->json($product, 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error creating custom product: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to create custom product.'], 500);
+        }
     }
-}
 
 
 }

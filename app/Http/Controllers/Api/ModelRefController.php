@@ -14,6 +14,33 @@ use App\Services\ProductService;
 
 class ModelRefController extends Controller
 {
+
+     private function generateNumber(int $categoryId): string
+    {
+        return DB::transaction(function () use ($categoryId) {
+            $categoryIdStr = (string) $categoryId;
+            $prefixLength = strlen($categoryIdStr);
+
+            // Lock the rows for this category
+            $lastProductId = DB::table('mst_product')
+                ->where('category_id', $categoryId)
+                ->where('id', 'like', $categoryIdStr . '%')
+                ->lockForUpdate()   
+                ->orderByDesc('id')
+                ->value('id');
+
+            $lastNumber = 0;
+            if ($lastProductId) {
+                $lastNumber = (int) substr($lastProductId, $prefixLength);
+            }
+
+            $newNumber = $lastNumber + 1;
+
+            return $categoryIdStr . str_pad((string) $newNumber, 4, '0', STR_PAD_LEFT);
+        });
+    }
+
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -47,8 +74,12 @@ class ModelRefController extends Controller
         try {
             DB::beginTransaction();
 
+            $newId = $this->generateNumber($validated['category_id']);
+            $validated['id'] = $newId;
+
             // Create the model
             $model = ModelRef::create([
+                'id' => $validated['id'],
                 'description' => $validated['description'] ?? "",
                 'category_id' => $validated['category_id'] ?? null,
                 'remark' => $validated['remark'] ?? "",

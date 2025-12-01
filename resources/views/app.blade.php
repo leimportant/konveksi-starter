@@ -56,7 +56,7 @@
   </style>
 
   {{-- Ziggy routes untuk helper "route()" di Vue --}}
-  @routes
+  <!-- @routes -->
 
   {{-- Load app.ts via Vite --}}
   @vite(['resources/js/app.ts'])
