@@ -169,6 +169,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/{id}/approve', [KasbonController::class, 'approve']);
         Route::put('/{id}/reject', [KasbonController::class, 'reject']);
         Route::post('/bayar', [KasbonController::class, 'bayar']);
+        Route::get('/saldo/{employeeId}', [KasbonController::class, 'getLatestSaldo']); // New route
     });
 
     Route::get('api/payroll', [PayrollController::class, 'index']);

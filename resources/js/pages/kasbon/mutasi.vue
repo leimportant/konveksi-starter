@@ -9,6 +9,7 @@ import { Head, usePage } from '@inertiajs/vue3';
 import { CheckCircle, CreditCard, Plus, Search } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, reactive, ref, Ref } from 'vue';
+import axios from 'axios'; // Added axios import
 
 const kasbonStore = useKasbonStore();
 const { mutasiList, pagination, loading } = storeToRefs(kasbonStore);
@@ -62,15 +63,23 @@ const goToPage = async (page: number) => {
 const nextPage = () => goToPage(pagination.value.current_page + 1);
 const prevPage = () => goToPage(pagination.value.current_page - 1);
 
-const tambahPembayaran = (employeeId: number, lastSaldoKasbon: number) => {
+const tambahPembayaran = async (employeeId: number) => {
     // Find the employee name from groupedMutasi
-    const employeeGroup = mutasiList.value.find((item) => item.kasbon_id === employeeId);
+    const employeeGroup = mutasiList.value.find((item) => item.employee_id === employeeId);
     selectedEmployeeName.value = employeeGroup?.employee_name || '-';
 
-    paymentForm.employee_id = employeeId;
-    paymentForm.amount = lastSaldoKasbon; // Default to paying off the full balance
-    paymentForm.lastSaldoKasbon = lastSaldoKasbon;
-    showPaymentDialog.value = true;
+    try {
+        const response = await axios.get(`/api/kasbon/saldo/${employeeId}`);
+        const latestSaldo = response.data.saldo_kasbon;
+
+        paymentForm.employee_id = employeeId;
+        paymentForm.amount = latestSaldo; // Default to paying off the full balance
+        paymentForm.lastSaldoKasbon = latestSaldo;
+        showPaymentDialog.value = true;
+    } catch (error) {
+        console.error('Error fetching latest kasbon saldo:', error);
+        toast.error('Gagal memuat saldo kasbon terbaru.');
+    }
 };
 
 const storePembayaran = async () => {
@@ -157,7 +166,7 @@ onMounted(() => {
                                         <!-- Tombol Pembayaran Tipis -->
                                         <Button
                                             v-if="user.employee_status.toUpperCase() == 'OWNER'"
-                                            @click="tambahPembayaran((group[0] as any).employee_id, group[group.length - 1].saldo_kasbon)"
+                                            @click="tambahPembayaran((group[0] as any).employee_id)"
                                             variant="outline"
                                             class="flex h-7 items-center gap-1 rounded-md border-purple-600 px-2 py-1 text-purple-700 hover:bg-purple-600 hover:text-white"
                                         >

@@ -347,4 +347,21 @@ class KasbonController extends Controller
             return response()->json(['message' => 'Gagal melakukan pembayaran kasbon.', 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function getLatestSaldo($employeeId)
+    {
+        $totalKasbon = DB::table('mutasi_kasbon')
+            ->where('employee_id', $employeeId)
+            ->where('type', 'Kasbon')
+            ->sum('amount');
+
+        $totalPembayaran = DB::table('mutasi_kasbon')
+            ->where('employee_id', $employeeId)
+            ->where('type', 'Pembayaran')
+            ->sum('amount');
+
+        $saldoKasbon = $totalKasbon - $totalPembayaran;
+
+        return response()->json(['saldo_kasbon' => $saldoKasbon]);
+    }
 }
