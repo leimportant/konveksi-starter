@@ -41,6 +41,11 @@ class ModelRef extends BaseModel
         return $this->hasMany(ModelSize::class, 'model_id');
     }
 
+     public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+    
     public function activities()
     {
         return $this->hasMany(ModelActivity::class, 'model_id');
