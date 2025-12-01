@@ -77,7 +77,7 @@ const storePembayaran = async () => {
     if (!confirm('Yakin ingin melakukan pembayaran kasbon ini?')) return;
 
     const payload = {
-        employee_id: Number(paymentForm.employee_id),
+        employee_id: paymentForm.employee_id,
         amount: Number(paymentForm.amount),
         type: 'Pembayaran',
         description: Number(paymentForm.amount) === Number(paymentForm.lastSaldoKasbon)
