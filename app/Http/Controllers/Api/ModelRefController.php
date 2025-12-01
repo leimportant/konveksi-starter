@@ -20,24 +20,27 @@ class ModelRefController extends Controller
             'description' => 'required|string|max:255',
             'category_id' => 'required|exists:mst_category,id',
             'remark' => 'nullable|string',
-            'estimation_price_pcs' => 'required|numeric|min:0',
-            'estimation_qty' => 'required|integer|min:1',
+            'estimation_price_pcs' => 'numeric|min:0',
+            'estimation_qty' => 'integer|min:0',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
+
             'sizes' => 'nullable|array',
             'sizes.*.size_id' => 'required|exists:mst_size,id',
             'sizes.*.variant' => 'required|string|max:100',
             'sizes.*.qty' => 'required|integer|min:1',
             'sizes.*.price_store' => 'required|numeric|min:1',
             'sizes.*.price_grosir' => 'required|numeric|min:1',
+
             'activity' => 'nullable|array',
-            'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
-            'activity.*.price' => 'required|numeric|min:1',
+            'activity.*.activity_role_id' => 'nullable|exists:mst_activity_role,id',
+            'activity.*.price' => 'numeric|min:0',
+
             'modelMaterials' => 'nullable|array',
-            'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
-            'modelMaterials.*.qty' => 'required|numeric|min:1',
-            'modelMaterials.*.price' => 'required|numeric|min:1',
-            'modelMaterials.*.uom_id' => 'required|exists:mst_uom,id',
+            'modelMaterials.*.product_id' => 'nullable|exists:mst_product,id',
+            'modelMaterials.*.qty' => 'nullable|numeric|min:0',
+            'modelMaterials.*.price' => 'nullable|numeric|min:0',
+            'modelMaterials.*.uom_id' => 'nullable|exists:mst_uom,id',
             'modelMaterials.*.remark' => 'nullable|string|max:255',
         ]);
 
@@ -46,9 +49,9 @@ class ModelRefController extends Controller
 
             // Create the model
             $model = ModelRef::create([
-                'description' => $validated['description'],
+                'description' => $validated['description'] ?? "",
                 'category_id' => $validated['category_id'] ?? null,
-                'remark' => $validated['remark'],
+                'remark' => $validated['remark'] ?? "",
                 'estimation_price_pcs' => $validated['estimation_price_pcs'] ?? null,
                 'estimation_qty' => $validated['estimation_qty'] ?? null,
                 'start_date' => $validated['start_date'] ?? null,
@@ -193,7 +196,7 @@ class ModelRefController extends Controller
             // Gabungkan cutting ke tiap model -> sizes
             foreach ($models as $model) {
                 foreach ($model->sizes as $size) {
-                    $oriqtySize =  $size->qty ?? 1;
+                    $oriqtySize = $size->qty ?? 1;
                     $variantKey = $size->variant ?: 'all';
 
                     $cuttingQty =
@@ -242,7 +245,7 @@ class ModelRefController extends Controller
 
             // --- Gabungkan cutting qty ke struktur model.sizes ---
             foreach ($model->sizes as $size) {
-                $oriqtySize =  $size->qty ?? 1;
+                $oriqtySize = $size->qty ?? 1;
                 $variantKey = $size->variant ?: 'all';
 
                 $cuttingQty =
@@ -458,7 +461,7 @@ class ModelRefController extends Controller
                 ->groupBy('p.model_id', 'pi.size_id', 'pi.variant')
                 ->get();
 
-              // Mapping cepat
+            // Mapping cepat
             $cuttingMap = [];
 
             foreach ($cuttingData as $item) {
@@ -469,7 +472,7 @@ class ModelRefController extends Controller
             // Gabungkan cutting ke tiap model -> sizes
             foreach ($models as $model) {
                 foreach ($model->sizes as $size) {
-                    $oriqtySize =  $size->qty ?? 1;
+                    $oriqtySize = $size->qty ?? 1;
                     $variantKey = $size->variant ?: 'all';
 
                     $cuttingQty =
