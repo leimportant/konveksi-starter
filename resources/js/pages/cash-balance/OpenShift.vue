@@ -156,7 +156,7 @@ const handleSubmit = async () => {
 }
 
 const breadcrumbs = [
-  { title: 'Cash Management', href: route('cash-balance.index') },
-  { title: 'Open New Shift', href: route('cash-balance.openshift') }
+  { title: 'Cash Management', href: '/cash-balances' },
+  { title: 'Open New Shift', href: '/cash-balances/open-shift' }
 ]
 </script>
