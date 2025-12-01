@@ -36,6 +36,7 @@ class MutasiController extends Controller
             ->select([
                 'm.id',
                 'm.kasbon_id',
+                'm.employee_id',
                 'e.name as employee_name',
                 'm.amount',
                 'm.type',
@@ -70,7 +71,9 @@ class MutasiController extends Controller
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('e.name', 'like', "%{$search}%")
-                    ->orWhere('m.description', 'like', "%{$search}%");
+                    ->orWhere('m.description', 'like', "%{$search}%")
+                    ->orWhere('m.type', 'like', "%{$search}%")
+                    ->orWhere('k.status', 'like', "%{$search}%"); // Adding k.status (kasbon_status)
             });
         }
 

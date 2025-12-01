@@ -30,6 +30,7 @@ interface MutasiKasbonResponse {
     mutasi: {
       id: string
       kasbon_id: number
+      employee_id: number // Add employee_id
       employee_name: string
       amount: number
       type: string
