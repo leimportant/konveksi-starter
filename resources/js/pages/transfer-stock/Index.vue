@@ -152,22 +152,22 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                     <Table>
                         <TableHeader>
                             <TableRow class="bg-gray-100">
-                                <TableHead class="py-2 text-xs font-semibold text-gray-700">Lokasi Tujuan</TableHead>
-                                <TableHead class="py-2 text-xs font-semibold text-gray-700">Detail</TableHead>
-                                <TableHead class="py-2 text-xs font-semibold text-gray-700">Actions</TableHead>
+                                <TableHead class="w-4/12 py-2 text-xs font-semibold text-gray-700">Lokasi Tujuan</TableHead>
+                                <TableHead class="w-6/12 py-2 text-xs font-semibold text-gray-700">Detail</TableHead>
+                                <TableHead class="w-2/12 py-2 text-xs font-semibold text-gray-700">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <template v-for="(group) in groupedTransfers" :key="group.key">
                                 <template v-for="transfer in group.items" :key="transfer.id">
                                     <TableRow class="border-b hover:bg-gray-50">
-                                        <TableCell class="whitespace-nowrap py-2 text-sm align-top">
+                                        <TableCell class="w-4/12 whitespace-nowrap py-2 text-sm align-top">
                                             {{ transfer.location_destination?.name || '-' }}
                                             <div class="text-xs text-gray-500">
                                                 <span>{{ group.key }}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell class="py-2 text-sm  align-top">
+                                        <TableCell class="w-6/12 py-2 text-sm align-top">
                                             <div v-if="transfer.transfer_detail?.length" class="mt-1 space-y-1">
                                                 <div v-for="([productName, details]) in groupedDetailsByProduct(transfer.transfer_detail)" :key="productName"
                                                     class="flex flex-col gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-1 text-[10px] text-gray-700">
@@ -175,8 +175,10 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                                                     <div v-for="(detail, detailIndex) in details"
                                                         :key="detailIndex"
                                                         class="flex items-center justify-between rounded-md bg-white px-1.5 py-0.5 shadow-sm">
-                                                        <span class="ml-2 font-semibold flex-shrink-0">{{ detail.variant }} {{ detail.qty }}
-                                                            {{ detail.uom_id }}</span>
+                                                        <div class="flex items-center justify-between w-full">
+                                                            <span class="flex-shrink-0">{{ detail.variant }}</span>
+                                                            <span class="ml-2 font-semibold flex-shrink-0">{{ detail.qty }} {{ detail.uom_id }}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div v-if="transfer.transfer_detail.length > 1"
@@ -193,7 +195,7 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                                                     </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell class="w-1/12 py-2 text-right">
+                                        <TableCell class="w-2/12 py-2 text-right align-top">
                                             <div class="flex justify-end space-x-1">
                                                 <Button v-if="
                                                     transfer?.id &&
