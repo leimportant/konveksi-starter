@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { onMounted, watch, computed } from 'vue';
+import { onMounted, watch, computed, ref } from 'vue';
 import { useInventoryStore } from '@/stores/useInventoryStore';
 import { storeToRefs } from 'pinia';
 import {
@@ -13,6 +13,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+const perPage = ref(50);
+
 const store = useInventoryStore();
 const {
   stockMonitoringReport,
@@ -20,7 +22,6 @@ const {
   error,
   currentPage,
   lastPage,
-  total,
   filters,
 } = storeToRefs(store);
 
@@ -29,11 +30,11 @@ const breadcrumbs = [
 ];
 
 onMounted(() => {
-  store.fetchStockMonitoringReport(1);
+  store.fetchStockMonitoringReport(1, perPage.value);
 });
 
 watch(filters, () => {
-  store.fetchStockMonitoringReport(1);
+  store.fetchStockMonitoringReport(1, perPage.value);
 }, { deep: true });
 
 const setFilter = (filter: keyof typeof filters.value, value: string | number | null) => {
@@ -42,18 +43,18 @@ const setFilter = (filter: keyof typeof filters.value, value: string | number | 
 
 const prevPage = () => {
   if (currentPage.value > 1) {
-    store.fetchStockMonitoringReport(currentPage.value - 1);
+    store.fetchStockMonitoringReport(currentPage.value - 1, perPage.value);
   }
 };
 
 const nextPage = () => {
   if (currentPage.value < lastPage.value) {
-    store.fetchStockMonitoringReport(currentPage.value + 1);
+    store.fetchStockMonitoringReport(currentPage.value + 1, perPage.value);
   }
 };
 
 const goToPage = (page: number) => {
-  store.fetchStockMonitoringReport(page);
+  store.fetchStockMonitoringReport(page, perPage.value);
 };
 
 // Dynamic location columns (extracted from the first item)
@@ -91,7 +92,6 @@ const locationKeys = computed(() => {
   <Table>
   <TableHeader>
     <TableRow class="bg-gray-100">
-      <TableHead>Product ID</TableHead>
       <TableHead>Product Name</TableHead>
       <TableHead>SLoc</TableHead>
       <TableHead>UOM</TableHead>
@@ -106,7 +106,6 @@ const locationKeys = computed(() => {
       v-for="item in stockMonitoringReport"
       :key="`${item.product_id}-${item.sloc_id}`"
     >
-      <TableCell>{{ item.product_id }}</TableCell>
       <TableCell>{{ item.product_name }}</TableCell>
       <TableCell>{{ item.sloc_id }}</TableCell>
       <TableCell>{{ item.uom_id }}</TableCell>
@@ -129,7 +128,7 @@ const locationKeys = computed(() => {
           Previous
         </button>
 
-        <template v-for="page in total" :key="page">
+        <template v-for="page in lastPage" :key="page">
           <button @click="goToPage(page)" :class="[
             'px-3 py-1 rounded border text-xs',
             page === currentPage
@@ -140,7 +139,7 @@ const locationKeys = computed(() => {
           </button>
         </template>
 
-        <button @click="nextPage" :disabled="currentPage === total"
+        <button @click="nextPage" :disabled="currentPage === lastPage"
           class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
           Next
         </button>
