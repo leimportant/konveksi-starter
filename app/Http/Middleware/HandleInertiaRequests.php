@@ -38,25 +38,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $shared = [
-            ...parent::share($request),
-            'appName' => config('app.name'),
-            'auth' => [
-                'user' => $request->user() ? $request->user()->toArray() : null, // <-- HANYA BAGIKAN DATA USER
-            ],
-            'flash' => [
-                'success' => fn() => $request->session()->get('success'),
-                'error' => fn() => $request->session()->get('error'),
-            ],
-        ];
+        $shared = parent::share($request);
 
         // Hanya tambahkan Ziggy / semua routes jika APP_DEBUG = true
         if (config('app.debug')) {
-            $shared['ziggy'] = fn() => [
-                ...(new Ziggy)->toArray(),
-                'location' => $request->url(),
-            ];
-
             $shared['allRoutes'] = fn() => collect(\Illuminate\Support\Facades\Route::getRoutes())->map(fn($route) => [
                 'uri' => $route->uri(),
                 'name' => $route->getName(),
