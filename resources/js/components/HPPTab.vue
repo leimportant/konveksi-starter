@@ -7,7 +7,7 @@ const props = defineProps<{
   modelMaterials: {
     product_id: number | { id: number };
     qty: number;
-    uom_id: number;
+    uom_id: number | string;
     remark: string;
     price: number | null;
   }[];
