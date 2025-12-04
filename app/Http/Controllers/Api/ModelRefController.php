@@ -62,8 +62,6 @@ class ModelRefController extends Controller
             return str_pad((string) $newNumber, 4, '0', STR_PAD_LEFT);
         });
     }
-
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -395,7 +393,6 @@ class ModelRefController extends Controller
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
-                $model->update(['product_id' => $product->id]); // Link new product to model
             }
 
             if ($request->has('sizes')) {
