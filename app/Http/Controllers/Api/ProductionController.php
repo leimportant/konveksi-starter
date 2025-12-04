@@ -342,7 +342,7 @@ class ProductionController extends Controller
                     $request->merge(['location_id' => $request->location_id ?? 1]); // default location_id 1 jika tidak ada
                     TransferStockService::createTransfer($production, $validItems, $request);
                 }
-            
+
 
             }
 
@@ -390,29 +390,35 @@ class ProductionController extends Controller
                 ], 422);
             }
 
-            // 2. Filter item yang valid (qty >= 1)
+            // Only items with qty >= 1
             $validItems = array_filter($request->items, fn($item) => $item['qty'] >= 1);
 
-            // 3. Role Mapping
+            // ============================
+            //  MAPPING ROLE PROSES SEBELUMNYA
+            // ============================
             $previousRoleMap = [
-                1 => [], // CUTTING
-                2 => [1], // JAHIT -> dari CUTTING
-                10 => [1], // OBRAS DAN JAHIT -> dari CUTTING
-                3 => [2, 10], // FINISHING -> JAHIT/OBRAS DAN JAHIT
-                4 => [2, 10], // QC -> JAHIT/OBRAS DAN JAHIT
-                5 => [2, 10], // PACKING -> JAHIT/OBRAS DAN JAHIT
-                6 => [1, 10], // OBRAS -> CUTTING/OBRAS DAN JAHIT
-                7 => [2, 10],
-                8 => [2, 10],
-                9 => [2, 10],
+                1 => [],        // Cutting
+                2 => [1],       // Jahit dari Cutting
+                10 => [1],      // Obras+Jahit dari Cutting
+                3 => [2, 10],   // Finishing
+                4 => [2, 10],   // QC
+                5 => [2, 10],   // Packing
+                6 => [1, 10],   // Obras
+                7 => [2, 10],   // Lubang Kancing
+                8 => [2, 10],   // Bartex
+                9 => [2, 10],   // Steam
+                11 => [2, 10],  // (Baru ditambah)
+                12 => [2, 10],  // (Baru ditambah)
             ];
 
             $activityRoleId = $request->activity_role_id;
 
-            // 4. Validasi Qty (Jika bukan CUTTING)
+            // ============================
+            // VALIDASI QTY (Sama seperti STORE)
+            // ============================
             if ($activityRoleId != 1) {
+
                 if (!isset($previousRoleMap[$activityRoleId])) {
-                    DB::rollBack();
                     return response()->json([
                         'status' => 'error',
                         'message' => "Tidak bisa menentukan proses sebelumnya untuk activity_role_id: $activityRoleId"
@@ -420,11 +426,15 @@ class ProductionController extends Controller
                 }
 
                 $previousRoleIds = $previousRoleMap[$activityRoleId];
+
                 $availableQty = [];
                 $usedQty = [];
 
-                // a. Ambil total qty dari proses sebelumnya
+                // -----------------------------
+                // A. TOTAL QTY PROSES SEBELUMNYA
+                // -----------------------------
                 foreach ($previousRoleIds as $previousRoleId) {
+
                     $roleIdsToCheck = in_array($previousRoleId, [2, 10])
                         ? [2, 10]
                         : [$previousRoleId];
@@ -442,10 +452,16 @@ class ProductionController extends Controller
                     }
                 }
 
-                // b. Hitung total yang sudah terpakai (selain record yang sedang diupdate)
+                // -----------------------------
+                // B. QTY YANG SUDAH DIPAKAI (record lain)
+                // -----------------------------
+                $roleIdsCurrent = in_array($activityRoleId, [2, 10])
+                    ? [2, 10]
+                    : [$activityRoleId];
+
                 $existingProductions = Production::with('items')
                     ->where('model_id', $request->model_id)
-                    ->whereIn('activity_role_id', in_array($activityRoleId, [2, 10]) ? [2, 10] : [$activityRoleId])
+                    ->whereIn('activity_role_id', $roleIdsCurrent)
                     ->where('id', '!=', $id)
                     ->get();
 
@@ -456,8 +472,21 @@ class ProductionController extends Controller
                     }
                 }
 
-                // c. Validasi qty tiap item
+                // -----------------------------
+                // C. QTY LAMA dari record ini (bug fix penting)
+                // -----------------------------
+                $currentProduction = Production::with('items')->find($id);
+
+                foreach ($currentProduction->items as $oldItem) {
+                    $key = $oldItem->size_id . '-' . ucfirst(strtolower(trim($oldItem->variant)));
+                    $usedQty[$key] = ($usedQty[$key] ?? 0) + $oldItem->qty;
+                }
+
+                // -----------------------------
+                // D. VALIDASI PER ITEM
+                // -----------------------------
                 foreach ($validItems as $item) {
+
                     $key = $item['size_id'] . '-' . ucfirst(strtolower(trim($item['variant'])));
                     $sizeId = $item['size_id'];
                     $variant = $item['variant'];
@@ -466,52 +495,54 @@ class ProductionController extends Controller
                     $available = $availableQty[$key] ?? null;
                     $used = $usedQty[$key] ?? 0;
 
-                    // Jika varian belum ada di proses sebelumnya (baru)
+                    // Jika belum ada di proses sebelumnya
                     if (is_null($available)) {
-                        // Tapi kalau sudah pernah muncul di role ini (di usedQty)
+                        // Tapi sudah pernah diproses → tidak boleh
                         if ($used > 0) {
-                            DB::rollBack();
                             return response()->json([
                                 'status' => 'error',
-                                'message' => "Variant $variant untuk size $sizeId sudah pernah diproses di tahap ini"
+                                'message' => "Variant $variant size $sizeId sudah pernah diproses, tetapi tidak ada di proses sebelumnya."
                             ], 422);
                         }
-
-                        // Varian benar-benar baru -> skip validasi qty
-                        continue;
+                        continue; // Variant baru → allowed
                     }
 
-                    $maxAvailable = $available - $used;
+                    // Total lama yang ada di record ini
+                    $oldQtyOnThisRecord = $currentProduction->items
+                        ->where('size_id', $sizeId)
+                        ->where('variant', $variant)
+                        ->sum('qty');
 
-                    if ($requestedQty > $maxAvailable) {
-                        DB::rollBack();
+                    $remaining = $available - ($used - $oldQtyOnThisRecord);
+
+                    if ($requestedQty > $remaining) {
                         return response()->json([
                             'status' => 'error',
-                            'message' => "Qty untuk size $sizeId variant $variant melebihi sisa yang tersedia ($maxAvailable) dari proses sebelumnya"
+                            'message' => "Qty size $sizeId variant $variant melebihi sisa yang tersedia ($remaining) dari proses sebelumnya."
                         ], 422);
                     }
                 }
             }
 
-            // 5. Update production
+            // ============================
+            // UPDATE PRODUCTION DATA
+            // ============================
             $production = Production::findOrFail($id);
             $production->fill($request->only(['model_id', 'activity_role_id', 'remark']));
             $production->updated_by = Auth::id();
             $production->save();
 
-            // 6. Replace item produksi
-
+            // Replace items
             ProductionItem::where('production_id', $id)->forceDelete();
+
             $production->items()->createMany(
-                array_map(function ($item) {
-                    return [
-                        'id' => 'PRI-' . uniqid(),
-                        'size_id' => $item['size_id'],
-                        'qty' => $item['qty'],
-                        'variant' => $item['variant'],
-                        'created_by' => Auth::id(),
-                    ];
-                }, $validItems)
+                array_map(fn($item) => [
+                    'id' => 'PRI-' . uniqid(),
+                    'size_id' => $item['size_id'],
+                    'variant' => $item['variant'],
+                    'qty' => $item['qty'],
+                    'created_by' => Auth::id(),
+                ], $validItems)
             );
 
             DB::commit();
@@ -531,6 +562,8 @@ class ProductionController extends Controller
             ], 500);
         }
     }
+
+
 
 
     public function show($id)

@@ -13,6 +13,7 @@ class ModelRef extends BaseModel
     protected $table = 'tr_model';
 
     protected $fillable = [
+        'product_id',
         'description',
         'category_id',
         'remark',
@@ -35,6 +36,11 @@ class ModelRef extends BaseModel
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'
     ];
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
 
     public function sizes()
     {

@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Validator;
 use \Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Services\ProductService;
+use App\Models\ActivityRole;
+use App\Models\ActivityGroup;
+use App\Models\User;
+use App\Models\Product;
+use App\Models\Sloc;
 
 class ModelRefController extends Controller
 {
@@ -40,10 +45,30 @@ class ModelRefController extends Controller
         });
     }
 
+    private function generateProductId(): string
+    {
+        return DB::transaction(function () {
+            $lastProductId = DB::table('mst_product')
+                ->orderByDesc('id')
+                ->value('id');
+
+            $lastNumber = 0;
+            if ($lastProductId) {
+                $lastNumber = (int) substr($lastProductId, 0, 4); // Assuming category_id is 4 digits
+            }
+
+            $newNumber = $lastNumber + 1;
+
+            return str_pad((string) $newNumber, 4, '0', STR_PAD_LEFT);
+        });
+    }
+
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'model_name' => 'required|string|max:255',
+            'uom_id' => 'required|exists:mst_uom,id',
             'description' => 'required|string|max:255',
             'category_id' => 'required|exists:mst_category,id',
             'remark' => 'nullable|string',
@@ -74,12 +99,11 @@ class ModelRefController extends Controller
         try {
             DB::beginTransaction();
 
-            $newId = $this->generateNumber($validated['category_id']);
-            $validated['id'] = $newId;
+            $newModelRefId = $this->generateNumber($validated['category_id']);
 
-            // Create the model
+            // Create the model ref and link to the product
             $model = ModelRef::create([
-                'id' => $validated['id'],
+                'id' => $newModelRefId,// Link ModelRef to Product
                 'description' => $validated['description'] ?? "",
                 'category_id' => $validated['category_id'] ?? null,
                 'remark' => $validated['remark'] ?? "",
@@ -87,12 +111,21 @@ class ModelRefController extends Controller
                 'estimation_qty' => $validated['estimation_qty'] ?? null,
                 'start_date' => $validated['start_date'] ?? null,
                 'end_date' => $validated['end_date'] ?? null,
+                'is_close' => 'N',
                 'created_by' => Auth::id(),
-                'updated_by' => Auth::id()
+                'updated_by' => Auth::id(),
             ]);
 
+             // Create Product master record first
+             $product = Product::create([
+                'id' => $newModelRefId,
+                'name' => $validated['model_name'],
+                'uom_id' => $validated['uom_id'],
+                'descriptions' => $validated['description'] ?? null,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
 
-            // jika sizes ada
             // Store sizes
             if ($request->has('sizes')) {
                 if (!empty($validated['sizes'])) {
@@ -145,20 +178,17 @@ class ModelRefController extends Controller
                 }
             }
 
-
             if ($request->has('sizes')) {
                 if (!empty($validated['sizes'])) {
                     ProductService::createProduct(
-                        $model,
+                        $product, // Pass the Product object
                         $validated['sizes'],
                         $request
                     );
                 }
             }
 
-
             // Store documents
-
             $uniqId = $request->input('uniqId', null);
             $docs = DocumentAttachment::where('reference_id', $uniqId)
                 ->where('reference_type', 'Model')
@@ -302,141 +332,144 @@ class ModelRefController extends Controller
 
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'description' => 'required|string',
+        $model = ModelRef::findOrFail($id);
+
+        $validated = $request->validate([
+            'model_name' => 'required|string|max:255',
+            'uom_id' => 'required|exists:mst_uom,id',
+            'description' => 'required|string|max:255',
             'category_id' => 'required|exists:mst_category,id',
             'remark' => 'nullable|string',
-            'estimation_price_pcs' => 'nullable|numeric|min:0',
-            'estimation_qty' => 'required|integer|min:1',
-            'start_date' => 'required|date',
+            'estimation_price_pcs' => 'numeric|min:0',
+            'estimation_qty' => 'integer|min:0',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+
             'sizes' => 'nullable|array',
             'sizes.*.size_id' => 'required|exists:mst_size,id',
+            'sizes.*.variant' => 'required|string|max:100',
             'sizes.*.qty' => 'required|integer|min:1',
             'sizes.*.price_store' => 'required|numeric|min:1',
             'sizes.*.price_grosir' => 'required|numeric|min:1',
+
             'activity' => 'nullable|array',
-            'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
-            'activity.*.price' => 'nullable|numeric|min:0',
+            'activity.*.activity_role_id' => 'nullable|exists:mst_activity_role,id',
+            'activity.*.price' => 'numeric|min:0',
+
             'modelMaterials' => 'nullable|array',
-            'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
-            'modelMaterials.*.qty' => 'required|numeric|min:0',
+            'modelMaterials.*.product_id' => 'nullable|exists:mst_product,id',
+            'modelMaterials.*.qty' => 'nullable|numeric|min:0',
             'modelMaterials.*.price' => 'nullable|numeric|min:0',
-            'modelMaterials.*.uom_id' => 'required|exists:mst_uom,id',
+            'modelMaterials.*.uom_id' => 'nullable|exists:mst_uom,id',
             'modelMaterials.*.remark' => 'nullable|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
-            $model = ModelRef::findOrFail($id);
-
-            // Update main model data
+            // Update ModelRef
             $model->update([
-                'description' => $request->description,
-                'category_id' => $request->category_id,
-                'remark' => $request->remark,
-                'estimation_price_pcs' => $request->estimation_price_pcs,
-                'estimation_qty' => $request->estimation_qty,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'updated_by' => Auth::id()
+                'description' => $validated['description'] ?? "",
+                'category_id' => $validated['category_id'] ?? null,
+                'remark' => $validated['remark'] ?? "",
+                'estimation_price_pcs' => $validated['estimation_price_pcs'] ?? null,
+                'estimation_qty' => $validated['estimation_qty'] ?? null,
+                'start_date' => $validated['start_date'] ?? null,
+                'end_date' => $validated['end_date'] ?? null,
+                'updated_by' => Auth::id(),
             ]);
 
-            // Update sizes - gunakan forceDelete untuk memastikan record lama terhapus
-            if (!empty($request->sizes)) {
-                $model->sizes()->forceDelete();
-                foreach ($request->sizes as $size) {
-                    $model->sizes()->create([
-                        'size_id' => $size['size_id'] ?? "",
-                        'variant' => $size['variant'] ?? "",
-                        'qty' => $size['qty'] ?? 1,
-                        'price_store' => $size['price_store'] ?? 0,
-                        'price_grosir' => $size['price_grosir'] ?? 0,
-                        'created_by' => Auth::id(),
-                        'updated_by' => Auth::id()
-                    ]);
+            // Update Product master record
+            $product = $model->product; // Get associated product
+            if ($product) {
+                $product->update([
+                    'name' => $validated['model_name'],
+                    'uom_id' => $validated['uom_id'],
+                    'descriptions' => $validated['description'] ?? null,
+                    'updated_by' => Auth::id(),
+                ]);
+            } else {
+                // Edge case: if product somehow doesn't exist, create it
+                $product = Product::create([
+                    'id' => $id,
+                    'name' => $validated['model_name'],
+                    'uom_id' => $validated['uom_id'],
+                    'descriptions' => $validated['description'] ?? null,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
+                $model->update(['product_id' => $product->id]); // Link new product to model
+            }
+
+            if ($request->has('sizes')) {
+                if (!empty($validated['sizes'])) {
+                    ProductService::createProduct(
+                        $product, // Pass the Product object
+                        $validated['sizes'],
+                        $request
+                    );
                 }
             }
 
-            // Update activities - gunakan forceDelete untuk memastikan record lama terhapus
-            if (!empty($request->activity)) {
-                $model->activities()->forceDelete();
-                foreach ($request->activity as $activity) {
-                    $model->activities()->create([
-                        'activity_role_id' => $activity['activity_role_id'] ?? 1,
-                        'price' => $activity['price'] ?? 0,
-                        'created_by' => Auth::id(),
-                        'updated_by' => Auth::id()
-                    ]);
-                }
+            // Update model material
+            $model->modelMaterial()->delete(); // Clear existing materials
+            foreach ($validated['modelMaterials'] as $material) {
+                $model->modelMaterial()->create([
+                    'product_id' => $material['product_id'],
+                    'qty' => $material['qty'],
+                    'price' => $material['price'] ?? null,
+                    'uom_id' => $material['uom_id'] ?? null,
+                    'remark' => $material['remark'] ?? null,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
             }
 
-            if (!empty($request->modelMaterials)) {
-                $model->modelMaterial()->forceDelete(); // Perubahan di sini: modelMaterials -> modelMaterial
-                foreach ($request->modelMaterials as $index => $modelMaterial) {
-                    $productId = is_array($modelMaterial['product_id'])
-                        ? $modelMaterial['product_id']['id'] ?? null
-                        : $modelMaterial['product_id'];
-
-
-                    $model->modelMaterial()->create([
-                        'product_id' => $productId,
-                        'item' => $index + 1, // Increment the number for each model material
-                        'remark' => $modelMaterial['remark'] ?? null,
-                        'qty' => $modelMaterial['qty'] ?? 1,
-                        'price' => $modelMaterial['price'] ?? 0,
-                        'uom_id' => $modelMaterial['uom_id'] ?? null,
-                        'created_by' => Auth::id(),
-                        'updated_by' => Auth::id()
-                    ]);
-                }
-
-            }
-
-            if (!empty($request->sizes)) {
-                ProductService::createProduct(
-                    $model,
-                    $request->sizes,
-                    $request
-                );
+            // Update activity roles
+            if ($request->has('activity')) {
+                $model->activities()->sync(collect($validated['activity'])->mapWithKeys(function ($item) {
+                    return [$item['activity_role_id'] => ['price' => $item['price'] ?? 0]];
+                })->toArray());
             }
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Model berhasil diperbarui',
-                'data' => $model->load(['sizes', 'activities'])
-            ]);
+                'message' => 'Model updated successfully',
+                'data' => $model->load(['product', 'sizes', 'activities', 'modelMaterial'])
+            ], 200);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Terjadi kesalahan saat memperbarui model',
-                'error' => $e->getMessage()
-            ], 500);
+            \Log::error('Error updating model: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to update model.'], 500);
         }
     }
 
     public function destroy($id)
     {
         try {
-            $model = ModelRef::findOrFail($id);
+            $model = ModelRef::with('product')->findOrFail($id);
 
+            DB::beginTransaction();
+
+            // Soft delete the associated Product
+            if ($model->product) {
+                $model->product->update(['deleted_by' => Auth::id()]);
+                $model->product->delete();
+            }
+
+            // Soft delete the ModelRef
             $model->update(['deleted_by' => Auth::id()]);
             $model->delete();
+
+            DB::commit();
 
             return response()->json([
                 'message' => 'Model berhasil dihapus'
             ]);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Terjadi kesalahan saat menghapus model',
                 'error' => $e->getMessage()
@@ -474,7 +507,7 @@ class ModelRefController extends Controller
 
 
             $perPage = $request->get('per_page', 50);
-            $models = $query->with('sizes')->orderBy('created_at', 'desc')->paginate($perPage);
+            $models = $query->with(['product', 'sizes'])->orderBy('created_at', 'desc')->paginate($perPage);
 
             $modelIds = $models->pluck('id');
 
