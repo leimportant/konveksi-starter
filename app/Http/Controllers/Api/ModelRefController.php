@@ -99,6 +99,8 @@ class ModelRefController extends Controller
         try {
             DB::beginTransaction();
 
+           
+
             $newModelRefId = $this->generateNumber($validated['category_id']);
 
             // Create the model ref and link to the product
@@ -119,7 +121,7 @@ class ModelRefController extends Controller
              // Create Product master record first
              $product = Product::create([
                 'id' => $newModelRefId,
-                'name' => $validated['model_name'],
+                'name' => $validated['description'],
                 'uom_id' => $validated['uom_id'],
                 'descriptions' => $validated['description'] ?? null,
                 'created_by' => Auth::id(),
@@ -382,7 +384,7 @@ class ModelRefController extends Controller
             $product = $model->product; // Get associated product
             if ($product) {
                 $product->update([
-                    'name' => $validated['model_name'],
+                    'name' => $validated['description'],
                     'uom_id' => $validated['uom_id'],
                     'descriptions' => $validated['description'] ?? null,
                     'updated_by' => Auth::id(),
@@ -391,7 +393,7 @@ class ModelRefController extends Controller
                 // Edge case: if product somehow doesn't exist, create it
                 $product = Product::create([
                     'id' => $id,
-                    'name' => $validated['model_name'],
+                    'name' => $validated['description'],
                     'uom_id' => $validated['uom_id'],
                     'descriptions' => $validated['description'] ?? null,
                     'created_by' => Auth::id(),

@@ -227,7 +227,7 @@ const activityItems = ref<{ activity_role_id: number; price: number }[]>([]);
 const modelMaterials = ref<{
   product_id: number;
   qty: number;
-  uom_id: number;
+  uom_id: string;
   remark: string;
   price: number | null; // Add price property
 }[]>([]);
