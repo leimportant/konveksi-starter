@@ -117,6 +117,7 @@ class ModelRefController extends Controller
              // Create Product master record first
              $product = Product::create([
                 'id' => $newModelRefId,
+                'category_id'  => $validated['category_id'],
                 'name' => $validated['description'],
                 'uom_id' => 'PCS',
                 'descriptions' => $validated['description'] ?? null,
@@ -375,25 +376,28 @@ class ModelRefController extends Controller
             ]);
 
             // Update Product master record
-            $product = $model->product; // Get associated product
+            $product = Product::find($id);
+
+            $data = [
+                'name'         => $validated['description'],
+                'category_id'  => $validated['category_id'],
+                'uom_id'       => $validated['uom_id'] ?? 'PCS',   // gunakan default PCS
+                'descriptions' => $validated['description'] ?? null,
+                'updated_by'   => Auth::id(),
+            ];
+            
             if ($product) {
-                $product->update([
-                    'name' => $validated['description'],
-                    'uom_id' => 'PCS',
-                    'descriptions' => $validated['description'] ?? null,
-                    'updated_by' => Auth::id(),
-                ]);
+                // Update existing product
+                $product->update($data);
+            
             } else {
-                // Edge case: if product somehow doesn't exist, create it
-                $product = Product::create([
-                    'id' => $id,
-                    'name' => $validated['description'],
-                    'uom_id' => 'PCS',
-                    'descriptions' => $validated['description'] ?? null,
+                // Create new product
+                $product = Product::create(array_merge($data, [
+                    'id'         => $id,              // only if id is not auto-increment
                     'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
-                ]);
+                ]));
             }
+        
 
             if ($request->has('sizes')) {
                 if (!empty($validated['sizes'])) {
