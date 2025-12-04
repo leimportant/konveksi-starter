@@ -216,11 +216,19 @@ const validateBeforeSubmit = () => {
 
   if (!form.description) {
     errors.value.description = ['Deskripsi wajib diisi'];
+    toast.error('Deskripsi wajib diisi');
     valid = false;
   }
 
   if (!form.category_id) {
     errors.value.category_id = ['Kategori wajib diisi'];
+    toast.error('Kategori wajib diisi');
+    valid = false;
+  }
+
+  if (!form.start_date) {
+    errors.value.start_date = ['Tanggal mulai harus diisi'];
+    toast.error('Tanggal mulai harus diisi');
     valid = false;
   }
 
