@@ -440,7 +440,7 @@ class ModelRefController extends Controller
 
             return response()->json([
                 'message' => 'Model updated successfully',
-                'data' => $model->load(['product', 'sizes', 'activities', 'modelMaterial'])
+                'data' => $model->load(['sizes', 'activities', 'modelMaterial'])
             ], 200);
 
         } catch (\Exception $e) {
