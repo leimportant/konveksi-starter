@@ -67,9 +67,7 @@ class ModelRefController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'model_name' => 'required|string|max:255',
-            'uom_id' => 'required|exists:mst_uom,id',
-            'description' => 'required|string|max:255',
+           'description' => 'required|string|max:255',
             'category_id' => 'required|exists:mst_category,id',
             'remark' => 'nullable|string',
             'estimation_price_pcs' => 'numeric|min:0',
@@ -122,7 +120,7 @@ class ModelRefController extends Controller
              $product = Product::create([
                 'id' => $newModelRefId,
                 'name' => $validated['description'],
-                'uom_id' => $validated['uom_id'],
+                'uom_id' => 'PCS',
                 'descriptions' => $validated['description'] ?? null,
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
@@ -383,7 +381,7 @@ class ModelRefController extends Controller
             if ($product) {
                 $product->update([
                     'name' => $validated['description'],
-                    'uom_id' => $validated['uom_id'],
+                    'uom_id' => 'PCS',
                     'descriptions' => $validated['description'] ?? null,
                     'updated_by' => Auth::id(),
                 ]);
@@ -392,7 +390,7 @@ class ModelRefController extends Controller
                 $product = Product::create([
                     'id' => $id,
                     'name' => $validated['description'],
-                    'uom_id' => $validated['uom_id'],
+                    'uom_id' => 'PCS',
                     'descriptions' => $validated['description'] ?? null,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
