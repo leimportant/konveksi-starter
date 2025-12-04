@@ -421,9 +421,15 @@ class ModelRefController extends Controller
 
             // Update activity roles
             if ($request->has('activity')) {
-                $model->activities()->sync(collect($validated['activity'])->mapWithKeys(function ($item) {
-                    return [$item['activity_role_id'] => ['price' => $item['price'] ?? 0]];
-                })->toArray());
+                $model->activities()->delete(); // Clear existing activities
+                foreach ($validated['activity'] as $activity) {
+                    $model->activities()->create([
+                        'activity_role_id' => $activity['activity_role_id'],
+                        'price' => $activity['price'] ?? 0,
+                        'created_by' => Auth::id(),
+                        'updated_by' => Auth::id()
+                    ]);
+                }
             }
 
             DB::commit();
