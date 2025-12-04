@@ -36,6 +36,11 @@ class ModelRef extends BaseModel
         'deleted_at' => 'datetime'
     ];
 
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'id');
+    }
+
     public function sizes()
     {
         return $this->hasMany(ModelSize::class, 'model_id');

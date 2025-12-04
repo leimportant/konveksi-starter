@@ -24,6 +24,7 @@ class ProductController extends Controller
         }
 
         $products = $query->with(['category', 'uom', 'galleryImages'])
+            ->whereNull('deleted_at')
             ->orderBy('name')
             ->paginate();
 
