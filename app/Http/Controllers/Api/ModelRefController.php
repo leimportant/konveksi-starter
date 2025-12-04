@@ -337,8 +337,6 @@ class ModelRefController extends Controller
         $model = ModelRef::findOrFail($id);
 
         $validated = $request->validate([
-            'model_name' => 'required|string|max:255',
-            'uom_id' => 'required|exists:mst_uom,id',
             'description' => 'required|string|max:255',
             'category_id' => 'required|exists:mst_category,id',
             'remark' => 'nullable|string',
