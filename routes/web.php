@@ -358,16 +358,10 @@ Route::get('/order-history', function () {
 Route::get('/production/{activity_role}/create', function ($activity_role) {
     return Inertia::render('production/Create', [
         'activity_role' => $activity_role,
+        'returnUrl' => request()->query('returnUrl') ?? null,
     ]);
 })->middleware(['auth'])->name('production.create');
 
-
-// Route::get('/production/{activity_role}/edit/{id}', function ($activity_role, $id) {
-//     return Inertia::render('production/Update', [
-//         'activity_role' => $activity_role,
-//         'id' => $id,
-//     ]);
-// })->middleware(['auth'])->name('production.update');
 
 Route::get('/production/{activity_role}/edit/{id}', function ($activity_role, $id) {
     return Inertia::render('production/Update', [

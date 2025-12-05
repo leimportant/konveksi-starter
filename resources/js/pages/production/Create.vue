@@ -16,6 +16,7 @@ const { models, employees } = storeToRefs(modelStore);
 
 const props = defineProps<{
   activity_role: string | number;
+  returnUrl: string, 
 }>();
 
 const selectedModelId = ref<number | null>(null);
@@ -150,7 +151,7 @@ const submit = async () => {
 
 
     toast.success('Produksi berhasil dibuat');
-    router.visit(`/production/${props.activity_role}`);
+    router.visit(props.returnUrl ?? `/production/${props.activity_role}`);
   } catch (error: any) {
     toast.error(error?.response?.data?.message ?? 'Gagal membuat produksi');
   }
