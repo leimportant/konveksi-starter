@@ -151,7 +151,7 @@ const submit = async () => {
 
 
     toast.success('Produksi berhasil dibuat');
-    router.visit(props.returnUrl ?? `/production/${props.activity_role}`);
+    router.visit(props.returnUrl ?? `/production/${props.activity_role}/create/N`);
   } catch (error: any) {
     toast.error(error?.response?.data?.message ?? 'Gagal membuat produksi');
   }
@@ -250,7 +250,7 @@ const submit = async () => {
       <div class="flex gap-2">
         <button @click="submit" class="rounded text-sm bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           :disabled="form.processing">Simpan</button>
-        <button @click="router.visit(`/production/${props.activity_role}`)" type="button"
+        <button @click="router.visit(props.returnUrl ?? `/production/${props.activity_role}/create/N`)" type="button"
           class="rounded text-sm bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
           Cancel
         </button>
