@@ -411,9 +411,11 @@ class ModelRefController extends Controller
 
             // Update model material
             $model->modelMaterial()->forceDelete(); // Clear existing materials
+            $key = 1;
             foreach ($validated['modelMaterials'] as $material) {
                 $model->modelMaterial()->create([
                     'product_id' => $material['product_id'],
+                    'item' => $key++,
                     'qty' => $material['qty'] ?? 1,
                     'price' => $material['price'] ?? null,
                     'uom_id' => $material['uom_id'] ?? 'PCS',
