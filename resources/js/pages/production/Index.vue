@@ -1,10 +1,29 @@
 <script setup lang="ts">
+// interface ProductionItem {
+//   id: string;
+//   activity_role_id: string;
+//   status: number;
+//   total_price: string;
+//   items: {
+//     id: string;
+//     size_id: string;
+//     qty: number;
+//     variant: string;
+//   }[];
+//   employee_name: string;
+//   model?: {
+//     description: string;
+//   }
+//   price_per_pcs: string;
+//   created_at: string;
+// }
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useProductionStore } from '@/stores/useProductionStore';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, usePage, router  } from '@inertiajs/vue3';
 import { Edit, LucideView, Plus, Trash2 } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
@@ -115,6 +134,22 @@ const grandQty = computed(() => {
     return total + itemTotal;
   }, 0);
 });
+
+const clickEdit = (item: any) => {
+  const returnUrl = window.location.pathname;
+
+  router.visit(
+    route('production.update', {
+      activity_role: item.activity_role_id,
+      id: item.id,
+    }),
+    {
+      method: 'get',
+      data: { returnUrl },
+    }
+  );
+};
+
 
 // 🔹 Hitung total harga per pcs
 // const grandPricePerPcs = computed(() => {
@@ -276,14 +311,17 @@ const handleDelete = async (id: string) => {
                   <td class="px-3 py-2 align-top">
                     <div class="flex justify-end gap-1 sm:gap-2">
                       <Button
-                          v-if="props.isCreate === 'Y' && isOwner == 'Y' && (item.status === 1 || item.status === 3)"
-                          variant="ghost"
-                          size="icon"
-                          class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                          @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)"
-                        >
-                          <Edit class="h-4 w-4" />
-                        </Button>
+  v-if="props.isCreate === 'Y' && isOwner == 'Y' && (item.status === 1 || item.status === 3)"
+  variant="ghost"
+  size="icon"
+  class="hover:bg-gray-100 dark:hover:bg-gray-700"
+  @click="clickEdit(item)"
+>
+  <Edit class="h-4 w-4" />
+</Button>
+
+
+
 
                       <Button v-if="item.status === 1 || item.status === 3" variant="ghost" size="icon"
                         class="hover:bg-gray-100 dark:hover:bg-gray-700" @click="handleDelete(item.id)">
