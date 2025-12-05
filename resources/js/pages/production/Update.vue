@@ -147,7 +147,7 @@ const submit = async () => {
     toast.success("Production updated successfully");
 
     // router.visit(`/production/${props.activity_role}`);
-    router.visit(props.returnUrl ?? `/production/${props.activity_role}`);
+    router.visit(props.returnUrl ?? `/production/${props.activity_role}/create/N`);
 
   } catch (error: any) {
     toast.error(error?.response?.data?.message ?? "Failed to update production");
@@ -208,8 +208,8 @@ const submit = async () => {
           Save
         </button>
 
-        <button @click="router.visit(`/production/${props.activity_role}`)" type="button"
-          class="bg-gray-500 text-white px-4 py-2 rounded">
+        <button @click="router.visit(props.returnUrl ?? `/production/${props.activity_role}/create/N`)" type="button"
+          class="rounded text-sm bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
           Cancel
         </button>
       </div>
