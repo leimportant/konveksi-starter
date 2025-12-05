@@ -81,11 +81,11 @@ class ModelRefController extends Controller
             'sizes.*.price_grosir' => 'required|numeric|min:1',
 
             'activity' => 'nullable|array',
-            'activity.*.activity_role_id' => 'nullable|exists:mst_activity_role,id',
+            'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
             'activity.*.price' => 'numeric|min:0',
 
             'modelMaterials' => 'nullable|array',
-            'modelMaterials.*.product_id' => 'nullable|exists:mst_product,id',
+            'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
             'modelMaterials.*.qty' => 'nullable|numeric|min:0',
             'modelMaterials.*.price' => 'nullable|numeric|min:0',
             'modelMaterials.*.uom_id' => 'nullable|exists:mst_uom,id',
@@ -350,14 +350,14 @@ class ModelRefController extends Controller
             'sizes.*.price_grosir' => 'required|numeric|min:1',
 
             'activity' => 'nullable|array',
-            'activity.*.activity_role_id' => 'nullable|exists:mst_activity_role,id',
+            'activity.*.activity_role_id' => 'required|exists:mst_activity_role,id',
             'activity.*.price' => 'numeric|min:0',
 
             'modelMaterials' => 'nullable|array',
-            'modelMaterials.*.product_id' => 'nullable|exists:mst_product,id',
+            'modelMaterials.*.product_id' => 'required|exists:mst_product,id',
             'modelMaterials.*.qty' => 'nullable|numeric|min:0',
             'modelMaterials.*.price' => 'nullable|numeric|min:0',
-            'modelMaterials.*.uom_id' => 'nullable|exists:mst_uom,id',
+            'modelMaterials.*.uom_id' => 'required|exists:mst_uom,id',
             'modelMaterials.*.remark' => 'nullable|string|max:255',
         ]);
 
@@ -414,15 +414,17 @@ class ModelRefController extends Controller
             foreach ($validated['modelMaterials'] as $material) {
                 $model->modelMaterial()->create([
                     'product_id' => $material['product_id'],
-                    'qty' => $material['qty'],
+                    'qty' => $material['qty'] ?? 1,
                     'price' => $material['price'] ?? null,
-                    'uom_id' => $material['uom_id'] ?? null,
+                    'uom_id' => $material['uom_id'] ?? 'PCS',
                     'remark' => $material['remark'] ?? null,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
             }
 
+
+            
             // Update activity roles
             if ($request->has('activity')) {
                 $model->activities()->delete(); // Clear existing activities

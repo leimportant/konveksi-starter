@@ -5,7 +5,7 @@ import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useProductionStore } from '@/stores/useProductionStore';
 import { Head } from '@inertiajs/vue3';
-import { Edit, LucideView, Plus, Trash2 } from 'lucide-vue-next';
+import { LucideView, Plus, Trash2 } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
 
