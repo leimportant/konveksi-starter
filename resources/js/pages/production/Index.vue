@@ -16,7 +16,7 @@ const { productions, currentPage, lastPage, loading } = storeToRefs(productionSt
 const page = usePage();
 const user = page.props.auth.user;
 
-const isOwner = user.employee_status.toUpperCase == "OWNER" ? 'Y' : 'N';
+const isOwner = user.employee_status.toUpperCase() == "OWNER" ? 'Y' : 'N';
 
 const startDate = ref('');
 const endDate = ref('');
@@ -275,11 +275,16 @@ const handleDelete = async (id: string) => {
 
                   <td class="px-3 py-2 align-top">
                     <div class="flex justify-end gap-1 sm:gap-2">
-                      <Button v-if="props.isCreate === 'Y' && isOwner == 'Y' && (item.status === 1 || item.status === 3)" variant="ghost" size="icon"
-                        class="hover:bg-gray-100 dark:hover:bg-gray-700"
-                        @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)">
-                        <Edit class="h-4 w-4" />
-                      </Button>
+                      <Button
+                          v-if="props.isCreate === 'Y' && isOwner == 'Y' && (item.status === 1 || item.status === 3)"
+                          variant="ghost"
+                          size="icon"
+                          class="hover:bg-gray-100 dark:hover:bg-gray-700"
+                          @click="$inertia.visit(`/production/${item.activity_role_id}/edit/${item.id}`)"
+                        >
+                          <Edit class="h-4 w-4" />
+                        </Button>
+
                       <Button v-if="item.status === 1 || item.status === 3" variant="ghost" size="icon"
                         class="hover:bg-gray-100 dark:hover:bg-gray-700" @click="handleDelete(item.id)">
                         <Trash2 class="h-4 w-4" />
