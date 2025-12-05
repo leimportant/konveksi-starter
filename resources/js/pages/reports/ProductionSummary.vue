@@ -67,7 +67,7 @@ const getDetailQty = (detail: any, roleName: string) => {
                 {{ reportStore.error.message }}
             </div>
 
-            <div v-else class="relative max-h-[500px] overflow-auto rounded-lg bg-white shadow">
+            <div v-else class="relative max-h-[400px] sm:max-h-[500px] md:max-h-[650px] overflow-auto rounded-lg bg-white shadow">
                 <table class="min-w-full table-fixed border-collapse text-sm text-gray-800">
                     <!-- Sticky Header -->
                     <thead class="sticky top-0 z-30 bg-gray-50 text-xs font-semibold uppercase text-gray-600">

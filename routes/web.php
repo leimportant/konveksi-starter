@@ -362,12 +362,21 @@ Route::get('/production/{activity_role}/create', function ($activity_role) {
 })->middleware(['auth'])->name('production.create');
 
 
+// Route::get('/production/{activity_role}/edit/{id}', function ($activity_role, $id) {
+//     return Inertia::render('production/Update', [
+//         'activity_role' => $activity_role,
+//         'id' => $id,
+//     ]);
+// })->middleware(['auth'])->name('production.update');
+
 Route::get('/production/{activity_role}/edit/{id}', function ($activity_role, $id) {
     return Inertia::render('production/Update', [
         'activity_role' => $activity_role,
         'id' => $id,
+        'returnUrl' => request()->query('returnUrl') ?? null, // ← tambah ini
     ]);
 })->middleware(['auth'])->name('production.update');
+
 
 Route::get('/documents', function () {
     return Inertia::render('DocumentPage');

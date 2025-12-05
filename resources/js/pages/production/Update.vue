@@ -17,6 +17,7 @@ const { models } = storeToRefs(modelStore);
 const props = defineProps<{
   id: string;
   activity_role: string;
+  returnUrl: string, 
 }>();
 
 const selectedModelId = ref<number | null>(null);
@@ -145,7 +146,8 @@ const submit = async () => {
 
     toast.success("Production updated successfully");
 
-    router.visit(`/production/${props.activity_role}`);
+    // router.visit(`/production/${props.activity_role}`);
+    router.visit(props.returnUrl ?? `/production/${props.activity_role}`);
 
   } catch (error: any) {
     toast.error(error?.response?.data?.message ?? "Failed to update production");
