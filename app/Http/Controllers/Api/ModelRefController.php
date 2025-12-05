@@ -410,7 +410,7 @@ class ModelRefController extends Controller
             }
 
             // Update model material
-            $model->modelMaterial()->delete(); // Clear existing materials
+            $model->modelMaterial()->forceDelete(); // Clear existing materials
             foreach ($validated['modelMaterials'] as $material) {
                 $model->modelMaterial()->create([
                     'product_id' => $material['product_id'],
@@ -427,7 +427,7 @@ class ModelRefController extends Controller
             
             // Update activity roles
             if ($request->has('activity')) {
-                $model->activities()->delete(); // Clear existing activities
+                $model->activities()->forceDelete(); // Clear existing activities
                 foreach ($validated['activity'] as $activity) {
                     $model->activities()->create([
                         'activity_role_id' => $activity['activity_role_id'],
