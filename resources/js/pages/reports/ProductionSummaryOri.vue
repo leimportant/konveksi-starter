@@ -50,7 +50,6 @@ const getDetailQty = (detail: any, roleName: string) => {
             <h2 class="text-xl font-semibold text-gray-800">Production Summary Report</h2>
         </template>
 
-        <!-- Loading / Error / Table Section -->
         <div class="mx-auto max-w-7xl space-y-4 px-2 py-6">
             <!-- Filter Bar -->
             <div class="mb-4 flex flex-wrap items-end gap-2">
@@ -60,19 +59,18 @@ const getDetailQty = (detail: any, roleName: string) => {
                 <Button class="h-10 bg-indigo-600 text-white hover:bg-indigo-700" @click="fetchReport">Tampilkan</Button>
             </div>
 
-            <!-- Conditional Rendering -->
+            <!-- Loading / Error -->
             <div v-if="reportStore.loading" class="py-4 text-center text-gray-500">Loading...</div>
+            <div v-else-if="reportStore.error" class="py-4 text-center text-red-500">{{ reportStore.error.message }}</div>
 
-            <div v-else-if="reportStore.error" class="py-4 text-center text-red-500">
-                {{ reportStore.error.message }}
-            </div>
-
-            <div v-else class="relative max-h-[500px] overflow-auto rounded-lg bg-white shadow">
-                <table class="min-w-full table-fixed border-collapse text-sm text-gray-800">
-                    <!-- Sticky Header -->
-                    <thead class="sticky top-0 z-30 bg-gray-50 text-xs font-semibold uppercase text-gray-600">
+            <!-- Modern Table Report -->
+            <div v-else class="relative max-h-[500px] overflow-y-auto overflow-x-auto rounded-lg bg-white shadow">
+                <table class="min-w-full text-sm text-gray-800 table-auto">
+                    <!-- Table Header -->
+                    <thead class="sticky top-0 z-20 bg-gray-50 text-xs font-semibold uppercase text-gray-600">
                         <tr>
                             <th class="px-3 py-2" colspan="2">Model</th>
+
                             <th v-for="role in allActivityRoles" :key="'header-role-' + role.id" class="px-2 py-1 text-center">
                                 {{ role.name }}
                             </th>
@@ -81,6 +79,7 @@ const getDetailQty = (detail: any, roleName: string) => {
 
                     <!-- Table Body -->
                     <tbody>
+                        <!-- Loop setiap item model -->
                         <template v-for="item in reportStore.productionSummary" :key="item.model_id">
                             <!-- Summary Row -->
                             <tr class="bg-gray-100 font-semibold hover:bg-gray-200">
@@ -93,7 +92,10 @@ const getDetailQty = (detail: any, roleName: string) => {
                             <!-- Detail Rows -->
                             <template v-for="detail in item.details" :key="detail.production_id">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-1 align-top">{{ detail.employee_name }}</td>
+                                    <td class="px-3 py-1 align-top">
+                                        {{ detail.employee_name }}
+                                    </td>
+
                                     <td class="min-w-[200px] px-3 py-1 align-top">
                                         <div
                                             v-if="detail.items?.length"
@@ -109,6 +111,7 @@ const getDetailQty = (detail: any, roleName: string) => {
                                             </div>
                                         </div>
                                     </td>
+
                                     <td
                                         v-for="role in allActivityRoles"
                                         :key="'detail-' + role.id + '-' + detail.production_id"
@@ -121,8 +124,8 @@ const getDetailQty = (detail: any, roleName: string) => {
                         </template>
                     </tbody>
 
-                    <!-- Sticky Footer (Grand Total) -->
-                    <tfoot class="sticky bottom-0 z-30 bg-gray-50 text-xs font-semibold text-gray-600">
+                    <!-- Grand Total Footer -->
+                    <tfoot class="bg-gray-50 text-xs font-semibold text-gray-600">
                         <tr>
                             <td colspan="2" class="px-3 py-2 text-right">Grand Total:</td>
                             <td v-for="role in allActivityRoles" :key="'footer-role-' + role.id" class="px-2 py-1 text-center">
