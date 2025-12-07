@@ -10,7 +10,7 @@ class UnlistedProduct extends Model
     use HasFactory;
     protected $primaryKey = 'id';
 
-    protected $table = 'mst_product_unlisted';
+    protected $table = 'mst_product';
 
     protected $fillable = [
         'id',

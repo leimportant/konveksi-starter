@@ -12,7 +12,11 @@ class ModelRef extends BaseModel
 
     protected $table = 'tr_model';
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'id', 
         'description',
         'category_id',
         'remark',

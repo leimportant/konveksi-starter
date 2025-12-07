@@ -120,7 +120,7 @@ class ModelRefController extends Controller
                 'category_id'  => $validated['category_id'],
                 'name' => $validated['description'],
                 'uom_id' => 'PCS',
-                'descriptions' => $validated['description'] ?? null,
+                'descriptions' => $validated['descriptions'] ?? null,
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
@@ -382,7 +382,7 @@ class ModelRefController extends Controller
                 'name'         => $validated['description'],
                 'category_id'  => $validated['category_id'],
                 'uom_id'       => $validated['uom_id'] ?? 'PCS',   // gunakan default PCS
-                'descriptions' => $validated['description'] ?? null,
+                'descriptions' => $validated['descriptions'] ?? null,
                 'updated_by'   => Auth::id(),
             ];
             
@@ -406,6 +406,24 @@ class ModelRefController extends Controller
                         $validated['sizes'],
                         $request
                     );
+                }
+            }
+
+                    // Store sizes
+            if ($request->has('sizes')) {
+                $model->sizes()->forceDelete(); // Clear existing materials
+                if (!empty($validated['sizes'])) {
+                    foreach ($validated['sizes'] as $size) {
+                        $model->sizes()->create([
+                            'size_id' => $size['size_id'] ?? "",
+                            'variant' => $size['variant'] ?? "",
+                            'qty' => $size['qty'] ?? 1,
+                            'price_store' => $size['price_store'] ?? 0,
+                            'price_grosir' => $size['price_grosir'] ?? 0,
+                            'created_by' => Auth::id(),
+                            'updated_by' => Auth::id()
+                        ]);
+                    }
                 }
             }
 
