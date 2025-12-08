@@ -14,6 +14,7 @@ class UnlistedProduct extends Model
 
     protected $fillable = [
         'id',
+        'unlisted',
         'category_id',
         'uom_id',
         'name',
