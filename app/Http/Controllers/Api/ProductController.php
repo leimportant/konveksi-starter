@@ -42,6 +42,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::whereNotIn('category_id', [0])
+            ->where('unlisted', 'N')
             ->with(['category', 'uom', 'galleryImages']);
 
         $search = $request->input('search');
@@ -79,6 +80,7 @@ class ProductController extends Controller
         ]);
         $newId = $this->generateNumber($validated['category_id']);
         $validated['id'] = $newId;
+        $validated['unlisted'] = 'N';
 
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
@@ -122,6 +124,8 @@ class ProductController extends Controller
             'uom_id' => 'exists:mst_uom,id',
             'doc_id' => 'nullable|string|exists:tr_document_attachment,doc_id',
         ]);
+
+        $validated['unlisted'] = 'N';
 
         $product->update($validated);
         return response()->json($product);

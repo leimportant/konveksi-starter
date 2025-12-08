@@ -33,6 +33,7 @@ class UnlistedProductController extends Controller
             $unlistedProduct = UnlistedProduct::create([
                 'id' => UnlistedProduct::generateId(), // Use the new generateId method
                 'category_id' => $validated['category_id'],
+                'unlisted' => 'Y',
                 'uom_id' => 'PCS', // Default UOM for unlisted products
                 'name' => $validated['name'],
                 'descriptions' => '', // No description for now
@@ -55,7 +56,7 @@ class UnlistedProductController extends Controller
 
     public function index(Request $request)
     {
-        $query = UnlistedProduct::query();
+        $query = UnlistedProduct::where('unlisted', 'Y')->query();
 
         $search = $request->input('search');
         if ($search) {
@@ -86,6 +87,7 @@ class UnlistedProductController extends Controller
             'price_grosir' => 'required|numeric|min:1',
         ]);
 
+        $validated['unlisted'] = 'Y';
         $unlistedProduct->update($validated);
 
         return response()->json($unlistedProduct);

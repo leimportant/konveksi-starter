@@ -81,7 +81,7 @@ class InventoryController extends Controller
                     ->orWhere('c.name', 'like', '%' . $name . '%');
             });
         }
-        
+
 
         $results = $query->paginate($perPage);
 
@@ -89,71 +89,71 @@ class InventoryController extends Controller
     }
 
 
-public function stockMonitoring(Request $request)
-{
-    $query = DB::table('tr_inventory as i')
-        ->join('mst_product as p', 'p.id', '=', 'i.product_id')
-        ->join('mst_location as l', 'l.id', '=', 'i.location_id')
-        ->select(
-            'i.product_id',
-            'p.name as product_name',
-            'i.uom_id',
-            'i.sloc_id',
-            'l.name as location_name',
-            DB::raw('SUM(i.qty) as qty')
-        )
-        ->where('i.status', 'IN')
-        ->groupBy('i.product_id', 'p.name', 'i.uom_id', 'i.sloc_id', 'l.name');
+    public function stockMonitoring(Request $request)
+    {
+        $query = DB::table('tr_inventory as i')
+            ->join('mst_product as p', 'p.id', '=', 'i.product_id')
+            ->join('mst_location as l', 'l.id', '=', 'i.location_id')
+            ->select(
+                'i.product_id',
+                'p.name as product_name',
+                'i.uom_id',
+                'i.sloc_id',
+                'l.name as location_name',
+                DB::raw('SUM(i.qty) as qty')
+            )
+            ->where('i.status', 'IN')
+            ->groupBy('i.product_id', 'p.name', 'i.uom_id', 'i.sloc_id', 'l.name');
 
-    // Filter by product name or product id
-    if ($request->has('productName')) {
-        $query->where(function ($q) use ($request) {
-            $q->where('p.name', 'like', '%' . $request->input('productName') . '%')
-              ->orWhere('i.product_id', 'like', '%' . $request->input('productName') . '%');
-        });
-    }
+        // Filter by product name or product id
+        if ($request->has('productName')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('p.name', 'like', '%' . $request->input('productName') . '%')
+                    ->orWhere('i.product_id', 'like', '%' . $request->input('productName') . '%');
+            });
+        }
 
-    // Paginate result
-    $rawResults = $query->get();
+        // Paginate result
+        $rawResults = $query->get();
 
-    // Group & transform result
-    $grouped = [];
+        // Group & transform result
+        $grouped = [];
 
-    foreach ($rawResults as $item) {
-        $key = "{$item->product_id}_{$item->sloc_id}";
+        foreach ($rawResults as $item) {
+            $key = "{$item->product_id}_{$item->sloc_id}";
 
-        if (!isset($grouped[$key])) {
-            $grouped[$key] = [
-                'product_id' => $item->product_id,
-                'product_name' => $item->product_name,
-                'uom_id' => $item->uom_id,
-                'sloc_id' => $item->sloc_id,
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product_name,
+                    'uom_id' => $item->uom_id,
+                    'sloc_id' => $item->sloc_id,
+                ];
+            }
+
+            $locationKey = $item->location_name;
+
+            $grouped[$key][$locationKey] = [
+                'qty' => (int) $item->qty,
             ];
         }
 
-        $locationKey = $item->location_name;
+        // Manual pagination (optional if needed)
+        $page = $request->input('page', 1);
+        $perPage = $request->input('perPage', 10);
+        $items = array_values($grouped);
+        $offset = ($page - 1) * $perPage;
 
-        $grouped[$key][$locationKey] = [
-            'qty' => (int) $item->qty,
-        ];
+        $paginated = new LengthAwarePaginator(
+            array_slice($items, $offset, $perPage),
+            count($items),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return response()->json($paginated);
     }
-
-    // Manual pagination (optional if needed)
-    $page = $request->input('page', 1);
-    $perPage = $request->input('perPage', 10);
-    $items = array_values($grouped);
-    $offset = ($page - 1) * $perPage;
-
-    $paginated = new LengthAwarePaginator(
-        array_slice($items, $offset, $perPage),
-        count($items),
-        $perPage,
-        $page,
-        ['path' => $request->url(), 'query' => $request->query()]
-    );
-
-    return response()->json($paginated);
-}
 
     /**
      * Store a newly created inventory record.
@@ -279,7 +279,7 @@ public function stockMonitoring(Request $request)
      * @param  \App\Models\Inventory  $inventory
      * @return \Illuminate\Http\Response
      */
-    public function show(Inventory $inventory): JsonResponse    
+    public function show(Inventory $inventory): JsonResponse
     {
         return response()->json($inventory->load(['product', 'location', 'sloc', 'uom']));
     }
@@ -357,38 +357,39 @@ public function stockMonitoring(Request $request)
 
             foreach ($itemsToProcess as $item) {
                 $inCart = $this->getInCartQuantity($item);
+                $availableQty = $item->qty - $inCart;
 
-                $booking = $this->getBookingQuantity($item);
+                $price_store = null;
+                $price_grosir = null;
+                $discount = null;
 
-                $availableQty = max(0, $item->qty - $inCart - $booking);
+                if ($item->product_id) {
+                    ['price_store' => $price_store, 'price_grosir' => $price_grosir, 'discount' => $discount] = $this->getProductPriceVariants(
+                        $item->product_id,
+                        $item->size_id,
+                        $item->variant
+                    );
 
-                ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice] = $this->getProductPrices(
-                    $item->product_id,
-                    $item->size_id,
-                    $item->variant,
-                    $today
-                );
+                    $sizes[] = [
+                        'size_id' => $item->size_id,
+                        'variant' => $item->variant,
+                        'qty_stock' => intval($item->qty),
+                        'qty_in_cart' => intval($inCart),
+                        'qty_available' => intval($availableQty),
+                        'price' => $price_store ? floatval($price_store) : null,
+                        'price_sell' => $price_store ? floatval($price_store - ($price_store * $discount / 100)) : null,
+                        'discount' => $discount ? floatval($discount) : null,
 
-                $sizes[] = [
-                    'size_id' => $item->size_id,
-                    'variant' => $item->variant,
-                    'qty_stock' => intval($item->qty),
-                    'qty_in_cart' => intval($inCart),
-                    'qty_available' => intval($availableQty),
-                    'price' => $retailPrice ? floatval($retailPrice->price) : null,
-                    'price_sell' => $retailPrice ? floatval($retailPrice->price_sell) : null,
-                    'discount' => $retailPrice ? floatval($retailPrice->discount) : null,
+                        'price_retail' => $price_store ? floatval($price_store) : null,
+                        'price_sell_retail' => $price_store ? floatval($price_store - ($price_store * $discount / 100)) : null,
+                        'discount_retail' => $discount ? floatval($discount) : null,
 
-                    'price_retail' => $retailPrice ? floatval($retailPrice->price) : null,
-                    'price_sell_retail' => $retailPrice ? floatval($retailPrice->price_sell) : null,
-                    'discount_retail' => $retailPrice ? floatval($retailPrice->discount) : null,
-
-                    'price_grosir' => $grosirPrice ? floatval($grosirPrice->price) : null,
-                    'price_sell_grosir' => $grosirPrice ? floatval($grosirPrice->price_sell) : null,
-                    'discount_grosir' => $grosirPrice ? floatval($grosirPrice->discount) : null,
-                ];
+                        'price_grosir' => $price_grosir ? floatval($price_grosir) : null,
+                        'price_sell_grosir' => $price_grosir ? floatval($price_grosir - ($price_grosir * $discount / 100)) : null,
+                        'discount_grosir' => $discount ? floatval($discount) : null,
+                    ];
+                }
             }
-
             $result[] = [
                 'product_id' => $product_id,
                 'location_id' => $firstItem->location_id,
@@ -442,6 +443,30 @@ public function stockMonitoring(Request $request)
             ->where('b.size_id', $item->size_id)
             ->where('b.variant', $item->variant)
             ->sum('b.qty');
+    }
+
+    private function getProductPriceVariants($productId, $sizeId, $variant): array
+    {
+        $priceVariant = DB::table('mst_product_price_variant')
+            ->where('product_id', $productId)
+            ->where('size_id', $sizeId)
+            ->where(function ($query) use ($variant) {
+                $query->whereNull('variant')
+                    ->orWhere('variant', 'all')
+                    ->orWhere('variant', '')
+                    ->orWhere('variant', $variant);
+            })
+            ->first();
+
+        $price_store = $priceVariant->price_store ?? null;
+        $price_grosir = $priceVariant->price_grosir ?? null;
+        $discount = $priceVariant->discount ?? null;
+
+        return [
+            'price_store' => $price_store,
+            'price_grosir' => $price_grosir,
+            'discount' => $discount
+        ];
     }
 
     private function getProductPrices($productId, $sizeId, $variant, $today): array
