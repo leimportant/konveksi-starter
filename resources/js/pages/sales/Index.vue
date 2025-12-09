@@ -130,7 +130,7 @@ const go = (url: string) => router.visit(url);
         <!-- Transfer Stok -->
         <div
           class="flex cursor-pointer flex-col items-center justify-center rounded-xl bg-purple-50 p-4 shadow-sm transition hover:shadow-md hover:bg-purple-100 h-36"
-          @click="go('/inventory/transfer-stock')">
+          @click="go('/inventory')">
           <div
             class="mb-2 rounded-full bg-fuchsia-600 p-3 flex items-center justify-center ring-4 ring-fuchsia-200/40 transition hover:scale-110">
             <Warehouse class="h-6 w-6 text-white" />
