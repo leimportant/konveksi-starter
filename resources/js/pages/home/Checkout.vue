@@ -6,7 +6,7 @@ import { useCartStore } from '@/stores/useCartStore';
 import { Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import QrcodeVue from 'qrcode.vue';
-import { computed, defineProps, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 interface Product {
     id: number;
@@ -21,6 +21,7 @@ interface Product {
     stock: number;
     category_id: number;
     size_id: string;
+    variant: string;
     uom_id: string;
     discount?: number;
 }
@@ -36,6 +37,7 @@ interface CartItem {
     price_grosir?: number;
     discount_grosir?: number;
     size_id?: string;
+    variant?: string;
     uom_id?: string;
     created_by: number;
     updated_by?: number;
@@ -153,6 +155,7 @@ const confirmCheckout = async () => {
                     quantity: number;
                     uom_id: string;
                     size_id: string;
+                    variant: string;
                     price: number;
                     discount: number;
                     price_sell: number;
@@ -173,6 +176,7 @@ const confirmCheckout = async () => {
                         price: item.price ?? 0,
                         price_sell: item.price_sell ?? 0,
                         size_id: item.size_id ?? item.product?.size_id ?? '',
+                        variant: item.variant ?? item.product?.variant ?? '',
                         uom_id: item.uom_id ?? item.product?.uom_id ?? 'PCS',
                         // Calculate discount per item based on the difference between original price and selling price
                         discount: item.discount ?? 0,
@@ -345,7 +349,7 @@ const goBackToCart = () => {
                             <div class="flex-1">
                                 <p class="text-sm text-gray-900">{{ item.product?.name ?? 'Produk Tidak Dikenal' }}</p>
                                 <p class="text-xs text-gray-600">Jumlah: {{ item.quantity }}</p>
-                                <p class="text-xs text-gray-600">Ukuran: {{ item.size_id }} - {{ item.uom_id }}</p>
+                                <p class="text-xs text-gray-600">Ukuran: {{ item.size_id }} - {{ item.variant }} - {{ item.uom_id }}</p>
 
                                 <!-- Harga Grosir Promo -->
                                 <!-- <div v-if="item.price_sell_grosir && item.discount_grosir && item.quantity > 1" class="mt-2 text-sm text-green-600 font-medium">

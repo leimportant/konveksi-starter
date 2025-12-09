@@ -512,7 +512,7 @@ const addToCart = async () => {
             discount,
             price_sell,
             selectedProduct.value?.location_id ?? 2, // Use selectedProduct for location_id
-            selectedProduct.value?.variant ?? 'all', // Use selectedProduct for variant
+            selectedProduct.value?.variant ?? '', // Use selectedProduct for variant
             selectedProduct.value?.sloc_id ?? '', // Use selectedProduct for sloc_id
         );
         toast.success('Product added to cart');
@@ -551,7 +551,7 @@ const increaseQty = debounce(async (item: Product) => {
                 item.discount ?? 0,
                 item.price_sell ?? price_sell,
                 item.location_id ?? 1,
-                item.variant ?? 'all',
+                item.variant ?? '',
                 item.sloc_id ?? 'GS00',
             );
         } catch {
@@ -607,6 +607,7 @@ const cartItems = computed(() => {
                 price_sell: item.price_sell ?? 0,
                 discount: item.discount ?? 0,
                 size_id: item.size_id,
+                variant: item.variant ?? '',
                 uom_id: item.uom_id,
             } as Product;
         })
