@@ -364,11 +364,12 @@ class InventoryController extends Controller
                 $discount = null;
 
                 if ($item->product_id) {
-                    ['price_store' => $price_store, 'price_grosir' => $price_grosir, 'discount' => $discount] = $this->getProductPriceVariants(
-                        $item->product_id,
-                        $item->size_id,
-                        $item->variant
-                    );
+                   $priceVariants = $this->getProductPriceVariants($item->product_id, $item->size_id, $item->variant);
+
+                    $price_store  = $priceVariants['price_store']  ?? null;
+                    $price_grosir = $priceVariants['price_grosir'] ?? null;
+                    $discount     = $priceVariants['discount']     ?? null;
+
 
                     $sizes[] = [
                         'size_id' => $item->size_id,
@@ -458,16 +459,14 @@ class InventoryController extends Controller
             })
             ->first();
 
-        $price_store = $priceVariant->price_store ?? null;
-        $price_grosir = $priceVariant->price_grosir ?? null;
-        $discount = $priceVariant->discount ?? null;
-
         return [
-            'price_store' => $price_store,
-            'price_grosir' => $price_grosir,
-            'discount' => $discount
+            'price_store' => $priceVariant->price_store ?? null,
+            'price_grosir' => $priceVariant->price_grosir ?? null,
+            'discount' => $priceVariant->discount ?? null,
         ];
     }
+
+
 
     private function getProductPrices($productId, $sizeId, $variant, $today): array
     {
