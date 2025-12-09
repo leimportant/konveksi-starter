@@ -33,6 +33,7 @@ onMounted(() => {
   store.fetchStockMonitoringReport(1, perPage.value);
 });
 
+
 watch(filters, () => {
   store.fetchStockMonitoringReport(1, perPage.value);
 }, { deep: true });
