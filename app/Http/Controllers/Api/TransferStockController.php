@@ -176,82 +176,100 @@ class TransferStockController extends Controller
     }
 
     public function accept($id)
-    {
-        try {
-            if (!Auth::check()) {
-                return response()->json(['error' => 'Unauthorized'], 401);
+{
+    try {
+
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Ambil transfer + detail
+        $transfer = TransferStock::with('transfer_detail')
+            ->where('id', $id)
+            ->firstOrFail();
+
+        if ($transfer->status !== 'Pending') {
+            return response()->json(['error' => 'Transfer sudah diproses'], 400);
+        }
+
+        DB::beginTransaction();
+
+        // Update status header
+        $transfer->status = 'Accepted';
+        $transfer->updated_by = Auth::id();
+        $transfer->save();
+
+
+        foreach ($transfer->transfer_detail as $detail) {
+
+            // Gunakan data_get untuk antisipasi array/object/nullable
+            $qty      = (float) data_get($detail, 'qty', 0);
+            $productId = data_get($detail, 'product_id');
+            $uomId     = data_get($detail, 'uom_id');
+            $sizeId    = data_get($detail, 'size_id', null);
+            $variant   = data_get($detail, 'variant', 'all');
+
+            // Jika detail tidak valid → skip saja
+            if (!$productId || !$uomId) {
+                Log::warning("Detail transfer tidak lengkap", ['detail' => $detail]);
+                continue;
             }
 
-            // Ambil transfer + detail
-            $transfer = TransferStock::with('transfer_detail')
-                ->where('id', $id)
-                ->firstOrFail();
+            $sloc_id = $transfer->sloc_id ?? "GS00";
+            $sloc_from = $transfer->sloc_id != "GS00" ? "GS00" : $sloc_id;
 
-            if ($transfer->status !== 'Pending') {
-                return response()->json(['error' => 'Transfer sudah diproses'], 400);
-            }
+            // Data umum
+            $inventoryData = [
+                'product_id' => $productId,
+                'uom_id'     => $uomId,
+                'size_id'    => $sizeId,
+                'variant'    => $variant,
+            ];
 
-            DB::beginTransaction();
-
-            // Update status
-            $transfer->status = 'Accepted';
-            $transfer->updated_by = Auth::id();
-            $transfer->save();
-
-            // Proses setiap detail
-            foreach ($transfer->transfer_detail as $detail) {
-
-                // Aman untuk array atau object
-                $qty = data_get($detail, 'qty', 0);
-                $productId = data_get($detail, 'product_id');
-                $uomId = data_get($detail, 'uom_id');
-                $sizeId = data_get($detail, 'size_id');
-                $variant = data_get($detail, 'variant', 'all');
-                $sloc_id = $transfer->sloc_id ?? "GS00";
-
-                $sloc_from = $transfer->sloc_id != "GS00" ? "GS00" : $sloc_id;
-
-                // Prepare common inventory data, ensuring size_id is always present as null if not found
-                $inventoryData = [
-                    'product_id' => $productId,
-                    'uom_id' => $uomId,
-                    'size_id' => $sizeId, // Will be null if not found by data_get
-                    'variant' => $variant,
-                ];
-
-                // Jika bukan PRD-xxx maka kurangi stok di lokasi asal
-                if (substr($transfer->id, 0, 4) != "PRD-") {
-                    app(InventoryService::class)->updateOrCreateInventory(
-                        array_merge($inventoryData, [
-                            'location_id' => $transfer->location_id,
-                            'sloc_id' => $sloc_from,
-                        ]),
-                        ['qty' => -abs($qty)],
-                        'IN'
-                    );
-                }
-
-                // Tambah stok ke lokasi tujuan
+            // ==========================
+            // KURANGI STOK DARI LOKASI ASAL
+            // ==========================
+            if (substr($transfer->id, 0, 4) != "PRD-") {
                 app(InventoryService::class)->updateOrCreateInventory(
                     array_merge($inventoryData, [
-                        'location_id' => $transfer->location_destination_id,
-                        'sloc_id' => $transfer->sloc_id,
+                        'location_id' => $transfer->location_id,
+                        'sloc_id'     => $sloc_from,
                     ]),
-                    ['qty' => $qty],
+                    ['qty' => -abs($qty)],
                     'IN'
                 );
             }
 
-            DB::commit();
-
-            return response()->json(['message' => 'Transfer diterima']);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Accept transfer error: ' . $e->getMessage());
-            return response()->json(['message' => 'Gagal menerima transfer'], 500);
+            // ==========================
+            // TAMBAHKAN STOK KE LOKASI TUJUAN
+            // ==========================
+            app(InventoryService::class)->updateOrCreateInventory(
+                array_merge($inventoryData, [
+                    'location_id' => $transfer->location_destination_id,
+                    'sloc_id'     => $transfer->sloc_id,
+                ]),
+                ['qty' => $qty],
+                'IN'
+            );
         }
+
+        DB::commit();
+
+        return response()->json(['message' => 'Transfer diterima']);
+
+    } catch (\Exception $e) {
+
+        DB::rollBack();
+
+        Log::error('Accept transfer error: ' . $e->getMessage(), [
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json(['message' => 'Gagal menerima transfer'], 500);
     }
+}
 
 
 
