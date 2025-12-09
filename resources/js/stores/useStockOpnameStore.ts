@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 
 export interface StockOpnameItem {
   size_id: string;
+  variant: string;
   qty: number;
   qty_system: number;
   qty_physical: number;

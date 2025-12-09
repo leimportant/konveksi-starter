@@ -127,6 +127,7 @@ class PosOrderController extends Controller
                     'price' => $p['price'],
                     'uom_id' => $p['uom_id'] ?? null, // Optional UOM
                     'size_id' => $p['size_id'] ?? null, // Optional Size
+                    'variant' => $p['variant'] ?? null, 
                     'subtotal' => $p['price'] * $p['quantity'],
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
@@ -146,9 +147,10 @@ class PosOrderController extends Controller
                         'product_name' => $p['product_name'] ?? "",
                         'location_id' => $locationId,
                         'uom_id' => $p['uom_id'],
+                        'size_id' => $p['size_id'],
+                        'variant' => $p['variant'],
                         'sloc_id' => 'GS00', // Assuming GS01 is the source location
                     ], [
-                        'size_id' => $p['size_id'],
                         'qty' => abs($p['quantity']), // Reduce stock from source location
                     ], 'IN');
                 } else {
@@ -160,8 +162,9 @@ class PosOrderController extends Controller
                             'location_id' => $locationId,
                             'uom_id' => $p['uom_id'],
                             'sloc_id' => 'GS00', // Assuming GS01 is the source location
-                        ], [
                             'size_id' => $p['size_id'],
+                            'variant' => $p['variant'],
+                        ], [
                             'qty' => -abs($p['quantity']), // Reduce stock from source location
                         ], 'IN');
                     }
@@ -172,8 +175,10 @@ class PosOrderController extends Controller
                         'location_id' => $locationId,
                         'uom_id' => $p['uom_id'],
                         'sloc_id' => 'GS00', // Assuming GS01 is the source location
-                    ], [
                         'size_id' => $p['size_id'],
+                        'variant' => $p['variant'],
+                    ], [
+                        
                         'qty' => $p['quantity'], // Reduce stock from source location
                     ], 'OUT');
                 }

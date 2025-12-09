@@ -271,6 +271,7 @@ class OrderController extends Controller
             $orderItem->order_id = $orderId; // Use the newly saved order's ID
             $orderItem->product_id = $itemData['product_id'];
             $orderItem->qty = $quantity;
+            $orderItem->variant = $itemData['variant'] ?? null;
             $orderItem->size_id = $itemData['size_id'] ?? null; // Optional size_id
             $orderItem->uom_id = $itemData['uom_id'] ?? null; // Optional color_id
             $orderItem->discount = $totalLineDiscount; // Store the total discount amount for this item line
@@ -286,9 +287,10 @@ class OrderController extends Controller
                 'product_id' => $itemData['product_id'],
                 'location_id' => intval($locationId),
                 'uom_id' => $itemData['uom_id'],
+                'size_id' => $itemData['size_id'],
+                'variant' => $itemData['variant'],
                 'sloc_id' => 'GS00', // Assuming GS01 is the source location
             ], [
-                'size_id' => $itemData['size_id'],
                 'qty' => -abs($quantity), // Reduce stock from source location
             ], 'IN');
 
@@ -296,9 +298,10 @@ class OrderController extends Controller
                 'product_id' => $itemData['product_id'],
                 'location_id' => intval($locationId),
                 'uom_id' => $itemData['uom_id'],
+                'size_id' => $itemData['size_id'],
+                'variant' => $itemData['variant'],
                 'sloc_id' => 'GS00', // Assuming GS01 is the source location
             ], [
-                'size_id' => $itemData['size_id'],
                 'qty' => abs($quantity), // Reduce stock from source location
             ], 'OUT');
         }
@@ -401,6 +404,7 @@ class OrderController extends Controller
                     'price' => $detail->price,
                     'uom_id' => $detail->uom_id ?? null,
                     'size_id' => $detail->size_id ?? null,
+                    'variant' => $detail->variant ?? null,
                     'subtotal' => $detail->price * $detail->quantity,
                     'created_at' => now(),
                     'updated_at' => now(),

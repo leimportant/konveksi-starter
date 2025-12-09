@@ -207,45 +207,39 @@ class TransferStockController extends Controller
                 $uomId = data_get($detail, 'uom_id');
                 $sizeId = data_get($detail, 'size_id');
                 $variant = data_get($detail, 'variant', 'all');
+                $sloc_id = $transfer->sloc_id ?? "GS00";
 
-                $sloc_from = $transfer->sloc_id != "GS00" ? "GS00" : $transfer->sloc_id;
+                $sloc_from = $transfer->sloc_id != "GS00" ? "GS00" : $sloc_id;
+
+                // Prepare common inventory data, ensuring size_id is always present as null if not found
+                $inventoryData = [
+                    'product_id' => $productId,
+                    'uom_id' => $uomId,
+                    'size_id' => $sizeId, // Will be null if not found by data_get
+                    'variant' => $variant,
+                ];
 
                 // Jika bukan PRD-xxx maka kurangi stok di lokasi asal
                 if (substr($transfer->id, 0, 4) != "PRD-") {
-
-                    if (empty($sizeId)) {
-                        Log::warning("Skipping inventory update for transfer detail {$detail->id} due to missing size_id.");
-                        continue; // Skip this detail and move to the next one
-                    }
-
-                    app(InventoryService::class)->updateOrCreateInventory([
-                        'product_id' => $productId,
-                        'location_id' => $transfer->location_id,
-                        'uom_id' => $uomId,
-                        'size_id' => $sizeId,
-                        'variant' => $variant,
-                        'sloc_id' => $sloc_from,
-                    ], [
-                        'qty' => -abs($qty),
-                    ], 'IN');
-                }
-
-                if (empty($sizeId)) {
-                    Log::warning("Skipping inventory update for transfer detail {$detail->id} due to missing size_id.");
-                    continue; // Skip this detail and move to the next one
+                    app(InventoryService::class)->updateOrCreateInventory(
+                        array_merge($inventoryData, [
+                            'location_id' => $transfer->location_id,
+                            'sloc_id' => $sloc_from,
+                        ]),
+                        ['qty' => -abs($qty)],
+                        'IN'
+                    );
                 }
 
                 // Tambah stok ke lokasi tujuan
-                app(InventoryService::class)->updateOrCreateInventory([
-                    'product_id' => $productId,
-                    'location_id' => $transfer->location_destination_id,
-                    'uom_id' => $uomId,
-                    'size_id' => $sizeId,
-                    'variant' => $variant,
-                    'sloc_id' => $transfer->sloc_id,
-                ], [
-                    'qty' => $qty,
-                ], 'IN');
+                app(InventoryService::class)->updateOrCreateInventory(
+                    array_merge($inventoryData, [
+                        'location_id' => $transfer->location_destination_id,
+                        'sloc_id' => $transfer->sloc_id,
+                    ]),
+                    ['qty' => $qty],
+                    'IN'
+                );
             }
 
             DB::commit();

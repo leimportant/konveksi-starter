@@ -98,6 +98,7 @@ class InventoryController extends Controller
                 'i.product_id',
                 'p.name as product_name',
                 'i.uom_id',
+                'i.variant',
                 'i.sloc_id',
                 'l.name as location_name',
                 DB::raw('SUM(i.qty) as qty')
@@ -124,10 +125,11 @@ class InventoryController extends Controller
 
             if (!isset($grouped[$key])) {
                 $grouped[$key] = [
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product_name,
-                    'uom_id' => $item->uom_id,
-                    'sloc_id' => $item->sloc_id,
+                    'product_id' => $item->product_id  ?? "",
+                    'product_name' => $item->product_name  ?? "",
+                    'uom_id' => $item->uom_id  ?? "PCS",
+                    'variant' => $item->variant ?? "",
+                    'sloc_id' => $item->sloc_id  ?? "GS00",
                 ];
             }
 
@@ -170,6 +172,7 @@ class InventoryController extends Controller
                 'uom_id' => 'required|exists:mst_uom,id',
                 'sloc_id' => 'required|exists:mst_sloc,id',
                 'size_id' => 'required|exists:mst_size,id',
+                'variant' => 'required',
                 'qty' => 'required|numeric'
             ]);
 
@@ -184,8 +187,9 @@ class InventoryController extends Controller
                 'location_id' => $validated['location_id'],
                 'uom_id' => $validated['uom_id'],
                 'sloc_id' => $validated['sloc_id'],
-            ], [
                 'size_id' => $validated['size_id'],
+                'variant' => $validated['variant'],
+            ], [
                 'qty' => $validated['qty'],
             ], 'IN');
 
@@ -196,6 +200,7 @@ class InventoryController extends Controller
                     'product_id' => $validated['product_id'],
                     'location_id' => $validated['location_id'],
                     'uom_id' => $validated['uom_id'],
+                    'variant' => $validated['variant'],
                     'sloc_id' => $validated['sloc_id'],
                 ])->first()
             ], 201);
@@ -254,6 +259,7 @@ class InventoryController extends Controller
             'sloc_id' => 'nullable|exists:mst_sloc,id',
             'product_id' => 'required|exists:mst_product,id',
             'uom_id' => 'required|exists:mst_uom,id',
+            'variant' => 'required',
             'qty' => 'required|numeric|min:0'
         ]);
 
@@ -263,6 +269,7 @@ class InventoryController extends Controller
                 'sloc_id' => $request->sloc_id,
                 'product_id' => $request->product_id,
                 'uom_id' => $request->uom_id,
+                'variant' => $request->uom_id,
                 'size_id' => $request->size_id,
             ],
             [
