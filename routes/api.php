@@ -196,7 +196,7 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('api/inventories', InventoryController::class);
     Route::get('api/inventories/{product_id}/{location_id}/{sloc_id}/{size_id}', [InventoryController::class, 'show']);
     Route::put('api/inventory/{product_id}/{location_id}/{sloc_id}/{size_id}', [InventoryController::class, 'update']);
-    Route::delete('api/inventories/{product_id}/{location_id}/{sloc_id}/{size_id}', [InventoryController::class, 'delete']);
+    Route::delete('api/inventories/{id}', [InventoryController::class, 'delete']);
 
     Route::get('api/inventory/stock-monitoring', [InventoryController::class, 'stockMonitoring']);
 

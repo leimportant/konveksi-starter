@@ -81,10 +81,10 @@ const handleSaveEditQty = async () => {
     }
 };
 
-const handleDelete = async (product_id: number, location_id: number, sloc_id: string, size_id: string) => {
+const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this inventory?')) return;
     try {
-        await store.deleteInventory(product_id, location_id, sloc_id, size_id);
+        await store.deleteInventory(id);
         toast.success('Inventory deleted');
         await store.fetchInventory(currentPage.value);
     } catch (error) {
@@ -117,24 +117,24 @@ const handleDelete = async (product_id: number, location_id: number, sloc_id: st
                 <Table>
                     <TableHeader class="bg-gray-100">
                         <TableRow>
-                            <TableHead>Product ID</TableHead>
                             <TableHead>Product Name</TableHead>
                             <TableHead>Location</TableHead>
                             <TableHead>SLoc</TableHead>
                             <TableHead>Unit</TableHead>
                             <TableHead>Size</TableHead>
+                            <TableHead>Variant</TableHead>
                             <TableHead>Qty</TableHead>
                             <TableHead>Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="item in inventoryRpt" :key="`${item.product_id}-${item.location_id}-${item.sloc_id}-${item.size_id}`">
-                            <TableCell>{{ item.product_id }}</TableCell>
+                        <TableRow v-for="item in inventoryRpt" :key="`${item.id}`">
                             <TableCell>{{ item.product_name }}</TableCell>
                             <TableCell>{{ item.location_name }}</TableCell>
                             <TableCell>{{ item.sloc_name }}</TableCell>
                             <TableCell>{{ item.uom_id }}</TableCell>
                             <TableCell>{{ item.size_id }}</TableCell>
+                            <TableCell>{{ item.variant }}</TableCell>
                             <TableCell>{{ item.qty }}</TableCell>
                             <TableCell>
                                 <div class="flex justify-end gap-2">
@@ -156,7 +156,7 @@ const handleDelete = async (product_id: number, location_id: number, sloc_id: st
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        @click="handleDelete(Number(item.product_id), Number(item.location_id), item.sloc_id, item.size_id)"
+                                        @click="handleDelete(Number(item.id))"
                                     >
                                         <Trash2 class="h-4 w-4" />
                                     </Button>

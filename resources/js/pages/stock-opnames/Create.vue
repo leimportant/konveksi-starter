@@ -341,7 +341,7 @@ const onLocationChange = async () => {
 
                     <td class="border p-2">
                       <Input type="text" v-model="item.variant" class="w-full border rounded p-1" readonly />
-                      <p v-if="index === 0 && errors['stock_opname_items.size_id']" class="text-red-600 text-xs mt-1">
+                      <p v-if="index === 0 && errors['stock_opname_items.variant']" class="text-red-600 text-xs mt-1">
                         {{ errors['stock_opname_items.variant'] }}
                       </p>
                     </td>

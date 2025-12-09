@@ -61,7 +61,7 @@ const goToPage = (page: number) => {
 const locationKeys = computed(() => {
   if (!stockMonitoringReport.value.length) return [];
   
-  const knownKeys = ['product_id', 'product_name', 'uom_id', 'sloc_id', 'size_id'];
+  const knownKeys = ['product_id', 'product_name', 'uom_id', 'sloc_id', 'size_id', 'variant'];
   return Object.keys(stockMonitoringReport.value[0])
     .filter(key => !knownKeys.includes(key));
 });

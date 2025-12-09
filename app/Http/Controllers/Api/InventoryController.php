@@ -515,13 +515,10 @@ class InventoryController extends Controller
         return ['retailPrice' => $retailPrice, 'grosirPrice' => $grosirPrice];
     }
 
-    public function delete($product_id, $location_id, $sloc_id, $size_id)
+    public function delete($id)
     {
         $item = DB::table('tr_inventory')
-            ->where('product_id', $product_id)
-            ->where('location_id', $location_id)
-            ->where('sloc_id', $sloc_id)
-            ->where('size_id', $size_id)
+            ->where('id', $id)
             ->first();
 
         if (!$item) {
@@ -533,12 +530,7 @@ class InventoryController extends Controller
         }
 
         DB::table('tr_inventory')
-            ->where('product_id', $product_id)
-            ->where('location_id', $location_id)
-            ->where('sloc_id', $sloc_id)
-            ->where('size_id', $size_id)
-            ->where('status', 'IN')
-            ->where('variant', 'all')
+           ->where('id', $id)
             ->delete();
 
 
