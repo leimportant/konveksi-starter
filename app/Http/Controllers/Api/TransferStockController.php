@@ -213,6 +213,11 @@ class TransferStockController extends Controller
                 // Jika bukan PRD-xxx maka kurangi stok di lokasi asal
                 if (substr($transfer->id, 0, 4) != "PRD-") {
 
+                    if (empty($sizeId)) {
+                        Log::warning("Skipping inventory update for transfer detail {$detail->id} due to missing size_id.");
+                        continue; // Skip this detail and move to the next one
+                    }
+
                     app(InventoryService::class)->updateOrCreateInventory([
                         'product_id' => $productId,
                         'location_id' => $transfer->location_id,
@@ -223,6 +228,11 @@ class TransferStockController extends Controller
                     ], [
                         'qty' => -abs($qty),
                     ], 'IN');
+                }
+
+                if (empty($sizeId)) {
+                    Log::warning("Skipping inventory update for transfer detail {$detail->id} due to missing size_id.");
+                    continue; // Skip this detail and move to the next one
                 }
 
                 // Tambah stok ke lokasi tujuan
