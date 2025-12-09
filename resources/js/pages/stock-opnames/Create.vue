@@ -348,7 +348,7 @@ const onLocationChange = async () => {
 
                     <!-- System Qty -->
                     <td class="border p-2">
-                      <Input type="number" v-model="item.qty_system" class="w-full"
+                      <Input type="number" v-model="item.qty_system" class="w-full" readonly
                         @input="calculateDifference(index)" />
                     </td>
 
