@@ -21,6 +21,7 @@ const formData = ref({
   remark: '',
   stock_opname_items: [] as Array<{
     size_id: string;
+    variant: string;
     qty_system: number;
     qty_physical: number;
     difference: number;
@@ -34,7 +35,7 @@ interface DropdownItem {
   name: string;
   sloc_id?: string;
   uom_id?: string;
-  sizes?: Array<{ size_id: string; qty: number }>;
+  sizes?: Array<{ size_id: string; variant: string; qty: number }>;
 }
 
 
@@ -51,6 +52,7 @@ const errors = ref<ErrorMap>({
   sloc_id: '',
   uom_id: '',
   'stock_opname_items.size_id': '',
+  'stock_opname_items.variant': '',
   'stock_opname_items.qty_system': '',
   'stock_opname_items.qty_physical': '',
 });
@@ -84,6 +86,7 @@ const fetchDropdownData = async () => {
 const addItem = () => {
   formData.value.stock_opname_items.push({
     size_id: '',
+    variant: '',
     qty_system: 0,
     qty_physical: 0,
     difference: 0,
@@ -206,8 +209,9 @@ const onProductChange = async () => {
       formData.value.sloc_id = product.sloc_id || '';
       formData.value.uom_id = product.uom_id || '';
       // Auto-fill stock_opname_items
-      formData.value.stock_opname_items = (product.sizes || []).map((size: { size_id: string, qty: number }) => ({
+      formData.value.stock_opname_items = (product.sizes || []).map((size: { size_id: string, variant: string, qty: number }) => ({
         size_id: String(size.size_id),
+        variant: size.variant,
         qty_system: size.qty || 0,
         qty_physical: 0,
         difference: 0,
@@ -231,7 +235,7 @@ const onLocationChange = async () => {
     // Map inventories to products dropdown using nested product object
     console.log(res.data);
     products.value = Array.isArray(res.data)
-      ? res.data.map((inv: { product_id: string | number, product_name: string, sloc_id?: string, uom_id?: string, sizes: Array<{ size_id: string, qty: number }> }) => ({
+      ? res.data.map((inv: { product_id: string | number, product_name: string, sloc_id?: string, uom_id?: string, sizes: Array<{ size_id: string, variant: string, qty: number }> }) => ({
         id: inv.product_id,
         name: inv.product_name,
         sloc_id: inv.sloc_id || '',
@@ -318,6 +322,7 @@ const onLocationChange = async () => {
                 <thead>
                   <tr class="bg-gray-100">
                     <th class="border p-2 text-left">Size</th>
+                    <th class="border p-2 text-left">variant</th>
                     <th class="border p-2 text-left">System Qty</th>
                     <th class="border p-2 text-left">Actual Qty</th>
                     <th class="border p-2 text-left">Difference</th>
@@ -331,6 +336,13 @@ const onLocationChange = async () => {
                       <Input type="text" v-model="item.size_id" class="w-full border rounded p-1" readonly />
                       <p v-if="index === 0 && errors['stock_opname_items.size_id']" class="text-red-600 text-xs mt-1">
                         {{ errors['stock_opname_items.size_id'] }}
+                      </p>
+                    </td>
+
+                    <td class="border p-2">
+                      <Input type="text" v-model="item.variant" class="w-full border rounded p-1" readonly />
+                      <p v-if="index === 0 && errors['stock_opname_items.size_id']" class="text-red-600 text-xs mt-1">
+                        {{ errors['stock_opname_items.variant'] }}
                       </p>
                     </td>
 

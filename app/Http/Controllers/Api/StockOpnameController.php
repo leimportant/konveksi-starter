@@ -30,6 +30,7 @@ class StockOpnameController extends Controller
             'uom_id' => 'required|exists:mst_uom,id',
             'stock_opname_items' => 'required|array|min:1',
             'stock_opname_items.*.size_id' => 'required|exists:mst_size,id',
+            'stock_opname_items.*.variant' => 'required',
             'stock_opname_items.*.qty_system' => 'required|integer',
             'stock_opname_items.*.qty_physical' => 'required|integer',
             'stock_opname_items.*.difference' => 'required|integer',
@@ -55,6 +56,7 @@ class StockOpnameController extends Controller
             $stockOpname->items()->create([
                 'opname_id' => $uuid,
                 'size_id' => $item['size_id'],
+                'variant' => $item['variant'],
                 'qty_system' => $item['qty_system'],
                 'qty_physical' => $item['qty_physical'],
                 'difference' => $item['difference'],

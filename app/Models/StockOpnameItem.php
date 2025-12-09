@@ -14,6 +14,7 @@ class StockOpnameItem extends Model
     protected $fillable = [
         'opname_id',
         'size_id',
+        'variant',
         'qty_system',
         'qty_physical',
         'difference',

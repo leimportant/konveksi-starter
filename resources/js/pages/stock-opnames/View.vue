@@ -89,6 +89,7 @@ function formatDate(dateString: string): string {
             <TableHeader>
               <TableRow>
                 <TableHead>Size</TableHead>
+                <TableHead>Variant</TableHead>
                 <TableHead>System Qty</TableHead>
                 <TableHead>Physical Qty</TableHead>
                 <TableHead>Difference</TableHead>
@@ -98,6 +99,7 @@ function formatDate(dateString: string): string {
             <TableBody>
               <TableRow v-for="(item, index) in stockOpname.items" :key="index">
                 <TableCell>{{ item.size_id }}</TableCell>
+                 <TableCell>{{ item.variant }}</TableCell>
                 <TableCell>{{ item.qty_system }}</TableCell>
                 <TableCell>{{ item.qty_physical }}</TableCell>
                 <TableCell :class="item.difference < 0 ? 'text-red-600' : 'text-green-600'">
