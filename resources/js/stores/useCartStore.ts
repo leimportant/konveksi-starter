@@ -11,6 +11,7 @@ interface Product {
   stock: number;
   category_id: number;
   size_id: string;
+  variant: string;
   uom_id: string;
   discount?: number;
 }

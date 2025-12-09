@@ -89,6 +89,7 @@ class OrderController extends Controller
                             'price' => $item->price_grosir > 0 ? $item->price_grosir : $item->price,
                             'price_sell' => $item->price_sell_grosir > 0 ? $item->price_sell_grosir : $item->price_sell,
                             'size_id' => $item->size_id,
+                            'variant'=> $item->variant ?? "",
                             'uom_id' => $item->uom_id,
                             'discount' => $item->discount_grosir > 0 ? $item->discount_grosir : $item->discount,
                             'price_final' => $item->quantity * ($item->price_sell_grosir > 0 ? $item->price_sell_grosir : $item->price_sell),
@@ -238,6 +239,7 @@ class OrderController extends Controller
                 ->where('location_id', $locationId)
                 ->where('uom_id', $itemData['uom_id'])
                 ->where('size_id', $itemData['size_id'])
+                ->where('variant', $itemData['variant'])
                 ->where('sloc_id', 'GS00')
                 ->where('qty', '>', 0)
                 ->where('status', 'IN')
@@ -273,6 +275,7 @@ class OrderController extends Controller
             $orderItem->qty = $quantity;
             $orderItem->variant = $itemData['variant'] ?? null;
             $orderItem->size_id = $itemData['size_id'] ?? null; // Optional size_id
+            $orderItem->variant = $itemData['variant'] ?? ""; 
             $orderItem->uom_id = $itemData['uom_id'] ?? null; // Optional color_id
             $orderItem->discount = $totalLineDiscount; // Store the total discount amount for this item line
             $orderItem->price = $basePrice; // Store the original product price per unit
@@ -404,7 +407,7 @@ class OrderController extends Controller
                     'price' => $detail->price,
                     'uom_id' => $detail->uom_id ?? null,
                     'size_id' => $detail->size_id ?? null,
-                    'variant' => $detail->variant ?? null,
+                    'variant' => $detail->variant ?? "",
                     'subtotal' => $detail->price * $detail->quantity,
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -636,6 +639,7 @@ class OrderController extends Controller
                     'qty' => $item->qty,
                     'quantity' => $item->qty,
                     'size_id' => $item->size_id,
+                    'variant'  => $item->variant,
                     'uom_id' => $item->uom_id,
                     'price' => $item->price,
                     'discount' => $item->discount,
