@@ -8,7 +8,7 @@ use App\Models\Inventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Services\InventoryService;
+
 
 
 class CartItemController extends Controller
