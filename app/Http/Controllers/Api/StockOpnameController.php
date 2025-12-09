@@ -15,7 +15,7 @@ class StockOpnameController extends Controller
 {
     public function index()
     {
-        $opname = StockOpname::with(['product', 'location', 'items'])->latest()->paginate(10);
+        $opname = StockOpname::with(['product', 'location', 'items'])->latest()->paginate(50);
         return response()->json($opname);
     }
 

@@ -80,6 +80,7 @@ class ComboController extends Controller
         $sizes = $inventory->map(function($item) {
             return [
                 'size_id' => $item->size_id,
+                'variant' =>$item->variant,
                 'qty' => $item->qty
             ];
         });
