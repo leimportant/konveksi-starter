@@ -64,6 +64,7 @@ class TransferStockController extends Controller
                 'transfer_detail' => 'required|array',
                 'transfer_detail.*.uom_id' => 'required|exists:mst_uom,id',
                 'transfer_detail.*.size_id' => 'required|exists:mst_size,id',
+                'transfer_detail.*.variant' => 'required',
                 'transfer_detail.*.product_id' => 'required|exists:mst_product,id',
                 'transfer_detail.*.qty' => 'required|numeric|min:0.01',
             ]);
@@ -82,6 +83,7 @@ class TransferStockController extends Controller
                     'transfer_id' => $data->id,
                     'uom_id' => $detail['uom_id'],
                     'size_id' => $detail['size_id'],
+                    'variant'=> $detail['variant'],
                     'product_id' => $detail['product_id'],
                     'qty' => $detail['qty'],
                 ]);
@@ -120,6 +122,7 @@ class TransferStockController extends Controller
                 'transfer_detail' => 'required|array',
                 'transfer_detail.*.uom_id' => 'required|exists:mst_uom,id',
                 'transfer_detail.*.size_id' => 'required|exists:mst_size,id',
+                'transfer_detail.*.variant' => 'required',
                 'transfer_detail.*.product_id' => 'required|exists:mst_product,id',
                 'transfer_detail.*.qty' => 'required|numeric|min:0.01',
             ]);
@@ -203,9 +206,10 @@ class TransferStockController extends Controller
                         'product_id' => $detail['product_id'],
                         'location_id' => $transfer['location_id'], // lokasi asal
                         'uom_id' => $detail['uom_id'],
+                        'size_id' => $detail['size_id'],
+                        'variant' => $detail['variant'],
                         'sloc_id' => $sloc_from,
                     ], [
-                        'size_id' => $detail['size_id'],
                         'qty' => -abs($qty),
                     ], 'IN');
                 }
@@ -216,9 +220,10 @@ class TransferStockController extends Controller
                     'product_id' => $detail['product_id'],
                     'location_id' => $transfer['location_destination_id'], // lokasi tujuan
                     'uom_id' => $detail['uom_id'],
+                    'size_id' => $detail['size_id'],
+                    'variant' => $detail['variant'],
                     'sloc_id' => $transfer['sloc_id'],
                 ], [
-                    'size_id' => $detail['size_id'],
                     'qty' => $qty,
                 ], 'IN');
             }
