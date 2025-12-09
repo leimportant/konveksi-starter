@@ -21,6 +21,7 @@ interface InventoryItem {
 }
 
 interface InventoryReport {
+    id: number;
     product_id: string;
     product_name: string;
     location_id: string;
@@ -29,6 +30,7 @@ interface InventoryReport {
     sloc_name: string;
     uom_id: string;
     size_id: string;
+    variant: string;
     qty: number;
     qty_in: number;
     qty_out: number;
@@ -118,9 +120,9 @@ export const useInventoryStore = defineStore('inventory', {
             }
         },
 
-        async deleteInventory(product_id: number, location_id: number, sloc_id: string, size_id: string) {
+        async deleteInventory(id: number) {
             try {
-                await axios.delete(`/api/inventories/${product_id}/${location_id}/${sloc_id}/${size_id}`);
+                await axios.delete(`/api/inventories/${id}`);
             } catch (error: any) {
                 this.error = error.response?.data?.message || 'Failed to delete inventory';
                 console.error('Delete inventory error:', this.error);
