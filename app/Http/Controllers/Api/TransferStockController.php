@@ -26,7 +26,7 @@ class TransferStockController extends Controller
         $status = $request->input('status');
 
         if (!in_array($status, [null, 'Pending', 'Accepted', 'Rejected']) || $status == "") {
-           $status = "Pending";
+            $status = "Pending";
         }
         $query = TransferStock::with(['location', 'location_destination', 'transfer_detail.product']);
 
@@ -35,18 +35,18 @@ class TransferStockController extends Controller
         }
         if ($search) {
             $query->where('id', 'like', '%' . $search . '%')
-                    ->orWhere('transfer_date', 'like', '%' . $search . '%')
-                    ->orWhereHas('location', function ($q) use ($search) {
+                ->orWhere('transfer_date', 'like', '%' . $search . '%')
+                ->orWhereHas('location', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('location_destination', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('transfer_detail', function ($q) use ($search) {
+                    $q->whereHas('product', function ($q) use ($search) {
                         $q->where('name', 'like', '%' . $search . '%');
-                    })
-                    ->orWhereHas('location_destination', function ($q) use ($search) {
-                        $q->where('name', 'like', '%' . $search . '%');
-                    })
-                    ->orWhereHas('transfer_detail', function ($q) use ($search) {
-                        $q->whereHas('product', function ($q) use ($search) {
-                            $q->where('name', 'like', '%' . $search . '%');
-                        });
                     });
+                });
         }
 
         $datas = $query->latest()->paginate(50);
@@ -83,7 +83,7 @@ class TransferStockController extends Controller
                     'transfer_id' => $data->id,
                     'uom_id' => $detail['uom_id'],
                     'size_id' => $detail['size_id'],
-                    'variant'=> $detail['variant'],
+                    'variant' => $detail['variant'],
                     'product_id' => $detail['product_id'],
                     'qty' => $detail['qty'],
                 ]);
@@ -195,38 +195,40 @@ class TransferStockController extends Controller
             $transfer->save();
 
             foreach ($transfer->transfer_detail as $detail) {
-                $qty = $detail['qty'] ?? 0;
 
-                $sloc_from = $transfer['sloc_id'] != "GS00" ? "GS00" : $transfer['sloc_id'];
+                $qty = $detail->qty ?? 0;
+
+                $sloc_from = $transfer->sloc_id != "GS00" ? "GS00" : $transfer->sloc_id;
 
                 // jika id nya PRD-xxx dari pengiriman, jangan dikurangi stok
                 if (substr($transfer->id, 0, 4) != "PRD-") {
+
                     // 🔻 Kurangi stok dari lokasi asal
                     app(InventoryService::class)->updateOrCreateInventory([
-                        'product_id' => $detail['product_id'],
-                        'location_id' => $transfer['location_id'], // lokasi asal
-                        'uom_id' => $detail['uom_id'],
-                        'size_id' => $detail['size_id'],
-                        'variant' => $detail['variant'],
+                        'product_id' => $detail->product_id,
+                        'location_id' => $transfer->location_id,
+                        'uom_id' => $detail->uom_id,
+                        'size_id' => $detail->size_id,
+                        'variant' => $detail->variant,
                         'sloc_id' => $sloc_from,
                     ], [
                         'qty' => -abs($qty),
                     ], 'IN');
                 }
-            
 
                 // 🔺 Tambah stok ke lokasi tujuan
                 app(InventoryService::class)->updateOrCreateInventory([
-                    'product_id' => $detail['product_id'],
-                    'location_id' => $transfer['location_destination_id'], // lokasi tujuan
-                    'uom_id' => $detail['uom_id'],
-                    'size_id' => $detail['size_id'],
-                    'variant' => $detail['variant'],
-                    'sloc_id' => $transfer['sloc_id'],
+                    'product_id' => $detail->product_id,
+                    'location_id' => $transfer->location_destination_id,
+                    'uom_id' => $detail->uom_id,
+                    'size_id' => $detail->size_id,
+                    'variant' => $detail->variant,
+                    'sloc_id' => $transfer->sloc_id,
                 ], [
                     'qty' => $qty,
                 ], 'IN');
             }
+
 
             DB::commit();
 
