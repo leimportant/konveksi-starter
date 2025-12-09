@@ -109,8 +109,8 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
 <template>
     <Head title="Transfer Stocks" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="px-4 py-4">
-            <div class="mb-4 flex w-full flex-col items-center gap-3 md:flex-row">
+        <div class="w-full px-4 py-4">
+            <div class="mb-4 flex w-full flex-col gap-3 md:flex-row md:items-center">
                 <!-- Filter Status -->
                 <Vue3Select
                     v-model="filterStatus"
@@ -121,7 +121,7 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                         { label: 'Rejected', value: 'Rejected' },
                     ]"
                     placeholder="Pilih Status"
-                    class="w-full text-sm md:w-[180px]"
+                    class="w-full text-sm md:w-48"
                 />
 
                 <!-- Search Text -->
@@ -134,7 +134,10 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                 />
 
                 <!-- Tombol Cari -->
-                <Button @click="handleSearch" class="flex items-center gap-1 rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                <Button
+                    @click="handleSearch"
+                    class="flex w-full items-center justify-center gap-1 rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 md:w-auto"
+                >
                     <Search class="h-4 w-4" />
                     Cari
                 </Button>
