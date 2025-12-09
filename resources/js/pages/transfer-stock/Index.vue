@@ -117,7 +117,7 @@ const breadcrumbs = [{ title: 'Transfer Stocks', href: '/transfer-stocks' }];
                     :options="[
                         { label: 'Semua', value: '' },
                         { label: 'Pending', value: 'Pending' },
-                        { label: 'Approved', value: 'Approved' },
+                        { label: 'Accepted', value: 'Accepted' },
                         { label: 'Rejected', value: 'Rejected' },
                     ]"
                     placeholder="Pilih Status"
