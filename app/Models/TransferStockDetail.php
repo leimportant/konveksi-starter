@@ -12,8 +12,18 @@ class TransferStockDetail extends Model
         'product_id',
         'uom_id',
         'size_id',
+        'variant',
         'qty',
     ];
+
+    protected $casts = [
+        'product_id' => 'integer',
+        'uom_id' => 'string',
+        'size_id' => 'string',
+        'variant' => 'string',
+        'qty' => 'decimal:2',
+    ];
+
 
     public function transfer()
     {

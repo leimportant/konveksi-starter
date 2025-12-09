@@ -182,7 +182,10 @@ class TransferStockController extends Controller
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 
-            $transfer = TransferStock::with('transfer_detail')->where('id', $id)->firstOrFail();
+            // Ambil transfer + detail
+            $transfer = TransferStock::with('transfer_detail')
+                ->where('id', $id)
+                ->firstOrFail();
 
             if ($transfer->status !== 'Pending') {
                 return response()->json(['error' => 'Transfer sudah diproses'], 400);
@@ -190,55 +193,62 @@ class TransferStockController extends Controller
 
             DB::beginTransaction();
 
+            // Update status
             $transfer->status = 'Accepted';
             $transfer->updated_by = Auth::id();
             $transfer->save();
 
+            // Proses setiap detail
             foreach ($transfer->transfer_detail as $detail) {
 
-                $qty = $detail->qty ?? 0;
+                // Aman untuk array atau object
+                $qty = data_get($detail, 'qty', 0);
+                $productId = data_get($detail, 'product_id');
+                $uomId = data_get($detail, 'uom_id');
+                $sizeId = data_get($detail, 'size_id');
+                $variant = data_get($detail, 'variant', 'all');
 
                 $sloc_from = $transfer->sloc_id != "GS00" ? "GS00" : $transfer->sloc_id;
 
-                // jika id nya PRD-xxx dari pengiriman, jangan dikurangi stok
+                // Jika bukan PRD-xxx maka kurangi stok di lokasi asal
                 if (substr($transfer->id, 0, 4) != "PRD-") {
 
-                    // 🔻 Kurangi stok dari lokasi asal
                     app(InventoryService::class)->updateOrCreateInventory([
-                        'product_id' => $detail->product_id,
+                        'product_id' => $productId,
                         'location_id' => $transfer->location_id,
-                        'uom_id' => $detail->uom_id,
-                        'size_id' => $detail->size_id,
-                        'variant' => $detail->variant,
+                        'uom_id' => $uomId,
+                        'size_id' => $sizeId,
+                        'variant' => $variant,
                         'sloc_id' => $sloc_from,
                     ], [
                         'qty' => -abs($qty),
                     ], 'IN');
                 }
 
-                // 🔺 Tambah stok ke lokasi tujuan
+                // Tambah stok ke lokasi tujuan
                 app(InventoryService::class)->updateOrCreateInventory([
-                    'product_id' => $detail->product_id,
+                    'product_id' => $productId,
                     'location_id' => $transfer->location_destination_id,
-                    'uom_id' => $detail->uom_id,
-                    'size_id' => $detail->size_id,
-                    'variant' => $detail->variant,
+                    'uom_id' => $uomId,
+                    'size_id' => $sizeId,
+                    'variant' => $variant,
                     'sloc_id' => $transfer->sloc_id,
                 ], [
                     'qty' => $qty,
                 ], 'IN');
             }
 
-
             DB::commit();
 
             return response()->json(['message' => 'Transfer diterima']);
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Accept transfer error: ' . $e->getMessage());
             return response()->json(['message' => 'Gagal menerima transfer'], 500);
         }
     }
+
 
 
     public function reject($id)
