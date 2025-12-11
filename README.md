@@ -9,3 +9,5 @@ composer require laravel-notification-channels/webpush
 
 
 php8 D:\composer\php7\composer7.phar global require minishlink/web-push
+
+php8 D:\composer\php7\composer7.phar remove tightenco/ziggy

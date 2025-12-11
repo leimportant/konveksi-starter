@@ -10,6 +10,8 @@ class UnlistedProduct extends Model
     use HasFactory;
     protected $primaryKey = 'id';
 
+    public $incrementing = false;
+    
     protected $table = 'mst_product';
 
     protected $fillable = [
@@ -25,10 +27,6 @@ class UnlistedProduct extends Model
         'price_grosir',
         'image_path',
     ];
-
-    public $incrementing = false;
-    protected $keyType = 'string';
-
     public static function generateId(): string
     {
         // Find the latest ID that starts with '999'

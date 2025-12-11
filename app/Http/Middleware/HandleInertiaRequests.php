@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Tighten\Ziggy\Ziggy;
+// use Tighten\Ziggy\Ziggy;
 use Illuminate\Support\Facades\Log;
 
 class HandleInertiaRequests extends Middleware

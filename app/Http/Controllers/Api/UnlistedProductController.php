@@ -56,19 +56,22 @@ class UnlistedProductController extends Controller
 
     public function index(Request $request)
     {
-        $query = UnlistedProduct::where('unlisted', 'Y')->query();
-
-        $search = $request->input('search');
-        if ($search) {
-            $query->where('name', 'like', '%' . $search . '%')
+        $query = UnlistedProduct::where('unlisted', 'Y');
+    
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
                   ->orWhere('variant', 'like', '%' . $search . '%');
+            });
         }
-
+    
         $perPage = $request->input('perPage', 50);
-        $unlistedProducts = $query->paginate($perPage);
-
-        return response()->json($unlistedProducts);
+    
+        return response()->json(
+            $query->paginate($perPage)
+        );
     }
+    
 
     public function show(UnlistedProduct $unlistedProduct)
     {
